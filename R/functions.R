@@ -247,25 +247,26 @@ circ_descr <- function(x, w = NULL, d = NULL){
 #' Remove cardinal biases
 #'
 #' @param err a vector of errors, deviations of response from the true stimuli
-#' @param x a vector of true stimuli
+#' @param x a vector of true stimuli in degrees (see space)
+#' @param space circular space to use (a string: '180' or '360')
+#' @param bias_type bias type to use ('fit', 'card', or 'obl', see details)
 #' @param do_plot show plots (default: False)
 #' @param poly_deg degree of the fitted polynomials for each bin (default: 4)
 #' @param var_sigma allow standard deviation (width) of the fitted response distribution to vary as a function of distance to the nearest cardinal (default: True)
 #' @param var_sigma_poly_deg degree of the fitted polynomials for each bin for the first approximation for the response distribution to select the best fitting model (default: 4)
+#' @param debug print some extra info (default: False)
+#'
 #' @details
-#' The function computes the cardinal biases in the following way:
+#' If the bias_type is set to 'fit', the function computes the cardinal biases in the following way:
 #' \enumerate{
 #' \item Create two sets of bins, splitting the stimuli vector into bins centered at cardinal and at oblique directions.
 #' \item For each set of bins, fit a nth-degree polynomial for the responses in each bin, optionally allowing the distribution of responses to vary in width as a function of distance to the nearest cardinal (regardless of whether the bins are centered at the cardinal or at the oblique, the width of the response distribution usually increases as the distance to cardinals increase).
 #' \item Choose the best-fitting model between the one using cardinal and the one using oblique bins.
 #' \item Compute the residuals of the best-fitting model - that's your bias-corrected error - and the biases (see below).
 #' }
-#' The bias is computed as follows:
-#' \enumerate{
-#' \item When the distance to the bin center is negative, errors are multiplied by the -sign of the predicted error.
-#' \item When the distance is positive, errors are multiplied by the +sign of the predicted error
-#' }
-#' To get the idea what it means, imagine a repulsive cardinal bias, where for stimuli of +5 degree the observer responds as +10 (+5° error), and for the -5 as -10 (-5° error). The bias in this case would be +5 in both cases. If, on the other hand, the observer would have responded with 0 degrees for both cases (errors of -5° and +5°, respectively), the bias on these particular trials would be equal to errors.
+#' The bias is computed by flipping the sign of errors when the average predicted error is negative, so, that, for example, if on average the responses are shifted clockwise relative to the true values, the trial-by-trial error would count as bias when it is also shifted clockwise.
+#'
+#' If bias_type is set to 'obl' or 'card', only one set of bins is used, centred at cardinal or oblique angles, respectively.
 #'
 #'
 #' @return a list with the follwing elements:
@@ -285,22 +286,26 @@ circ_descr <- function(x, w = NULL, d = NULL){
 #'
 #' @examples
 #'
-#' # Data in orientation domain from Pascucci et al. (2019, eLife), https://doi.org/10.5281/zenodo.2544946
+#' # Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
+#' # https://doi.org/10.5281/zenodo.2544946
 #'
 #' data <- fread('https://zenodo.org/record/2544946/files/Experiment2_rawdata.csv?download=1')
 #' data[, err:=angle_diff_180(reported, orientation)]
-#' data[observer==4, remove_cardinal_biases(err, orientation, do_plot = T)]
+#' data[observer==4, remove_cardinal_biases(err, orientation, do_plot = TRUE)]
 #'
 #' # Data in motion domain from Bae & Luck (2018, Neuroimage), https://osf.io/2h6w9/
 #' data_motion <- fread('https://osf.io/4m2kb/download')
 #' data_motion[, err:=angle_diff_360(RespAngle, TargetDirection)]
-#' data_motion[subject_Num == unique(subject_Num)[5], remove_cardinal_biases(err, TargetDirection, space = '360', do_plot = T)]
+#' data_motion[subject_Num == unique(subject_Num)[5],
+#' remove_cardinal_biases(err, TargetDirection, space = '360', do_plot = TRUE)]
 #'
-remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_plot = F, poly_deg = 4,  var_sigma = T, var_sigma_poly_deg = 4, debug = F){
+remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_plot = FALSE, poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, debug = FALSE){
   require(MASS)
   require(mgcv)
   require(ggplot2)
   require(gamlss)
+  require(data.table)
+
   if (!(bias_type %in% c('fit','card','obl')) ){
     stop("`bias_type` should be 'fit','card', or 'obl'" )
   }
@@ -456,3 +461,38 @@ make_plots_of_biases <- function(data, poly_deg, sd_val){
   p1<-p1+labs(shape = NULL)+guides(color = 'none')
   print(p1+p1a+p1b+plot_layout(guides = 'collect'))
 }
+
+#' Pad circular data on both ends
+#'
+#' @param data data.table to pad
+#' @param circ_var circular variable
+#' @param circ_borders range of the circular variable
+#' @param circ_part padding proportion
+#' @param verbose print extra info
+#'
+#' @details Pads the data by adding a part of the data (default: 1/6th) from one end to another end. Useful to roughly account for circularity when using non-circular methods.
+#' @return a padded data.table
+#' @export
+#'
+#' @examples
+#'
+#' require(data.table)
+#' dt <- data.table(x = runif(1000,-90,90), y = rnorm(1000))
+#' pad_circ(dt, 'y', verbose = TRUE)
+#'
+pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, verbose = FALSE){
+  require(data.table)
+  circ_range <- max(circ_borders)-min(circ_borders)
+
+  data1<-copy(data[get(circ_var)<(circ_borders[1]+circ_range*circ_part),])
+  data1[,(circ_var):=get(circ_var)+ circ_range]
+
+  data2<-copy(data[get(circ_var)>(circ_borders[2]-circ_range*circ_part),])
+  data2[,(circ_var):=get(circ_var)- circ_range]
+  if (verbose)
+    print(sprintf('Rows in original DT: %i, padded on the left: %i, padded on the right: %i', data[,.N],data1[,.N], data2[,.N]))
+
+  rbind(data,data1,data2)
+}
+
+

@@ -9,17 +9,21 @@ remove_cardinal_biases(
   x,
   space = "180",
   bias_type = "fit",
-  do_plot = F,
+  do_plot = FALSE,
   poly_deg = 4,
-  var_sigma = T,
+  var_sigma = TRUE,
   var_sigma_poly_deg = 4,
-  debug = F
+  debug = FALSE
 )
 }
 \arguments{
 \item{err}{a vector of errors, deviations of response from the true stimuli}
 
-\item{x}{a vector of true stimuli}
+\item{x}{a vector of true stimuli in degrees (see space)}
+
+\item{space}{circular space to use (a string: '180' or '360')}
+
+\item{bias_type}{bias type to use ('fit', 'card', or 'obl', see details)}
 
 \item{do_plot}{show plots (default: False)}
 
@@ -28,6 +32,8 @@ remove_cardinal_biases(
 \item{var_sigma}{allow standard deviation (width) of the fitted response distribution to vary as a function of distance to the nearest cardinal (default: True)}
 
 \item{var_sigma_poly_deg}{degree of the fitted polynomials for each bin for the first approximation for the response distribution to select the best fitting model (default: 4)}
+
+\item{debug}{print some extra info (default: False)}
 }
 \value{
 a list with the follwing elements:
@@ -48,31 +54,30 @@ a list with the follwing elements:
 Remove cardinal biases
 }
 \details{
-The function computes the cardinal biases in the following way:
+If the bias_type is set to 'fit', the function computes the cardinal biases in the following way:
 \enumerate{
 \item Create two sets of bins, splitting the stimuli vector into bins centered at cardinal and at oblique directions.
 \item For each set of bins, fit a nth-degree polynomial for the responses in each bin, optionally allowing the distribution of responses to vary in width as a function of distance to the nearest cardinal (regardless of whether the bins are centered at the cardinal or at the oblique, the width of the response distribution usually increases as the distance to cardinals increase).
 \item Choose the best-fitting model between the one using cardinal and the one using oblique bins.
 \item Compute the residuals of the best-fitting model - that's your bias-corrected error - and the biases (see below).
 }
-The bias is computed as follows:
-\enumerate{
-\item When the distance to the bin center is negative, errors are multiplied by the -sign of the predicted error.
-\item When the distance is positive, errors are multiplied by the +sign of the predicted error
-}
-To get the idea what it means, imagine a repulsive cardinal bias, where for stimuli of +5 degree the observer responds as +10 (+5° error), and for the -5 as -10 (-5° error). The bias in this case would be +5 in both cases. If, on the other hand, the observer would have responded with 0 degrees for both cases (errors of -5° and +5°, respectively), the bias on these particular trials would be equal to errors.
+The bias is computed by flipping the sign of errors when the average predicted error is negative, so, that, for example, if on average the responses are shifted clockwise relative to the true values, the trial-by-trial error would count as bias when it is also shifted clockwise.
+
+If bias_type is set to 'obl' or 'card', only one set of bins is used, centred at cardinal or oblique angles, respectively.
 }
 \examples{
 
-# Data in orientation domain from Pascucci et al. (2019, eLife), https://doi.org/10.5281/zenodo.2544946
+# Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
+# https://doi.org/10.5281/zenodo.2544946
 
 data <- fread('https://zenodo.org/record/2544946/files/Experiment2_rawdata.csv?download=1')
 data[, err:=angle_diff_180(reported, orientation)]
-data[observer==4, remove_cardinal_biases(err, orientation, do_plot = T)]
+data[observer==4, remove_cardinal_biases(err, orientation, do_plot = TRUE)]
 
 # Data in motion domain from Bae & Luck (2018, Neuroimage), https://osf.io/2h6w9/
 data_motion <- fread('https://osf.io/4m2kb/download')
 data_motion[, err:=angle_diff_360(RespAngle, TargetDirection)]
-data_motion[subject_Num == unique(subject_Num)[5], remove_cardinal_biases(err, TargetDirection, space = '360', do_plot = T)]
+data_motion[subject_Num == unique(subject_Num)[5],
+remove_cardinal_biases(err, TargetDirection, space = '360', do_plot = TRUE)]
 
 }

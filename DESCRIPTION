@@ -12,11 +12,15 @@ Suggests:
     testthat (>= 3.0.0),
     circular,
     ggplot2,
-    patchwork
+    patchwork,
+    knitr,
+    rmarkdown
 Depends:
+    stats,
+    gamlss,
     data.table,
     MASS,
-    gamlss,
-    stats
+    mgcv
 Config/testthat/edition: 3
 RoxygenNote: 7.1.1
+VignetteBuilder: knitr
