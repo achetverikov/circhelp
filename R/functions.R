@@ -254,6 +254,8 @@ circ_descr <- function(x, w = NULL, d = NULL){
 #' @param poly_deg degree of the fitted polynomials for each bin (default: 4)
 #' @param var_sigma allow standard deviation (width) of the fitted response distribution to vary as a function of distance to the nearest cardinal (default: True)
 #' @param var_sigma_poly_deg degree of the fitted polynomials for each bin for the first approximation for the response distribution to select the best fitting model (default: 4)
+#' @param reassign_at_boundaries select the bin for the observations at the boundaries between bins based on the best-fitting polynomial (default: True)
+#' @param reassign_range maximum distance to the boundary at which reassignment can occur (default: 2 degrees)
 #' @param debug print some extra info (default: False)
 #'
 #' @details
@@ -299,7 +301,7 @@ circ_descr <- function(x, w = NULL, d = NULL){
 #' data_motion[subject_Num == unique(subject_Num)[5],
 #' remove_cardinal_biases(err, TargetDirection, space = '360', do_plot = TRUE)]
 #'
-remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_plot = FALSE, poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, debug = FALSE){
+remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_plot = FALSE, poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, debug = FALSE){
   require(MASS)
   require(mgcv)
   require(ggplot2)
@@ -317,8 +319,8 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
     obl_bin_centers <- c(-45, 45)
     card_groups <- cut(x2, breaks = seq(-45, 180-45, 90), include.lowest = T)
     card_bin_centers <- c(0, 90)
-
-    circ_sd_fun <- circ_sd_360
+    angle_diff_fun <- angle_diff_180
+    circ_sd_fun <- circ_sd_180
 
   } else if (space == '360'){
     x <- angle_diff_360(x,0)
@@ -327,8 +329,8 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
     obl_bin_centers <- seq(-135, 135, 90)
     card_groups <- cut(x2, breaks = seq(-45, 360-45, 90), include.lowest = T)
     card_bin_centers <- seq(0, 270, 90)
-
-    circ_sd_fun <- circ_sd_180
+    angle_diff_fun <- angle_diff_360
+    circ_sd_fun <- circ_sd_360
   } else stop('`space` argument should be 180 or 360.')
 
   if (debug){
@@ -362,7 +364,6 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
 
   }
 
-
   for_fit$pred_sigma<-NA_real_
   for_fit$coef_sigma_int<-NA_real_
   for_fit$coef_sigma_slope<-NA_real_
@@ -370,19 +371,34 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
     for_fit[,x_var:=x2]
     for_fit[,dc_var:=dist_to_card]
     for_fit[,gr_var:=card_groups]
-    for_fit[,center_x:=card_bin_centers[as.numeric(gr_var)]]
+    bin_centers <- card_bin_centers
   } else {
     for_fit[,x_var := x]
     for_fit[,dc_var := dist_to_obl]
     for_fit[,gr_var := obl_groups]
-    for_fit[,center_x:=obl_bin_centers[as.numeric(gr_var)]]
+    bin_centers <- obl_bin_centers
+
   }
+  for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
 
   if (var_sigma){
+    # get predictions
+    resid_at_boundaries <- for_fit[,
+                                   get_boundary_preds(gr_var, for_fit, space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun), by = .(gr_var)]
+    resid_at_boundaries[,resid:=angle_diff_fun(err, pred)]
+    resid_at_boundaries <- dcast(resid_at_boundaries, x_var+dc_var+err~gr_var,
+                                 value.var = 'resid')
+    resid_at_boundaries <- resid_at_boundaries[,gr_var:=names(.SD)[max.col(-abs(.SD))], .SDcols = 4:5]
+    for_fit[resid_at_boundaries, `:=` (gr_var = i.gr_var), on = .(x_var, dc_var, err)]
+    for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
+    for_fit[,dist_to_bin_centre:=angle_diff_fun(x_var, center_x)]
+    for_fit[,x_var:=center_x+dist_to_bin_centre]
     for (cg in unique(for_fit$gr_var)){
-      cur_df <- for_fit[gr_var==cg,.(err, x_var, dc_var, outlier, dist_to_card)]
-      fit <- gamlss(err~poly(dc_var, poly_deg), ~abs(dist_to_card),
-                    data = cur_df, weights = 1-as.numeric(cur_df$outlier),
+      cur_df <- for_fit[gr_var==cg,.(err, x_var, dist_to_bin_centre, dc_var, outlier, dist_to_card)]
+      fit <- gamlss(err~poly(dist_to_bin_centre, poly_deg),
+                    ~abs(dist_to_card),
+                    data = cur_df,
+                    weights = 1-as.numeric(cur_df$outlier),
                     control = gam_ctrl)
       if (debug){
         print(coef(fit))
@@ -394,7 +410,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
       for_fit[gr_var==cg, bias:=err*sign(pred)]
 
       if (debug){
-        ggplot(for_fit[gr_var==cg], aes(x = x_var, y = err))+geom_point()+geom_line(aes(y = pred))
+        print(ggplot(for_fit[gr_var==cg], aes(x = dist_to_bin_centre, y = err))+geom_point()+geom_line(aes(y = pred)))
       }
       for_fit[gr_var==cg, c('coef_sigma_int','coef_sigma_slope'):= data.frame(t(coef(fit, what = 'sigma')))]
     }
@@ -436,6 +452,7 @@ make_plots_of_biases <- function(data, poly_deg, sd_val){
                            theme(legend.position = c(1,1), legend.justification = c(1,1)),
                           guides(color = guide_legend(override.aes = list(size = 1))))
   alpha = 100/data[,.N]*length(unique(data$gr_var))
+
   p1<-ggplot(data=data[outlier==F],aes(x = x_var, color = gr_var))+
     geom_point(data = data, aes( y = err, shape = outlier_f), alpha = alpha)+
     geom_line(aes(y = pred), size = 1)+
@@ -495,4 +512,26 @@ pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, ve
   rbind(data,data1,data2)
 }
 
+get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun){
+  cur_df <- data[gr_var==group&outlier==F,.(err, x_var, dc_var,
+                                            dist_to_bin_centre = angle_diff_fun(x_var, center_x), weight = 1-as.numeric(outlier), adc = abs(dist_to_card), center_x)]
+
+  fit <- gamlss(err~poly(dist_to_bin_centre, poly_deg),
+                ~ adc,
+                data = cur_df,
+                control = gam_ctrl)
+  # boundary predictions
+  bin_range <- as.numeric(space)/2
+  boundary1 <- cur_df$center_x[[1]] - bin_range/2
+  boundary2 <- cur_df$center_x[[1]]  + bin_range/2
+  data_at_boundaries <- data[outlier == F & ((angle_diff_fun(x_var, boundary1) %between% (reassign_range*c(-1,1))) | (angle_diff_fun(x_var, boundary2) %between% (reassign_range*c(-1,1)))), .(err, x_var, dc_var, dist_to_bin_centre = angle_diff_fun(x_var, cur_df$center_x[1]), weight = 1 - as.numeric(outlier), adc = abs(dist_to_card), center_x)]
+
+  data_at_boundaries <- unique(data_at_boundaries)
+
+  pred_at_boundaries <- predict(fit, type ='response',
+                                newdata = data_at_boundaries,
+                                data = cur_df)
+  resid_at_boundaries <- resid(fit)
+  data_at_boundaries[, .(x_var, dc_var, dist_to_bin_centre, err, pred = pred_at_boundaries)]
+}
 

@@ -13,6 +13,8 @@ remove_cardinal_biases(
   poly_deg = 4,
   var_sigma = TRUE,
   var_sigma_poly_deg = 4,
+  reassign_at_boundaries = TRUE,
+  reassign_range = 2,
   debug = FALSE
 )
 }
@@ -32,6 +34,10 @@ remove_cardinal_biases(
 \item{var_sigma}{allow standard deviation (width) of the fitted response distribution to vary as a function of distance to the nearest cardinal (default: True)}
 
 \item{var_sigma_poly_deg}{degree of the fitted polynomials for each bin for the first approximation for the response distribution to select the best fitting model (default: 4)}
+
+\item{reassign_at_boundaries}{select the bin for the observations at the boundaries between bins based on the best-fitting polynomial (default: True)}
+
+\item{reassign_range}{maximum distance to the boundary at which reassignment can occur (default: 2 degrees)}
 
 \item{debug}{print some extra info (default: False)}
 }
