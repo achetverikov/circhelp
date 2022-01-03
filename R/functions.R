@@ -36,7 +36,7 @@ circ_mean_360<-function(x){
 #'
 #' @param a first angle
 #' @param b second angle
-#' @details By default, all functions return values in ± half-range space (e.g., -pi to pi for 2pi radian space used by angle_diff_rad) but angle_diff_180_45 and angle_diff_360_90 return values in [-1/4 range, 3/4 range] space
+#' @details By default, all functions return values in ± half-range space (e.g., -pi to pi for 2pi radian space used by angle_diff_rad) but angle_diff_180_45 and angle_diff_360_90 return values in \[-1/4 range, 3/4 range\] space
 #'
 #' @return difference between a and b
 #' @export
@@ -138,7 +138,7 @@ weighted_circ_rho<-function(x, w){
 #'
 #' @param x angle
 #'
-#' @return angle in [-pi, pi] space
+#' @return angle in \[-pi, pi\] space
 #' @export
 #'
 #' @examples
@@ -371,16 +371,19 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
     for_fit[,x_var:=x2]
     for_fit[,dc_var:=dist_to_card]
     for_fit[,gr_var:=card_groups]
+    for_fit[,at_the_boundary:=(abs(dist_to_obl)-reassign_range)<(1e-12)]
+
     bin_centers <- card_bin_centers
   } else {
     for_fit[,x_var := x]
     for_fit[,dc_var := dist_to_obl]
     for_fit[,gr_var := obl_groups]
+    for_fit[,at_the_boundary:=(abs(dist_to_card)-reassign_range)<(1e-12)]
+
     bin_centers <- obl_bin_centers
 
   }
   for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
-
   if (var_sigma){
     # get predictions
     resid_at_boundaries <- for_fit[,
@@ -512,6 +515,20 @@ pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, ve
   rbind(data,data1,data2)
 }
 
+#' Get polynomial predictions
+#'
+#' A helper function for [remove_cardinal_biases()].
+#'
+#' @param group group (bin) id
+#' @param data dataset
+#' @param space see [remove_cardinal_biases()]
+#' @param reassign_range see [remove_cardinal_biases()]
+#' @param gam_ctrl control object for gam models
+#' @param poly_deg see [remove_cardinal_biases()]
+#' @param angle_diff_fun a function to compute difference between angles
+#'
+#' @return
+#'
 get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun){
   cur_df <- data[gr_var==group&outlier==F,.(err, x_var, dc_var,
                                             dist_to_bin_centre = angle_diff_fun(x_var, center_x), weight = 1-as.numeric(outlier), adc = abs(dist_to_card), center_x)]
@@ -524,7 +541,10 @@ get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, pol
   bin_range <- as.numeric(space)/2
   boundary1 <- cur_df$center_x[[1]] - bin_range/2
   boundary2 <- cur_df$center_x[[1]]  + bin_range/2
-  data_at_boundaries <- data[outlier == F & ((angle_diff_fun(x_var, boundary1) %between% (reassign_range*c(-1,1))) | (angle_diff_fun(x_var, boundary2) %between% (reassign_range*c(-1,1)))), .(err, x_var, dc_var, dist_to_bin_centre = angle_diff_fun(x_var, cur_df$center_x[1]), weight = 1 - as.numeric(outlier), adc = abs(dist_to_card), center_x)]
+  data_at_boundaries <- data[outlier == F & at_the_boundary == T,
+        .(err, x_var, dc_var,
+          dist_to_bin_centre = angle_diff_fun(x_var, cur_df$center_x[1]),
+          weight = 1 - as.numeric(outlier), adc = abs(dist_to_card), center_x)]
 
   data_at_boundaries <- unique(data_at_boundaries)
 

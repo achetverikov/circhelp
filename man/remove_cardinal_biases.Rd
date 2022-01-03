@@ -46,7 +46,7 @@ a list with the follwing elements:
 \itemize{
 \item is_outlier - 0 for outliers (defined as ±3*pred_sigma for the model with varying sigma or as ±3\*SD for the simple model)
 \item pred predicted error
-\item be_c error corrected for biases (`be_c = observed error - pred`)
+\item be_c error corrected for biases (\verb{be_c = observed error - pred})
 \item which_bin the numeric ID of the bin that the stimulus belong to
 \item bias the bias computed as described above
 \item bias_typ bias type (cardinal or oblique)

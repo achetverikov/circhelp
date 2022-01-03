@@ -16,12 +16,12 @@ circ_descr(x, w = NULL, d = NULL)
 \value{
 a list with descriptive statistics
 \itemize{
- \item mu - mean
- \item sigma - standard deviation
- \item skew_pewsey - skewness as defined by Pewsey
- \item skew_fischer - skewness as defined by Fischer
- \item rho - mean resultant length
- \item skew_rel_to_zero - skewness relative to zero
+\item mu - mean
+\item sigma - standard deviation
+\item skew_pewsey - skewness as defined by Pewsey
+\item skew_fischer - skewness as defined by Fischer
+\item rho - mean resultant length
+\item skew_rel_to_zero - skewness relative to zero
 }
 }
 \description{
