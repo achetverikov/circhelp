@@ -13,6 +13,7 @@ reference:
   - starts_with("angle_diff")
   - correct_angle_rad
   - pad_circ
+  - circ_corr
 - title: Datasets
 - contents:
   - Bae_Luck_2018_data
