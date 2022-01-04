@@ -14,7 +14,8 @@ Suggests:
     ggplot2,
     patchwork,
     knitr,
-    rmarkdown
+    rmarkdown,
+    BAMBI
 Depends:
     stats,
     gamlss,

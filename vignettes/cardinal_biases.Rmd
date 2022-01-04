@@ -12,6 +12,9 @@ library(patchwork)
 library(circhelp)
 library(data.table)
 library(ggplot2)
+if (requireNamespace("ragg", quietly = TRUE)) {
+  knitr::opts_chunk$set(dev = 'ragg_png')
+}
 
 fig_width = 3.6
 knitr::opts_chunk$set(
@@ -27,7 +30,8 @@ This is a small vignette showing how the correction for cardinal biases might be
 
 ```{r setup}
 # load the data
-data <- fread('https://zenodo.org/record/2544946/files/Experiment2_rawdata.csv?download=1')
+# data <- fread('https://zenodo.org/record/2544946/files/Experiment2_rawdata.csv?download=1')
+data <- fread('data/Pascucci_et_al_Experiment2_rawdata.csv')
 data[, err := angle_diff_180(reported, orientation)] # response errors
 data[, prev_ori := shift(orientation), by = observer]  # orientation on previous trial
 data[, diff_in_ori := angle_diff_180(prev_ori, orientation)] # shing in orientations between trials
@@ -79,7 +83,9 @@ datam[, err_rel_to_prev_targ:=ifelse(diff_in_ori < 0,-value, value)]
 ggplot(pad_circ(datam, 'diff_in_ori'), aes(x = diff_in_ori, y = value))+
   geom_line(aes(group = observer), stat = 'smooth', size = 0.4, color = 'black', alpha = 0.2, method = 'loess' )+
   geom_smooth(se = T, method = 'loess' )+
-  facet_grid(~variablef)+coord_cartesian(xlim = c(-90,90))+scale_x_continuous(breaks = seq(-90,90,90))+
+  facet_grid(~variablef)+
+  coord_cartesian(xlim = c(-90,90), ylim = c(-5,5))+
+  scale_x_continuous(breaks = seq(-90,90,90))+
   labs(y = 'Error, °', x = 'Orientation difference, °')
 ```
 

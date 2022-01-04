@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{get_boundary_preds}
 \alias{get_boundary_preds}
-\title{Get polynomial predictions}
+\title{Get polynomial predictions for values at the boundaries}
 \usage{
 get_boundary_preds(
   group,
@@ -30,8 +30,9 @@ get_boundary_preds(
 \item{angle_diff_fun}{a function to compute difference between angles}
 }
 \value{
-
+a data.table with predicted values
 }
 \description{
 A helper function for \code{\link[=remove_cardinal_biases]{remove_cardinal_biases()}}.
 }
+\keyword{internal}

@@ -21,7 +21,42 @@ test_that("SDs are equal", {
 
   expect_equal(circ_sd_rad(x), circ_descr(x)[['sigma']])
   expect_equal(circ_sd_rad(x), circ_sd_360(x/pi*180)/180*pi)
+  expect_equal(circ_sd_rad(x), weighted_circ_sd(x, rep(1, length(x))))
   expect_equal(circ_sd_rad(x), as.vector(circular::sd.circular(circular::circular(x))))
 
 
+})
+
+test_that("Circular correlation works properly for uniform and conditional von Mises", {
+  # see Jammalamadaka & SenGupta, pp. 181-182
+  kappa <- runif(1, 5, 200) # NB: for lower kappa, the results are not always within tolerance limits.
+  n <- 1000000
+  x <- runif(n, -pi, pi)
+  y <- x + as.vector(circular::rvonmises(n, mu = circular::circular(0), kappa = kappa))
+  exp_r <- a_fun(kappa)
+  obs_r <- circ_corr(x, y, ill_defined = T)
+  tolerance <- 1e-4
+  print(sprintf('Difference between expected and observed correlation is %.6f', exp_r-obs_r))
+  expect_lt(abs(exp_r-obs_r), tolerance)
+})
+
+test_that("Circular correlation close to Pearson for narrow cases", {
+  # see Jammalamadaka & SenGupta
+  data <- rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
+  data <- data/8
+  pearson_r <- cor(data[,1], data[,2])
+  obs_r <- circ_corr(data[,1], data[,2])
+  tolerance <- 1e-4
+  print(sprintf('Difference between expected and observed correlation is %.6f', pearson_r-obs_r))
+  expect_lt(abs(pearson_r-obs_r), tolerance)
+})
+
+test_that("Circular correlation matches BAMBI::circ_cor", {
+  data <- rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
+  data <- data*2
+  obs_r <- circ_corr(data[,1], data[,2])
+  exp_r <- BAMBI::circ_cor(data)[[1]]
+  tolerance <- 1e-4
+  print(sprintf('Difference between expected and observed correlation is %.6f', exp_r-obs_r))
+  expect_lt(abs(exp_r-obs_r), tolerance)
 })

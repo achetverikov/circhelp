@@ -94,13 +94,57 @@ angle_diff_360_90<-function(a,b){
   (c+90)%%360 - 90
 }
 
-alt_circ_corr_coef<-function(a, b, mu=0){
-  mu_a = mu_b = mu
-  sin_a = sin(a - mu_a)
-  sin_b = sin(b - mu_b)
-  rho = sum(sin_a*sin_b)/sqrt(sum(sin_a*sin_a)*sum(sin_b*sin_b))
+#' Circular correlation coefficient
+#'
+#' Computes a circular correlation coefficient as defined in Jammalamadaka & SenGupta (2001).
+#' @param a first variable
+#' @param b second variable
+#' @param ill_defined is one of the variables mean is not well-defined (e.g., it is uniformly distributed)?
+#' @param mu fix the mean parameter of both vectors to a certain value
+#'
+#' @return correlation value
+#' @references {
+#' Jammalamadaka, S. R., & SenGupta, A. (2001). Topics in Circular Statistics. WORLD SCIENTIFIC. https://doi.org/10.1142/4031
+#' }
+#' @export
+#'
+#' @examples
+#' data <- rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
+#' circ_corr(data[,1], data[,2])
+
+
+circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL){
+  mu_a <- circ_mean_rad(a)
+  mu_b <- circ_mean_rad(b)
+  if (!is.null(mu)){
+    mu_a = mu_b = mu
+  } else if (ill_defined){
+    mean_diff <- circ_mean_rad(a-b)
+    mean_sum <- circ_mean_rad(a+b)
+    mu_a <- (mean_diff + mean_sum)/2
+    mu_b <- (mean_sum - mean_diff)/2
+  }
+  sin_a <- sin(a - mu_a)
+  sin_b <- sin(b - mu_b)
+  rho <- sum(sin_a*sin_b)/sqrt(sum(sin_a*sin_a)*sum(sin_b*sin_b))
   rho
 }
+
+#' Weighted circular parameters
+#'
+#' @param x vector of values (in radians)
+#' @param w vector of weights
+#'
+#' @return weighted mean of values in the vector
+#' @export
+#'
+#' @examples
+#' x <- rnorm(1000,0, 0.5)
+#' w <- runif(1000, 0, 1)
+#' weighted.mean(x, w)
+#' weighted_circ_mean(x, w)
+#'
+#' @describeIn weighted_circ_mean weighted circular mean
 
 weighted_circ_mean<-function(x, w){
   if (length(w)!=length(x))
@@ -111,6 +155,8 @@ weighted_circ_mean<-function(x, w){
 
 }
 
+#' @describeIn weighted_circ_mean an alternative way to compute weighted circular mean (the results are the same)
+#' @export
 weighted_circ_mean2 <- function(x, w){
   if (length(w)!=length(x))
     stop('Weights (w) should have the same length as values (x)')
@@ -118,6 +164,8 @@ weighted_circ_mean2 <- function(x, w){
   Arg(sum(w*z)/sum(w))
 }
 
+#' @describeIn weighted_circ_mean weighted circular SD
+#' @export
 
 weighted_circ_sd<-function(x, w){
   sum_w<-sum(w)
@@ -125,6 +173,9 @@ weighted_circ_sd<-function(x, w){
   r <- sqrt((sum(w*sin(x))/sum_w)^2+(sum(w*cos(x))/sum_w)^2)
   sqrt(-2*log(r))
 }
+
+#' @describeIn weighted_circ_mean weighted mean resultant length
+#' @export
 
 weighted_circ_rho<-function(x, w){
   sum_w<-sum(w)
@@ -209,6 +260,7 @@ angle <- function(x){
 #' @examples
 #' x <- c(rnorm(50,0,0.5), rnorm(20,1,0.5))
 #' circ_descr(x)
+#'
 circ_descr <- function(x, w = NULL, d = NULL){
   if (is.null(w))
     w = rep(1, length(x))
@@ -498,7 +550,7 @@ make_plots_of_biases <- function(data, poly_deg, sd_val){
 #'
 #' require(data.table)
 #' dt <- data.table(x = runif(1000,-90,90), y = rnorm(1000))
-#' pad_circ(dt, 'y', verbose = TRUE)
+#' pad_circ(dt, 'x', verbose = TRUE)
 #'
 pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, verbose = FALSE){
   require(data.table)
@@ -515,7 +567,7 @@ pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, ve
   rbind(data,data1,data2)
 }
 
-#' Get polynomial predictions
+#' Get polynomial predictions for values at the boundaries
 #'
 #' A helper function for [remove_cardinal_biases()].
 #'
@@ -527,7 +579,8 @@ pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, ve
 #' @param poly_deg see [remove_cardinal_biases()]
 #' @param angle_diff_fun a function to compute difference between angles
 #'
-#' @return
+#' @return a data.table with predicted values
+#' @keywords internal
 #'
 get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun){
   cur_df <- data[gr_var==group&outlier==F,.(err, x_var, dc_var,
@@ -555,3 +608,24 @@ get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, pol
   data_at_boundaries[, .(x_var, dc_var, dist_to_bin_centre, err, pred = pred_at_boundaries)]
 }
 
+
+a_fun <- function(x) {
+  besselI(x, 1, expon.scaled = T)/besselI(x, 0, expon.scaled = T)
+}
+
+inverse <- function (f, lower = 1e-16, upper = 1000) {
+  function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper, extendInt = 'yes')[[1]]
+}
+
+vm_circ_sd <- function(kappa) {
+  sqrt(-2*log(a_fun(kappa)))
+}
+
+vm_circ_sd_inverse_deg <-  function(sd_deg) {
+  vm_circ_sd_inverse <- inverse(vm_circ_sd)
+  sapply(sd_deg, function(x) tryCatch(vm_circ_sd_inverse(x/180*pi), error = function(e) paste("Can't convert sigma = ",x, " to kappa, error ",e)))
+}
+
+vm_circ_sd_deg <- function(kappa) {
+  sqrt(-2*log(a_fun(kappa)))/pi*180
+}
