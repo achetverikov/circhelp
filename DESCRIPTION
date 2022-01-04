@@ -3,7 +3,7 @@ Type: Package
 Title: Circular Analyses Helper Functions
 Version: 0.1.0
 Author: Andrey Chetverikov
-Maintainer: The package maintainer <yourself@somewhere.net>
+Maintainer: Andrey Chetverikov <a.chetverikov@donders.ru.nl>
 Description: A small helper package for circular data analyses.
 License: CC0
 Encoding: UTF-8
