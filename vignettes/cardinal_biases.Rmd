@@ -31,7 +31,7 @@ This is a small vignette showing how the correction for cardinal biases might be
 ```{r setup}
 # load the data
 # data <- fread('https://zenodo.org/record/2544946/files/Experiment2_rawdata.csv?download=1')
-data <- fread('data/Pascucci_et_al_Experiment2_rawdata.csv')
+data <- fread('../data/Pascucci_et_al_Experiment2_rawdata.csv')
 data[, err := angle_diff_180(reported, orientation)] # response errors
 data[, prev_ori := shift(orientation), by = observer]  # orientation on previous trial
 data[, diff_in_ori := angle_diff_180(prev_ori, orientation)] # shing in orientations between trials
