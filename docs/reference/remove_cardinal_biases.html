@@ -122,58 +122,41 @@
 <span class="r-in"><span class="co"># Data in orientation domain from Pascucci et al. (2019, PLOS Bio),</span></span>
 <span class="r-in"><span class="co"># https://doi.org/10.5281/zenodo.2544946</span></span>
 <span class="r-in"></span>
-<span class="r-in"><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html" class="external-link">fread</a></span><span class="op">(</span><span class="st">'https://zenodo.org/record/2544946/files/Experiment2_rawdata.csv?download=1'</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">data</span><span class="op">[</span>, <span class="va">err</span><span class="op">:=</span><span class="fu"><a href="angle_diff_rad.html">angle_diff_180</a></span><span class="op">(</span><span class="va">reported</span>, <span class="va">orientation</span><span class="op">)</span><span class="op">]</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       observer orientation reported        rt err</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    1:        1         135      137 1.0829786   2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    2:        1          65       56 0.9887931  -9</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    3:        1          61       65 1.5067748   4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    4:        1          27       25 1.9070205  -2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    5:        1          22       20 2.0247443  -2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ---                                            </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4396:       10          35       26 1.7775651  -9</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4397:       10         141      135 2.0365374  -6</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4398:       10         178      163 1.1301296 -15</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4399:       10         168      168 1.3772832   0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4400:       10          24       28 2.3897599   4</span>
-<span class="r-in"><span class="va">data</span><span class="op">[</span><span class="va">observer</span><span class="op">==</span><span class="fl">4</span>, <span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">err</span>, <span class="va">orientation</span>, do_plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: ggplot2</span>
+<span class="r-in"><span class="va">Pascucci_et_al_2019_data</span><span class="op">[</span><span class="va">observer</span><span class="op">==</span><span class="fl">4</span>, <span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">err</span>, <span class="va">orientation</span>, do_plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>There is a discrepancy  between the original and the re-fit </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>  used to achieve 'safe' predictions </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>  </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>There is a discrepancy  between the original and the re-fit </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>  used to achieve 'safe' predictions </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>  </span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in data[, circ_sd_fun(err)]:</span> object of type 'closure' is not subsettable</span>
+<span class="r-plt img"><img src="remove_cardinal_biases-1.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      is_outlier        pred        be_c which_bin bias bias_type    pred_lin</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:          0  7.61511861  -4.6151186         2    3       obl   7.8012240</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:          0  0.01464459   0.9853554         2    1       obl  -0.4583498</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:          0  1.57619824  -4.5761982         2   -3       obl   0.6074016</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:          0 -7.99617928   9.9961793         1   -2       obl  -9.7661382</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:          0 -9.02293124   1.0229312         2    8       obl  -6.3199829</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                                                        </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 436:          0 -3.77707309   2.7770731         1    1       obl  -1.2667688</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 437:          0 -8.73979472 -10.2602053         2   19       obl -11.3823023</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 438:          1 -8.00644915  22.0064492         2  -14       obl  -5.5206693</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 439:          0  1.94308815  -2.9430882         2   -1       obl   0.8738395</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 440:          0 -1.66717180   0.6671718         2    1       obl  -1.5241013</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      pred_sigma coef_sigma_int coef_sigma_slope</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1:   6.512993       1.797793     0.0050670450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2:   7.543931       1.797793     0.0050670450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   3:   7.467866       1.797793     0.0050670450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   4:   6.259090       1.831048     0.0004266147</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   5:   6.748150       1.797793     0.0050670450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  ---                                           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 436:   6.331603       1.831048     0.0004266147</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 437:   6.128773       1.797793     0.0050670450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 438:   6.851513       1.797793     0.0050670450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 439:   7.430121       1.797793     0.0050670450</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 440:   7.392568       1.797793     0.0050670450</span>
 <span class="r-in"></span>
 <span class="r-in"><span class="co"># Data in motion domain from Bae &amp; Luck (2018, Neuroimage), https://osf.io/2h6w9/</span></span>
-<span class="r-in"><span class="va">data_motion</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fread.html" class="external-link">fread</a></span><span class="op">(</span><span class="st">'https://osf.io/4m2kb/download'</span><span class="op">)</span></span>
-<span class="r-in"><span class="va">data_motion</span><span class="op">[</span>, <span class="va">err</span><span class="op">:=</span><span class="fu"><a href="angle_diff_rad.html">angle_diff_360</a></span><span class="op">(</span><span class="va">RespAngle</span>, <span class="va">TargetDirection</span><span class="op">)</span><span class="op">]</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        subject_Num trial_Num TargetDirection RespAngle motionCoh AngularError</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     1:         803         1           267.0    255.00     0.512        11.80</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     2:         803         2            74.2     35.60     0.256        38.60</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     3:         803         3           336.0    340.00     0.256        -4.33</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     4:         803         4            70.4     73.80     0.512        -3.34</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     5:         803         5           109.0    114.00     0.512        -4.42</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    ---                                                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20476:         819       636            14.8      9.92     0.512         4.86</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20477:         819       637           130.0    148.00     0.512       -18.10</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20478:         819       638           190.0    213.00     0.512       -23.40</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20479:         819       639           104.0    118.00     0.256       -14.30</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20480:         819       640            15.8     33.60     0.512       -17.90</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        TarBinID BinCenter Duration Block Session    err</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     1:       13     270.0      1.5     1       1 -12.00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     2:        4      67.5      1.5     1       1 -38.60</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     3:       16     338.0      1.5     1       1   4.00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     4:        4      67.5      1.5     1       1   3.40</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     5:        6     113.0      1.5     1       1   5.00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    ---                                                 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20476:        2      22.5      1.5    10       2  -4.88</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20477:        7     135.0      1.5    10       2  18.00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20478:        9     180.0      1.5    10       2  23.00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20479:        6     113.0      1.5    10       2  14.00</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 20480:        2      22.5      1.5    10       2  17.80</span>
-<span class="r-in"><span class="va">data_motion</span><span class="op">[</span><span class="va">subject_Num</span> <span class="op">==</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subject_Num</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
+<span class="r-in"><span class="va">Bae_Luck_2018_data</span><span class="op">[</span><span class="va">subject_Num</span> <span class="op">==</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/duplicated.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subject_Num</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,</span>
 <span class="r-in"><span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">err</span>, <span class="va">TargetDirection</span>, space <span class="op">=</span> <span class="st">'360'</span>, do_plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">]</span></span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>There is a discrepancy  between the original and the re-fit </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>  used to achieve 'safe' predictions </span>
@@ -187,7 +170,31 @@
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>There is a discrepancy  between the original and the re-fit </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>  used to achieve 'safe' predictions </span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span>  </span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in data[, circ_sd_fun(err)]:</span> object of type 'closure' is not subsettable</span>
+<span class="r-plt img"><img src="remove_cardinal_biases-2.png" alt="" width="700" height="433"></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       is_outlier       pred         be_c which_bin    bias bias_type  pred_lin</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1:          1 -9.3654115  178.7654115         1 -169.40       obl -4.721015</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    2:          0 -2.9754759   -3.0245241         1    6.00       obl -4.189975</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    3:          1 -5.0711403  182.6211403         1 -177.55       obl -3.757276</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    4:          0 -9.6351780  -31.3648220         1   41.00       obl -4.957033</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    5:          1 -4.6613521 -170.2886479         4  174.95       obl -8.544710</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ---                                                                         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1276:          0 -5.4649867   -0.5350133         4    6.00       obl -2.399848</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1277:          0 -1.2347871    3.2347871         3   -2.00       obl -1.006986</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1278:          0 -0.6550139  -12.6449861         3   13.30       obl -3.046211</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1279:          0 -2.3714867    9.3714867         1   -7.00       obl -3.914621</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1280:          1  3.7430472 -179.9430472         2 -176.20       obl 10.585121</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       pred_sigma coef_sigma_int coef_sigma_slope</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1:   13.15107       2.738580     -0.004502117</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    2:   13.69488       2.738580     -0.004502117</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    3:   15.12076       2.738580     -0.004502117</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    4:   13.88111       2.738580     -0.004502117</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    5:   14.58627       2.675535      0.002272586</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ---                                           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1276:   15.47410       2.675535      0.002272586</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1277:   27.72277       2.502993      0.021616388</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1278:   13.46733       2.502993      0.021616388</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1279:   14.58585       2.738580     -0.004502117</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1280:   13.88315       2.548749      0.013654507</span>
 <span class="r-in"></span>
 </code></pre></div>
     </div>
@@ -199,7 +206,7 @@
 
 
       <footer><div class="copyright">
-  <p></p><p>Developed by The package maintainer.</p>
+  <p></p><p>Developed by Andrey Chetverikov.</p>
 </div>
 
 <div class="pkgdown">

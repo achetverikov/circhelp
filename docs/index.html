@@ -70,18 +70,78 @@
 <div class="section level1">
 <div class="page-header"><h1 id="circhelp">circhelp<a class="anchor" aria-label="anchor" href="#circhelp"></a>
 </h1></div>
-<p>A small helper package for circular data analyses in R, particularly useful for cognitive studies on orientation, motion direction, and other circular features. Contains functions for descriptive statistics for circular data (computing means, SD, and skewness), angular differences, and correlation. Also includes a function to correct for cardinal biases in the human estimates of circular features (e.g., orientation).</p>
+<!-- badges: start -->
+<p>A small helper package for circular data analyses in R, particularly useful for cognitive studies on orientation, motion direction, and other circular features. Contains functions for descriptive statistics for circular data (computing means, SD, and skewness), angular differences, and correlation. Also includes a function to correct for cardinal biases in the human estimates of circular features (e.g., orientation). <!-- badges: end --></p>
+<p>The goal of circhelp is to …</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("devtools")</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">'achetverikov/circhelp'</span>)</span></code></pre></div>
+<p>You can install the development version from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># install.packages("devtools")</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://devtools.r-lib.org/reference/remote-reexports.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"achetverikov/circhelp"</span><span class="op">)</span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<p>Most of the functions are self-explanatory. The only (somewhat) complicated function is <code>remove_cardinal_biases</code>, see the vignette <a href="https://achetverikov.github.io/circhelp/articles/cardinal_biases.html" class="external-link">cardinal biases</a> for an example use case.</p>
-<p><img src="https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png" title="Example of cardinal biases processing" width="100%"></p>
+<p>Most of the functions are self-explanatory.</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">circhelp</span><span class="op">)</span>
+<span class="co">#&gt; Loading required package: gamlss</span>
+<span class="co">#&gt; Loading required package: splines</span>
+<span class="co">#&gt; Loading required package: gamlss.data</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Attaching package: 'gamlss.data'</span>
+<span class="co">#&gt; The following object is masked from 'package:datasets':</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;     sleep</span>
+<span class="co">#&gt; Loading required package: gamlss.dist</span>
+<span class="co">#&gt; Loading required package: MASS</span>
+<span class="co">#&gt; Loading required package: nlme</span>
+<span class="co">#&gt; Loading required package: parallel</span>
+<span class="co">#&gt;  **********   GAMLSS Version 5.2-0  **********</span>
+<span class="co">#&gt; For more on GAMLSS look at https://www.gamlss.com/</span>
+<span class="co">#&gt; Type gamlssNews() to see new features/changes/bug fixes.</span>
+<span class="co">#&gt; Loading required package: data.table</span>
+<span class="co">#&gt; Loading required package: mgcv</span>
+<span class="co">#&gt; This is mgcv 1.8-33. For overview type 'help("mgcv-package")'.</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">mgcv</span><span class="op">)</span>
+<span class="co"># compute a set of descriptive statistics</span>
+<span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">500</span><span class="op">)</span>
+<span class="fu"><a href="reference/circ_descr.html">circ_descr</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
+<span class="co">#&gt; $mu</span>
+<span class="co">#&gt; [1] 5.045977e-05</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $sigma</span>
+<span class="co">#&gt; [1] 0.9727528</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $skew_pewsey</span>
+<span class="co">#&gt; [1] 0.01379079</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $skew_fischer</span>
+<span class="co">#&gt; [1] 0.05952331</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $rho</span>
+<span class="co">#&gt; [1] 0.6230528</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $skew_rel_to_zero</span>
+<span class="co">#&gt; [1] 0.01380606</span>
+
+<span class="co"># compute difference in orientations</span>
+<span class="va">a</span> <span class="op">&lt;-</span> <span class="fl">5</span> 
+<span class="va">b</span> <span class="op">&lt;-</span> <span class="fl">170</span>
+<span class="fu"><a href="reference/angle_diff_rad.html">angle_diff_180</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span>
+<span class="co">#&gt; [1] 15</span>
+
+<span class="co"># compute difference in 360° space (e.g., motion directions)</span>
+<span class="fu"><a href="reference/angle_diff_rad.html">angle_diff_360</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span>
+<span class="co">#&gt; [1] -165</span>
+
+<span class="co"># compute correlation between angles</span>
+<span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/mgcv/man/rmvn.html" class="external-link">rmvn</a></span><span class="op">(</span><span class="fl">10000</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">0</span><span class="op">)</span>, V <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>,<span class="fl">0.5</span>,<span class="fl">0.5</span>,<span class="fl">1</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span>
+<span class="fu"><a href="reference/circ_corr.html">circ_corr</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>,<span class="fl">1</span><span class="op">]</span>, <span class="va">data</span><span class="op">[</span>,<span class="fl">2</span><span class="op">]</span><span class="op">)</span>
+<span class="co">#&gt; [1] 0.4393806</span></code></pre></div>
+<p>The only (somewhat) complicated function is <code>remove_cardinal_biases</code>, see the <a href="https://achetverikov.github.io/circhelp/reference/remove_cardinal_biases.html" class="external-link">help files</a> and <a href="https://achetverikov.github.io/circhelp/articles/cardinal_biases.html" class="external-link">the vignette</a> for an example use case. <img src="https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png" title="Example of cardinal biases processing" width="100%"></p>
 </div>
 </div>
   </div>

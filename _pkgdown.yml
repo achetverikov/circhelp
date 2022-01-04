@@ -1,0 +1,19 @@
+reference:
+- title: Descriptive statistics
+- contents:
+  - starts_with("circ_mean_")
+  - starts_with("circ_sd_")
+  - starts_with("circ_descr")
+  - starts_with("weighted")
+- title: Cardinal biases
+- contents:
+  - remove_cardinal_biases
+- title: Miscellanous
+- contents:
+  - starts_with("angle_diff")
+  - correct_angle_rad
+  - pad_circ
+- title: Datasets
+- contents:
+  - Bae_Luck_2018_data
+  - Pascucci_et_al_2019_data

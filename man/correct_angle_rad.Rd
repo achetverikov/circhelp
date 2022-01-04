@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{correct_angle_rad}
 \alias{correct_angle_rad}
-\title{Correct angle value}
+\title{Get angle value in [-pi, pi] space}
 \usage{
 correct_angle_rad(x)
 }
@@ -13,7 +13,7 @@ correct_angle_rad(x)
 angle in [-pi, pi] space
 }
 \description{
-Correct angle value
+Get angle value in [-pi, pi] space
 }
 \examples{
 correct_angle_rad(4*pi)

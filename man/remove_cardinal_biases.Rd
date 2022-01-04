@@ -76,14 +76,10 @@ If bias_type is set to 'obl' or 'card', only one set of bins is used, centred at
 # Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
 # https://doi.org/10.5281/zenodo.2544946
 
-data <- fread('https://zenodo.org/record/2544946/files/Experiment2_rawdata.csv?download=1')
-data[, err:=angle_diff_180(reported, orientation)]
-data[observer==4, remove_cardinal_biases(err, orientation, do_plot = TRUE)]
+Pascucci_et_al_2019_data[observer==4, remove_cardinal_biases(err, orientation, do_plot = TRUE)]
 
 # Data in motion domain from Bae & Luck (2018, Neuroimage), https://osf.io/2h6w9/
-data_motion <- fread('https://osf.io/4m2kb/download')
-data_motion[, err:=angle_diff_360(RespAngle, TargetDirection)]
-data_motion[subject_Num == unique(subject_Num)[5],
+Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],
 remove_cardinal_biases(err, TargetDirection, space = '360', do_plot = TRUE)]
 
 }
