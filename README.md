@@ -5,15 +5,13 @@
 
 <!-- badges: start -->
 
-A small helper package for circular data analyses in R, particularly
-useful for cognitive studies on orientation, motion direction, and other
-circular features. Contains functions for descriptive statistics for
-circular data (computing means, SD, and skewness), angular differences,
-and correlation. Also includes a function to correct for cardinal biases
-in the human estimates of circular features (e.g., orientation).
-<!-- badges: end -->
-
-The goal of circhelp is to …
+`circhelp` is a small helper package for circular data analyses in R,
+particularly useful for cognitive studies on orientation, motion
+direction, and other circular features. The package contains functions
+for descriptive statistics for circular data (computing means, SD, and
+skewness), angular differences, and correlation. It also includes a
+function to correct for cardinal biases in the human estimates of
+circular features (e.g., orientation). <!-- badges: end -->
 
 ## Installation
 
@@ -27,7 +25,7 @@ devtools::install_github("achetverikov/circhelp")
 
 ## Usage
 
-Most of the functions are self-explanatory.
+Most functions are self-explanatory.
 
 ``` r
 library(circhelp)
@@ -54,22 +52,22 @@ library(mgcv)
 x <- rnorm(500)
 circ_descr(x)
 #> $mu
-#> [1] 5.045977e-05
+#> [1] 0.01409903
 #> 
 #> $sigma
-#> [1] 0.9727528
+#> [1] 1.011942
 #> 
 #> $skew_pewsey
-#> [1] 0.01379079
+#> [1] -0.002795589
 #> 
 #> $skew_fischer
-#> [1] 0.05952331
+#> [1] -0.02519868
 #> 
 #> $rho
-#> [1] 0.6230528
+#> [1] 0.5992876
 #> 
 #> $skew_rel_to_zero
-#> [1] 0.01380606
+#> [1] 0.0008029015
 
 # compute difference in orientations
 a <- 5 
@@ -84,7 +82,7 @@ angle_diff_360(a, b)
 # compute correlation between angles
 data <- rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
 circ_corr(data[,1], data[,2])
-#> [1] 0.4393806
+#> [1] 0.4521645
 ```
 
 The only (somewhat) complicated function is `remove_cardinal_biases`,

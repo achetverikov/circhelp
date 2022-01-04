@@ -16,10 +16,8 @@ knitr::opts_chunk$set(
 # circhelp
 
 <!-- badges: start -->
-A small helper package for circular data analyses in R, particularly useful for cognitive studies on orientation, motion direction, and other circular features. Contains functions for descriptive statistics for circular data (computing means, SD, and skewness), angular differences, and correlation. Also includes a function to correct for cardinal biases in the human estimates of circular features (e.g., orientation).
+`circhelp` is a small helper package for circular data analyses in R, particularly useful for cognitive studies on orientation, motion direction, and other circular features. The package contains functions for descriptive statistics for circular data (computing means, SD, and skewness), angular differences, and correlation. It also includes a function to correct for cardinal biases in the human estimates of circular features (e.g., orientation).
 <!-- badges: end -->
-
-The goal of circhelp is to ...
 
 ## Installation
 
@@ -31,7 +29,7 @@ devtools::install_github("achetverikov/circhelp")
 ```
 ## Usage
 
-Most of the functions are self-explanatory.
+Most functions are self-explanatory.
 
 ```{r}
 library(circhelp)
