@@ -35,7 +35,7 @@ test_that("Circular correlation works properly for uniform and conditional von M
   y <- x + as.vector(circular::rvonmises(n, mu = circular::circular(0), kappa = kappa))
   exp_r <- a_fun(kappa)
   obs_r <- circ_corr(x, y, ill_defined = T)
-  tolerance <- 1e-4
+  tolerance <- 1e-3
   print(sprintf('Difference between expected and observed correlation is %.6f', exp_r-obs_r))
   expect_lt(abs(exp_r-obs_r), tolerance)
 })
@@ -46,7 +46,7 @@ test_that("Circular correlation close to Pearson for narrow cases", {
   data <- data/8
   pearson_r <- cor(data[,1], data[,2])
   obs_r <- circ_corr(data[,1], data[,2])
-  tolerance <- 1e-4
+  tolerance <- 1e-3
   print(sprintf('Difference between expected and observed correlation is %.6f', pearson_r-obs_r))
   expect_lt(abs(pearson_r-obs_r), tolerance)
 })
@@ -56,7 +56,7 @@ test_that("Circular correlation matches BAMBI::circ_cor", {
   data <- data*2
   obs_r <- circ_corr(data[,1], data[,2])
   exp_r <- BAMBI::circ_cor(data)[[1]]
-  tolerance <- 1e-4
+  tolerance <- 1e-3
   print(sprintf('Difference between expected and observed correlation is %.6f', exp_r-obs_r))
   expect_lt(abs(exp_r-obs_r), tolerance)
 })
