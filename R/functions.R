@@ -185,7 +185,7 @@ weighted_circ_rho<-function(x, w){
 }
 
 
-#' Correct angle value
+#' Get angle value in \[-pi, pi\] space
 #'
 #' @param x angle
 #'
@@ -343,14 +343,10 @@ circ_descr <- function(x, w = NULL, d = NULL){
 #' # Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
 #' # https://doi.org/10.5281/zenodo.2544946
 #'
-#' data <- fread('https://zenodo.org/record/2544946/files/Experiment2_rawdata.csv?download=1')
-#' data[, err:=angle_diff_180(reported, orientation)]
-#' data[observer==4, remove_cardinal_biases(err, orientation, do_plot = TRUE)]
+#' Pascucci_et_al_2019_data[observer==4, remove_cardinal_biases(err, orientation, do_plot = TRUE)]
 #'
 #' # Data in motion domain from Bae & Luck (2018, Neuroimage), https://osf.io/2h6w9/
-#' data_motion <- fread('https://osf.io/4m2kb/download')
-#' data_motion[, err:=angle_diff_360(RespAngle, TargetDirection)]
-#' data_motion[subject_Num == unique(subject_Num)[5],
+#' Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],
 #' remove_cardinal_biases(err, TargetDirection, space = '360', do_plot = TRUE)]
 #'
 remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_plot = FALSE, poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, debug = FALSE){
@@ -443,7 +439,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
     resid_at_boundaries[,resid:=angle_diff_fun(err, pred)]
     resid_at_boundaries <- dcast(resid_at_boundaries, x_var+dc_var+err~gr_var,
                                  value.var = 'resid')
-    resid_at_boundaries <- resid_at_boundaries[,gr_var:=names(.SD)[max.col(-abs(.SD))], .SDcols = 4:5]
+    resid_at_boundaries <- resid_at_boundaries[,gr_var:=names(.SD)[max.col(replace(-abs(.SD), is.na(.SD), -Inf))], .SDcols = 4:ncol(resid_at_boundaries)]
     for_fit[resid_at_boundaries, `:=` (gr_var = i.gr_var), on = .(x_var, dc_var, err)]
     for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
     for_fit[,dist_to_bin_centre:=angle_diff_fun(x_var, center_x)]
@@ -492,7 +488,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
   #for_fit[outlier==F,pred_rlm:=rlm(err~poly(x2,1), data = .SD)$fitted, by=.(card_groups)]
   if (do_plot){
     for_fit[,outlier_f := factor(ifelse(outlier, 'Outlier','Non-outlier'))]
-    sd_val <- data[,circ_sd_fun(err)]
+    sd_val <- for_fit[,circ_sd_fun(err)]
     make_plots_of_biases(for_fit, poly_deg, sd_val)
   }
   for_fit[,.(is_outlier = as.numeric(outlier), pred, be_c, which_bin, bias, bias_type, pred_lin, pred_sigma, coef_sigma_int, coef_sigma_slope)]
@@ -591,13 +587,17 @@ get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, pol
                 data = cur_df,
                 control = gam_ctrl)
   # boundary predictions
-  bin_range <- as.numeric(space)/2
-  boundary1 <- cur_df$center_x[[1]] - bin_range/2
-  boundary2 <- cur_df$center_x[[1]]  + bin_range/2
-  data_at_boundaries <- data[outlier == F & at_the_boundary == T,
+  bin_range <- 90
+  curr_bin_center <- cur_df$center_x[[1]]
+  boundary1 <- curr_bin_center - bin_range/2
+  boundary2 <- curr_bin_center + bin_range/2
+  data[,dist_to_bin_centre:=angle_diff_fun(x_var, curr_bin_center)]
+  data_at_boundaries <- data[outlier == F & at_the_boundary == T &
+        abs(dist_to_bin_centre)<(bin_range/2+reassign_range+1e-12),
         .(err, x_var, dc_var,
-          dist_to_bin_centre = angle_diff_fun(x_var, cur_df$center_x[1]),
-          weight = 1 - as.numeric(outlier), adc = abs(dist_to_card), center_x)]
+          dist_to_bin_centre,
+          weight = 1 - as.numeric(outlier),
+          adc = abs(dist_to_card), center_x)]
 
   data_at_boundaries <- unique(data_at_boundaries)
 
