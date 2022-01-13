@@ -42,7 +42,7 @@ test_that("Circular correlation works properly for uniform and conditional von M
 
 test_that("Circular correlation close to Pearson for narrow cases", {
   # see Jammalamadaka & SenGupta
-  data <- rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
+  data <- mgcv::rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
   data <- data/8
   pearson_r <- cor(data[,1], data[,2])
   obs_r <- circ_corr(data[,1], data[,2])
@@ -52,7 +52,7 @@ test_that("Circular correlation close to Pearson for narrow cases", {
 })
 
 test_that("Circular correlation matches BAMBI::circ_cor", {
-  data <- rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
+  data <- mgcv::rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
   data <- data*2
   obs_r <- circ_corr(data[,1], data[,2])
   exp_r <- BAMBI::circ_cor(data)[[1]]

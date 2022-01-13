@@ -16,13 +16,14 @@ circ_corr(a, b, ill_defined = FALSE, mu = NULL)
 \item{mu}{fix the mean parameter of both vectors to a certain value}
 }
 \value{
-correlation value
+correlation coefficient
 }
 \description{
 Computes a circular correlation coefficient as defined in Jammalamadaka & SenGupta (2001).
 }
 \examples{
-data <- rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
+requireNamespace('mgcv')
+data <- mgcv::rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
 circ_corr(data[,1], data[,2])
 }
 \references{

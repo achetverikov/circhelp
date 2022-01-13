@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">circhelp</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
       </span>
     </div>
 
@@ -88,22 +88,21 @@
     <div id="ref-examples">
     <h2>Examples</h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"></span>
-<span class="r-in"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">require</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com" class="external-link">data.table</a></span><span class="op">)</span></span>
 <span class="r-in"><span class="va">dt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">1000</span>,<span class="op">-</span><span class="fl">90</span>,<span class="fl">90</span><span class="op">)</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1000</span><span class="op">)</span><span class="op">)</span></span>
 <span class="r-in"><span class="fu">pad_circ</span><span class="op">(</span><span class="va">dt</span>, <span class="st">'x'</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Rows in original DT: 1000, padded on the left: 160, padded on the right: 159"</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                 x           y</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    1:   60.438942  0.78491619</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    2:    9.333914  0.57640451</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    3:   -8.892622  0.51278453</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    4:  -37.942951 -0.04353728</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    5:  -50.989847 -1.55062767</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ---                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1315:  -98.323381 -0.02658678</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1316:  -90.211572 -1.03660444</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1317: -112.414891  0.95009055</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1318: -109.946863  0.60538266</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1319:  -97.568714 -0.88967991</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Rows in original DT: 1000, padded on the left: 159, padded on the right: 165"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                x          y</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    1:   85.38357  0.7025949</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    2:  -30.96773  0.9449751</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    3:   47.84025  1.4733252</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    4:   48.34278 -0.8756179</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    5:  -15.77232  1.0238292</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ---                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1320: -104.60348  0.2197467</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1321: -110.05460  0.7655734</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1322: -107.31883 -0.1989721</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1323:  -93.72201 -0.5222573</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1324: -108.48049 -0.5842400</span>
 <span class="r-in"></span>
 </code></pre></div>
     </div>

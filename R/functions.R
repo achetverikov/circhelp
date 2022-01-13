@@ -102,14 +102,15 @@ angle_diff_360_90<-function(a,b){
 #' @param ill_defined is one of the variables mean is not well-defined (e.g., it is uniformly distributed)?
 #' @param mu fix the mean parameter of both vectors to a certain value
 #'
-#' @return correlation value
+#' @return correlation coefficient
 #' @references {
 #' Jammalamadaka, S. R., & SenGupta, A. (2001). Topics in Circular Statistics. WORLD SCIENTIFIC. https://doi.org/10.1142/4031
 #' }
 #' @export
 #'
 #' @examples
-#' data <- rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
+#' requireNamespace('mgcv')
+#' data <- mgcv::rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
 #' circ_corr(data[,1], data[,2])
 
 
@@ -130,6 +131,40 @@ circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL){
   rho
 }
 
+#' Circular-linear correlation
+#'
+#' \loadmathjax
+#' Implementation of the circular-linear correlation measure introduced by Mardia (1976) and Johnson and Wehrly (1977) as cited in Jammalamadaka & Sengupta (2001).
+#'
+#' @param circ_x circular variable
+#' @param lin_x linear variable
+#'
+#' @details This measure is computed as \mjsdeqn{r^2 = (r_{xc}^2+r_{xs}^2-2 r_{xc} r_{xs}r_{cs})/(1-r_{cs}^2)} where \mjseqn{r_{xc} = corr(x, cos(\alpha))}, \mjseqn{r_{xs} = corr(x, sin(\alpha))}, \mjseqn{r_{cs} = corr(cos(\alpha), sin(\alpha))}, and \mjseqn{\alpha} and \mjseqn{x} are the circular and linear variables, respectively.
+#'
+#'
+#' @return circular-linear correlation measure
+#' @export
+#' @references {
+#' Jammalamadaka, S. R., & SenGupta, A. (2001). Topics in Circular Statistics. WORLD SCIENTIFIC. https://doi.org/10.1142/4031
+#' }
+#' @examples
+#'
+#' x <- rnorm(50)
+#' a <- circular::rvonmises(50, 0, 5)
+#' circ_lin_corr(x+a, x)
+
+circ_lin_corr <- function(circ_x, lin_x){
+  cos_a <- cos(circ_x)
+  sin_a <- sin(circ_x)
+  r_xcos <- cor(lin_x, cos_a)
+  r_xsin <- cor(lin_x, sin_a)
+  r_cossin <- cor(cos_a, sin_a)
+
+  r_squared <- ((r_xcos^2) + (r_xsin^2) - (2*r_xcos*r_xsin*r_cossin)) / (1 - (r_cossin^2))
+
+  sqrt(r_squared)
+
+}
 #' Weighted circular parameters
 #'
 #' @param x vector of values (in radians)
@@ -337,7 +372,8 @@ circ_descr <- function(x, w = NULL, d = NULL){
 #'
 #' }
 #' @export
-#'
+#' @import data.table gamlss
+#' @importFrom MASS rlm
 #' @examples
 #'
 #' # Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
@@ -350,12 +386,6 @@ circ_descr <- function(x, w = NULL, d = NULL){
 #' remove_cardinal_biases(err, TargetDirection, space = '360', do_plot = TRUE)]
 #'
 remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_plot = FALSE, poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, debug = FALSE){
-  require(MASS)
-  require(mgcv)
-  require(ggplot2)
-  require(gamlss)
-  require(data.table)
-
   if (!(bias_type %in% c('fit','card','obl')) ){
     stop("`bias_type` should be 'fit','card', or 'obl'" )
   }
@@ -391,17 +421,17 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
   for_fit[,outlier:=abs(err)>3*circ_sd_fun(err)]
   for_fit[,dist_to_card:=angle_diff_90(x2, 0)]
   for_fit[,dist_to_obl:=angle_diff_90(x, 45)]
-  gam_ctrl <- gamlss.control(trace = F)
+  gam_ctrl <- gamlss::gamlss.control(trace = F)
 
   if (bias_type == 'fit'){
     if (var_sigma){
       sigma_formula <- '~abs(dist_to_card)' # assumes that uncertainty changes linearly as a function of distance to cardinals regardless of the bias direction
-      ll1<-sum(for_fit[outlier==F,logLik(gamlss(err~poly(dist_to_card, var_sigma_poly_deg), sigma_formula,.SD, control = gam_ctrl)), by=.(card_groups)]$V1)
-      ll2<-sum(for_fit[outlier==F,logLik(gamlss(err~poly(dist_to_obl, var_sigma_poly_deg), sigma_formula, .SD, control = gam_ctrl)), by=.(obl_groups)]$V1)
+      ll1<-sum(for_fit[outlier==F,logLik(gamlss::gamlss(err~poly(dist_to_card, var_sigma_poly_deg), sigma_formula,.SD, control = gam_ctrl)), by=.(card_groups)]$V1)
+      ll2<-sum(for_fit[outlier==F,logLik(gamlss::gamlss(err~poly(dist_to_obl, var_sigma_poly_deg), sigma_formula, .SD, control = gam_ctrl)), by=.(obl_groups)]$V1)
     }
     else {
-      ll1<-sum(for_fit[outlier==F,logLik(rlm(err~poly(x2,poly_deg))), by=.(card_groups)]$V1)
-      ll2<-sum(for_fit[outlier==F,logLik(rlm(err~poly(x,poly_deg))), by=.(obl_groups)]$V1)
+      ll1<-sum(for_fit[outlier==F,logLik(MASS::rlm(err~poly(x2,poly_deg))), by=.(card_groups)]$V1)
+      ll2<-sum(for_fit[outlier==F,logLik(MASS::rlm(err~poly(x,poly_deg))), by=.(obl_groups)]$V1)
     }
     if (debug)
       print(sprintf('LL for bias type 1: %.2f, LL for bias type 2: %.2f', ll1, ll2))
@@ -446,7 +476,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
     for_fit[,x_var:=center_x+dist_to_bin_centre]
     for (cg in unique(for_fit$gr_var)){
       cur_df <- for_fit[gr_var==cg,.(err, x_var, dist_to_bin_centre, dc_var, outlier, dist_to_card)]
-      fit <- gamlss(err~poly(dist_to_bin_centre, poly_deg),
+      fit <- gamlss::gamlss(err~poly(dist_to_bin_centre, poly_deg),
                     ~abs(dist_to_card),
                     data = cur_df,
                     weights = 1-as.numeric(cur_df$outlier),
@@ -461,15 +491,16 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
       for_fit[gr_var==cg, bias:=err*sign(pred)]
 
       if (debug){
+        requireNamespace('ggplot2')
         print(ggplot(for_fit[gr_var==cg], aes(x = dist_to_bin_centre, y = err))+geom_point()+geom_line(aes(y = pred)))
       }
       for_fit[gr_var==cg, c('coef_sigma_int','coef_sigma_slope'):= data.frame(t(coef(fit, what = 'sigma')))]
     }
   } else {
-    for_fit[,pred:=predict(rlm(err~poly(x_var,poly_deg),.SD[outlier==F]),newdata=.SD[,.(x_var)]),  by=.(card_groups)]
+    for_fit[,pred:=predict(MASS::rlm(err~poly(x_var,poly_deg),.SD[outlier==F]),newdata=.SD[,.(x_var)]),  by=.(card_groups)]
   }
 
-  for_fit[,pred_lin:=rlm(err~x_var)$fitted.values, by=.(gr_var)]
+  for_fit[,pred_lin:=MASS::rlm(err~x_var)$fitted.values, by=.(gr_var)]
 
   for_fit[,be_c:=err-pred]
   for_fit[,which_bin:=as.numeric(gr_var)]
@@ -494,9 +525,21 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
   for_fit[,.(is_outlier = as.numeric(outlier), pred, be_c, which_bin, bias, bias_type, pred_lin, pred_sigma, coef_sigma_int, coef_sigma_slope)]
 }
 
+
+#' Plots biases using the data from `remove_cardinal_biases`
+#'
+#' @param data data prepared by  `remove_cardinal_biases`
+#' @param poly_deg the degree of polynomial
+#' @param sd_val sd used to determine the outliers
+#'
+#' @return does not return anything
+#'
+#' @import ggplot2
+#' @importFrom patchwork wrap_plots
+#'
 make_plots_of_biases <- function(data, poly_deg, sd_val){
-  require(patchwork)
-  require(ggplot2)
+  requireNamespace('patchwork')
+  requireNamespace('ggplot2')
 
   common_plot_pars <- list(scale_x_continuous(breaks = seq(-180,360,90)),
                            labs(x = 'Orientation', shape = NULL, color = 'Bin'),
@@ -527,7 +570,7 @@ make_plots_of_biases <- function(data, poly_deg, sd_val){
     geom_hline(yintercept = c(-1,1)*data[,3*sd_val], linetype = 2)+theme(legend.position = 'none')+labs(y = 'Bias')
 
   p1<-p1+labs(shape = NULL)+guides(color = 'none')
-  print(p1+p1a+p1b+plot_layout(guides = 'collect'))
+  patchwork::wrap_plots(p1,p1a,p1b, guides = 'collect')
 }
 
 #' Pad circular data on both ends
@@ -542,14 +585,14 @@ make_plots_of_biases <- function(data, poly_deg, sd_val){
 #' @return a padded data.table
 #' @export
 #'
+#' @import data.table
+#'
 #' @examples
 #'
-#' require(data.table)
 #' dt <- data.table(x = runif(1000,-90,90), y = rnorm(1000))
 #' pad_circ(dt, 'x', verbose = TRUE)
 #'
 pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, verbose = FALSE){
-  require(data.table)
   circ_range <- max(circ_borders)-min(circ_borders)
 
   data1<-copy(data[get(circ_var)<(circ_borders[1]+circ_range*circ_part),])
@@ -576,13 +619,15 @@ pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, ve
 #' @param angle_diff_fun a function to compute difference between angles
 #'
 #' @return a data.table with predicted values
+#'
+#' @import data.table
 #' @keywords internal
 #'
 get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun){
   cur_df <- data[gr_var==group&outlier==F,.(err, x_var, dc_var,
                                             dist_to_bin_centre = angle_diff_fun(x_var, center_x), weight = 1-as.numeric(outlier), adc = abs(dist_to_card), center_x)]
 
-  fit <- gamlss(err~poly(dist_to_bin_centre, poly_deg),
+  fit <- gamlss::gamlss(err~poly(dist_to_bin_centre, poly_deg),
                 ~ adc,
                 data = cur_df,
                 control = gam_ctrl)
