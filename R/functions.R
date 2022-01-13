@@ -150,7 +150,7 @@ circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL){
 #' @examples
 #'
 #' x <- rnorm(50)
-#' a <- circular::rvonmises(50, 0, 5)
+#' a <- as.vector(circular::rvonmises(50, 0, 5))
 #' circ_lin_corr(x+a, x)
 
 circ_lin_corr <- function(circ_x, lin_x){
