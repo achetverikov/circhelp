@@ -449,14 +449,16 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
     for_fit[,x_var:=x2]
     for_fit[,dc_var:=dist_to_card]
     for_fit[,gr_var:=card_groups]
-    for_fit[,at_the_boundary:=(abs(dist_to_obl)-reassign_range)<(1e-12)]
+    if (reassign_at_boundaries)
+      for_fit[,at_the_boundary:=(abs(dist_to_obl)-reassign_range)<(1e-12)]
 
     bin_centers <- card_bin_centers
   } else {
     for_fit[,x_var := x]
     for_fit[,dc_var := dist_to_obl]
     for_fit[,gr_var := obl_groups]
-    for_fit[,at_the_boundary:=(abs(dist_to_card)-reassign_range)<(1e-12)]
+    if (reassign_at_boundaries)
+      for_fit[,at_the_boundary:=(abs(dist_to_card)-reassign_range)<(1e-12)]
 
     bin_centers <- obl_bin_centers
 
@@ -464,16 +466,19 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
   for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
   if (var_sigma){
     # get predictions
-    resid_at_boundaries <- for_fit[,
-                                   get_boundary_preds(gr_var, for_fit, space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun), by = .(gr_var)]
-    resid_at_boundaries[,resid:=angle_diff_fun(err, pred)]
-    resid_at_boundaries <- dcast(resid_at_boundaries, x_var+dc_var+err~gr_var,
-                                 value.var = 'resid')
-    resid_at_boundaries <- resid_at_boundaries[,gr_var:=names(.SD)[max.col(replace(-abs(.SD), is.na(.SD), -Inf))], .SDcols = 4:ncol(resid_at_boundaries)]
-    for_fit[resid_at_boundaries, `:=` (gr_var = i.gr_var), on = .(x_var, dc_var, err)]
-    for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
+    if (reassign_at_boundaries){
+      resid_at_boundaries <- for_fit[,
+                                     get_boundary_preds(gr_var, copy(for_fit), space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun), by = .(gr_var)]
+      resid_at_boundaries[,resid:=angle_diff_fun(err, pred)]
+      resid_at_boundaries <- dcast(resid_at_boundaries, x_var+dc_var+err~gr_var,
+                                   value.var = 'resid')
+      resid_at_boundaries <- resid_at_boundaries[,gr_var:=names(.SD)[max.col(replace(-abs(.SD), is.na(.SD), -Inf))], .SDcols = 4:ncol(resid_at_boundaries)]
+      for_fit[resid_at_boundaries, `:=` (gr_var = i.gr_var), on = .(x_var, dc_var, err)]
+      for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
+      for_fit[,x_var:=center_x+angle_diff_fun(x_var, center_x)]
+    }
     for_fit[,dist_to_bin_centre:=angle_diff_fun(x_var, center_x)]
-    for_fit[,x_var:=center_x+dist_to_bin_centre]
+
     for (cg in unique(for_fit$gr_var)){
       cur_df <- for_fit[gr_var==cg,.(err, x_var, dist_to_bin_centre, dc_var, outlier, dist_to_card)]
       fit <- gamlss::gamlss(err~poly(dist_to_bin_centre, poly_deg),
@@ -520,7 +525,8 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
   if (do_plot){
     for_fit[,outlier_f := factor(ifelse(outlier, 'Outlier','Non-outlier'))]
     sd_val <- for_fit[,circ_sd_fun(err)]
-    make_plots_of_biases(for_fit, poly_deg, sd_val)
+    plots <- make_plots_of_biases(for_fit, poly_deg, sd_val)
+    print(plots)
   }
   for_fit[,.(is_outlier = as.numeric(outlier), pred, be_c, which_bin, bias, bias_type, pred_lin, pred_sigma, coef_sigma_int, coef_sigma_slope)]
 }
