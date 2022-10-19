@@ -7,18 +7,20 @@
 \alias{weighted_circ_rho}
 \title{Weighted circular parameters}
 \usage{
-weighted_circ_mean(x, w)
+weighted_circ_mean(x, w, na.rm = F)
 
-weighted_circ_mean2(x, w)
+weighted_circ_mean2(x, w, na.rm = F)
 
-weighted_circ_sd(x, w)
+weighted_circ_sd(x, w, na.rm = F)
 
-weighted_circ_rho(x, w)
+weighted_circ_rho(x, w, na.rm = F)
 }
 \arguments{
 \item{x}{vector of values (in radians)}
 
 \item{w}{vector of weights}
+
+\item{na.rm}{a logical value indicating whether NA values should be removed before the computation proceeds}
 }
 \value{
 weighted mean of values in the vector

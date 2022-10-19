@@ -6,14 +6,16 @@
 \alias{circ_mean_360}
 \title{Circular mean}
 \usage{
-circ_mean_rad(x)
+circ_mean_rad(x, na.rm = F)
 
-circ_mean_180(x)
+circ_mean_180(x, na.rm = F)
 
-circ_mean_360(x)
+circ_mean_360(x, na.rm = F)
 }
 \arguments{
 \item{x}{vector of values}
+
+\item{na.rm}{a logical value indicating whether NA values should be removed before the computation proceeds}
 }
 \value{
 mean of values in the vector

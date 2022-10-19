@@ -4,7 +4,7 @@
 \alias{circ_corr}
 \title{Circular correlation coefficient}
 \usage{
-circ_corr(a, b, ill_defined = FALSE, mu = NULL)
+circ_corr(a, b, ill_defined = FALSE, mu = NULL, na.rm = F)
 }
 \arguments{
 \item{a}{first variable}
@@ -14,6 +14,8 @@ circ_corr(a, b, ill_defined = FALSE, mu = NULL)
 \item{ill_defined}{is one of the variables mean is not well-defined (e.g., it is uniformly distributed)?}
 
 \item{mu}{fix the mean parameter of both vectors to a certain value}
+
+\item{na.rm}{a logical value indicating whether NA values should be removed before the computation proceeds}
 }
 \value{
 correlation coefficient

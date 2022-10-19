@@ -6,14 +6,16 @@
 \alias{circ_sd_180}
 \title{Circular standard deviation}
 \usage{
-circ_sd_rad(x)
+circ_sd_rad(x, na.rm = F)
 
-circ_sd_360(x)
+circ_sd_360(x, na.rm = F)
 
-circ_sd_180(x)
+circ_sd_180(x, na.rm = F)
 }
 \arguments{
 \item{x}{vector of angles}
+
+\item{na.rm}{a logical value indicating whether NA values should be removed before the computation proceeds}
 }
 \value{
 standard deviation of values in the vector

@@ -2,6 +2,7 @@
 #' Circular mean
 #'
 #' @param x vector of values
+#' @param na.rm a logical value indicating whether NA values should be removed before the computation proceeds
 #'
 #' @return mean of values in the vector
 #' @export
@@ -12,24 +13,24 @@
 #' circ_mean_rad(x)
 #'
 #' @describeIn circ_mean_rad circular mean in 2pi space
-circ_mean_rad<-function (x){
+circ_mean_rad<-function (x, na.rm = F){
   # from CircStats package
-  sinr <- sum(sin(x))
-  cosr <- sum(cos(x))
+  sinr <- sum(sin(x), na.rm = na.rm)
+  cosr <- sum(cos(x), na.rm = na.rm)
   circmean <- atan2(sinr, cosr)
   circmean
 }
 
 #' @describeIn circ_mean_rad circular mean in 180° space (e.g., line orientation)
 #' @export
-circ_mean_180<-function(x){
-  circ_mean_rad(x/90*pi)/pi*90
+circ_mean_180<-function(x, na.rm = F){
+  circ_mean_rad(x/90*pi, na.rm = na.rm)/pi*90
 }
 
 #' @describeIn circ_mean_rad circular mean in 360° space
 #' @export
-circ_mean_360<-function(x){
-  circ_mean_rad(x/180*pi)/pi*180
+circ_mean_360<-function(x, na.rm = F){
+  circ_mean_rad(x/180*pi, na.rm = na.rm)/pi*180
 }
 
 #' Differences between angles in different circular spaces
@@ -101,6 +102,7 @@ angle_diff_360_90<-function(a,b){
 #' @param b second variable
 #' @param ill_defined is one of the variables mean is not well-defined (e.g., it is uniformly distributed)?
 #' @param mu fix the mean parameter of both vectors to a certain value
+#' @param na.rm a logical value indicating whether NA values should be removed before the computation proceeds
 #'
 #' @return correlation coefficient
 #' @references {
@@ -114,7 +116,11 @@ angle_diff_360_90<-function(a,b){
 #' circ_corr(data[,1], data[,2])
 
 
-circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL){
+circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL, na.rm = F){
+  if (na.rm){
+    a <- a[!is.na(a)]
+    b <- b[!is.na(b)]
+  }
   mu_a <- circ_mean_rad(a)
   mu_b <- circ_mean_rad(b)
   if (!is.null(mu)){
@@ -138,6 +144,7 @@ circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL){
 #'
 #' @param circ_x circular variable
 #' @param lin_x linear variable
+#' @param na.rm a logical value indicating whether NA values should be removed before the computation proceeds
 #'
 #' @details This measure is computed as \mjsdeqn{r^2 = (r_{xc}^2+r_{xs}^2-2 r_{xc} r_{xs}r_{cs})/(1-r_{cs}^2)} where \mjseqn{r_{xc} = corr(x, cos(\alpha))}, \mjseqn{r_{xs} = corr(x, sin(\alpha))}, \mjseqn{r_{cs} = corr(cos(\alpha), sin(\alpha))}, and \mjseqn{\alpha} and \mjseqn{x} are the circular and linear variables, respectively.
 #'
@@ -153,7 +160,11 @@ circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL){
 #' a <- as.vector(circular::rvonmises(50, 0, 5))
 #' circ_lin_corr(x+a, x)
 
-circ_lin_corr <- function(circ_x, lin_x){
+circ_lin_corr <- function(circ_x, lin_x, na.rm = F){
+  if (na.rm){
+    circ_x <- circ_x[!is.na(circ_x)]
+    lin_x <- lin_x[!is.na(lin_x)]
+  }
   cos_a <- cos(circ_x)
   sin_a <- sin(circ_x)
   r_xcos <- cor(lin_x, cos_a)
@@ -169,6 +180,7 @@ circ_lin_corr <- function(circ_x, lin_x){
 #'
 #' @param x vector of values (in radians)
 #' @param w vector of weights
+#' @param na.rm a logical value indicating whether NA values should be removed before the computation proceeds
 #'
 #' @return weighted mean of values in the vector
 #' @export
@@ -181,44 +193,43 @@ circ_lin_corr <- function(circ_x, lin_x){
 #'
 #' @describeIn weighted_circ_mean weighted circular mean
 
-weighted_circ_mean<-function(x, w){
+weighted_circ_mean<-function(x, w, na.rm = F){
   if (length(w)!=length(x))
     stop('Weights (w) should have the same length as values (x)')
 
-  sum_w<-sum(w)
-  atan2(sum(w*sin(x))/sum_w, sum(w*cos(x))/sum_w)
+  sum_w<-sum(w, na.rm = na.rm)
+  atan2(sum(w*sin(x), na.rm = na.rm)/sum_w, sum(w*cos(x), na.rm = na.rm)/sum_w)
 
 }
 
 #' @describeIn weighted_circ_mean an alternative way to compute weighted circular mean (the results are the same)
 #' @export
-weighted_circ_mean2 <- function(x, w){
+weighted_circ_mean2 <- function(x, w, na.rm = F){
   if (length(w)!=length(x))
     stop('Weights (w) should have the same length as values (x)')
   z = exp(1i*x)
-  Arg(sum(w*z)/sum(w))
+  Arg(sum(w*z, na.rm = na.rm)/sum(w, na.rm = na.rm))
 }
 
 #' @describeIn weighted_circ_mean weighted circular SD
 #' @export
 
-weighted_circ_sd<-function(x, w){
-  sum_w<-sum(w)
+weighted_circ_sd<-function(x, w, na.rm = F){
+  sum_w<-sum(w, na.rm = na.rm)
 
-  r <- sqrt((sum(w*sin(x))/sum_w)^2+(sum(w*cos(x))/sum_w)^2)
+  r <- sqrt((sum(w*sin(x), na.rm = na.rm)/sum_w)^2+(sum(w*cos(x), na.rm = na.rm)/sum_w)^2)
   sqrt(-2*log(r))
 }
 
 #' @describeIn weighted_circ_mean weighted mean resultant length
 #' @export
 
-weighted_circ_rho<-function(x, w){
-  sum_w<-sum(w)
+weighted_circ_rho<-function(x, w, na.rm = F){
+  sum_w<-sum(w, na.rm = na.rm)
 
-  r <- sqrt((sum(w*sin(x))/sum_w)^2+(sum(w*cos(x))/sum_w)^2)
+  r <- sqrt((sum(w*sin(x), na.rm = na.rm)/sum_w)^2+(sum(w*cos(x), na.rm = na.rm)/sum_w)^2)
   r
 }
-
 
 #' Get angle value in \[-pi, pi\] space
 #'
@@ -237,6 +248,7 @@ correct_angle_rad <- function(x) {
 #' Circular standard deviation
 #'
 #' @param x vector of angles
+#' @param na.rm a logical value indicating whether NA values should be removed before the computation proceeds
 #'
 #' @return standard deviation of values in the vector
 #' @export
@@ -246,7 +258,10 @@ correct_angle_rad <- function(x) {
 #' circ_sd_180(rnorm(50))
 #'
 #' @describeIn circ_sd_rad SD of angles in radians
-circ_sd_rad <- function(x){
+circ_sd_rad <- function(x, na.rm = F){
+  if (na.rm)
+    x <- x[!is.na(x)]
+
   r = sum(exp(1i*x));
 
   # mean resultant length
@@ -258,13 +273,13 @@ circ_sd_rad <- function(x){
 #' @describeIn circ_sd_rad SD of angles in 360 degree space
 #' @export
 
-circ_sd_360 <- function(x){
-  circ_sd_rad(x/180*pi)/pi*180
+circ_sd_360 <- function(x, na.rm = F){
+  circ_sd_rad(x/180*pi, na.rm = na.rm)/pi*180
 }
 #' @describeIn circ_sd_rad SD of angles in 180 degree space
 #' @export
-circ_sd_180 <- function(x){
-  circ_sd_rad(x/90*pi)/pi*90
+circ_sd_180 <- function(x, na.rm = F){
+  circ_sd_rad(x/90*pi, na.rm = na.rm)/pi*90
 }
 
 circ_dist <- function(x, y){
@@ -280,6 +295,7 @@ angle <- function(x){
 #' @param x vector of angles
 #' @param w weights for the values in the vector
 #' @param d correction for the bias for data with known spacing
+#' @param na.rm a logical value indicating whether NA values should be removed before the computation proceeds
 #'
 #' @return a list with descriptive statistics
 #' \itemize{
@@ -296,7 +312,10 @@ angle <- function(x){
 #' x <- c(rnorm(50,0,0.5), rnorm(20,1,0.5))
 #' circ_descr(x)
 #'
-circ_descr <- function(x, w = NULL, d = NULL){
+circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
+  if (na.rm){
+    x <- x[!is.na(x)]
+  }
   if (is.null(w))
     w = rep(1, length(x))
   # compute weighted sum of cos and sin of angles

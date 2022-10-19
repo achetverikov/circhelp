@@ -4,12 +4,14 @@
 \alias{circ_lin_corr}
 \title{Circular-linear correlation}
 \usage{
-circ_lin_corr(circ_x, lin_x)
+circ_lin_corr(circ_x, lin_x, na.rm = F)
 }
 \arguments{
 \item{circ_x}{circular variable}
 
 \item{lin_x}{linear variable}
+
+\item{na.rm}{a logical value indicating whether NA values should be removed before the computation proceeds}
 }
 \value{
 circular-linear correlation measure

@@ -4,7 +4,7 @@
 \alias{circ_descr}
 \title{A set of descriptive statistics for circular data}
 \usage{
-circ_descr(x, w = NULL, d = NULL)
+circ_descr(x, w = NULL, d = NULL, na.rm = F)
 }
 \arguments{
 \item{x}{vector of angles}
@@ -12,6 +12,8 @@ circ_descr(x, w = NULL, d = NULL)
 \item{w}{weights for the values in the vector}
 
 \item{d}{correction for the bias for data with known spacing}
+
+\item{na.rm}{a logical value indicating whether NA values should be removed before the computation proceeds}
 }
 \value{
 a list with descriptive statistics
