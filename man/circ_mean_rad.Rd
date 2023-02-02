@@ -25,13 +25,13 @@ Circular mean
 }
 \section{Functions}{
 \itemize{
-\item \code{circ_mean_rad}: circular mean in 2pi space
+\item \code{circ_mean_rad()}: circular mean in 2pi space
 
-\item \code{circ_mean_180}: circular mean in 180° space (e.g., line orientation)
+\item \code{circ_mean_180()}: circular mean in 180° space (e.g., line orientation)
 
-\item \code{circ_mean_360}: circular mean in 360° space
+\item \code{circ_mean_360()}: circular mean in 360° space
+
 }}
-
 \examples{
 x <- runif(1000,-pi,pi)
 mean(x)

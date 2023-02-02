@@ -30,15 +30,15 @@ Weighted circular parameters
 }
 \section{Functions}{
 \itemize{
-\item \code{weighted_circ_mean}: weighted circular mean
+\item \code{weighted_circ_mean()}: weighted circular mean
 
-\item \code{weighted_circ_mean2}: an alternative way to compute weighted circular mean (the results are the same)
+\item \code{weighted_circ_mean2()}: an alternative way to compute weighted circular mean (the results are the same)
 
-\item \code{weighted_circ_sd}: weighted circular SD
+\item \code{weighted_circ_sd()}: weighted circular SD
 
-\item \code{weighted_circ_rho}: weighted mean resultant length
+\item \code{weighted_circ_rho()}: weighted mean resultant length
+
 }}
-
 \examples{
 x <- rnorm(1000,0, 0.5)
 w <- runif(1000, 0, 1)

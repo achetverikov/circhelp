@@ -25,13 +25,13 @@ Circular standard deviation
 }
 \section{Functions}{
 \itemize{
-\item \code{circ_sd_rad}: SD of angles in radians
+\item \code{circ_sd_rad()}: SD of angles in radians
 
-\item \code{circ_sd_360}: SD of angles in 360 degree space
+\item \code{circ_sd_360()}: SD of angles in 360 degree space
 
-\item \code{circ_sd_180}: SD of angles in 180 degree space
+\item \code{circ_sd_180()}: SD of angles in 180 degree space
+
 }}
-
 \examples{
 circ_sd_rad(rnorm(50))
 circ_sd_180(rnorm(50))

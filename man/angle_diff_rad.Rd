@@ -37,19 +37,19 @@ By default, all functions return values in ± half-range space (e.g., -pi to pi 
 }
 \section{Functions}{
 \itemize{
-\item \code{angle_diff_rad}: angle difference in radians
+\item \code{angle_diff_rad()}: angle difference in radians
 
-\item \code{angle_diff_360}: angle difference in 360 degree space
+\item \code{angle_diff_360()}: angle difference in 360 degree space
 
-\item \code{angle_diff_180}: angle difference in 180 degree space (e.g., line orientation)
+\item \code{angle_diff_180()}: angle difference in 180 degree space (e.g., line orientation)
 
-\item \code{angle_diff_90}: angle difference in 90 degree space
+\item \code{angle_diff_90()}: angle difference in 90 degree space
 
-\item \code{angle_diff_180_45}: angle difference in 180 degree space from -45 to 135
+\item \code{angle_diff_180_45()}: angle difference in 180 degree space from -45 to 135
 
-\item \code{angle_diff_360_90}: angle difference in 360 degree space from -90 to 270
+\item \code{angle_diff_360_90()}: angle difference in 360 degree space from -90 to 270
+
 }}
-
 \examples{
 angle_diff_180(5, 175)
 angle_diff_360(5, 175)
