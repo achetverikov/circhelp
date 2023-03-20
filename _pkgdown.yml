@@ -8,9 +8,13 @@ reference:
 - title: Cardinal biases
 - contents:
   - remove_cardinal_biases
+- title: Plotting
+- contents:
+  - circ_loess
 - title: Miscellanous
 - contents:
   - starts_with("angle_diff")
+  - starts_with("vm_circ")
   - correct_angle_rad
   - pad_circ
   - circ_corr
