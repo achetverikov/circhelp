@@ -3,24 +3,24 @@
 \name{vm_kappa_to_circ_sd}
 \alias{vm_kappa_to_circ_sd}
 \alias{vm_kappa_to_circ_sd_deg}
-\alias{vm_circ_sd_deg_to_kappa}
 \alias{vm_circ_sd_to_kappa}
+\alias{vm_circ_sd_deg_to_kappa}
 \title{Conversion between the circular SD and kappa of von Mises}
 \usage{
 vm_kappa_to_circ_sd(kappa)
 
 vm_kappa_to_circ_sd_deg(kappa)
 
-vm_circ_sd_deg_to_kappa(sd_deg)
-
 vm_circ_sd_to_kappa(sd)
+
+vm_circ_sd_deg_to_kappa(sd_deg)
 }
 \arguments{
 \item{kappa}{von Mises kappa parameter}
 
-\item{sd_deg}{circular SD of von Mises (degrees)}
-
 \item{sd}{circular SD of von Mises (radians)}
+
+\item{sd_deg}{circular SD of von Mises (degrees)}
 }
 \value{
 \code{vm_kappa_to_circ_sd} and \code{vm_kappa_to_circ_sd_deg} return circular SD (in radians or degrees, respectively) corresponding to a given kappa. \code{vm_circ_sd_to_kappa} and \code{vm_circ_sd_deg_to_kappa} return kappa corresponding to a given circular SD (in radians or degrees, respectively).
@@ -32,14 +32,20 @@ Conversion between the circular SD and kappa of von Mises
 \itemize{
 \item \code{vm_kappa_to_circ_sd_deg()}: get circular SD (in degrees) from kappa
 
-\item \code{vm_circ_sd_deg_to_kappa()}: get kappa from circular SD (in degrees)
-
 \item \code{vm_circ_sd_to_kappa()}: get kappa from circular SD (in radians)
+
+\item \code{vm_circ_sd_deg_to_kappa()}: get kappa from circular SD (in degrees)
 
 }}
 \examples{
-vm_kappa_to_circ_sd(5)
-x <- circular::rvonmises(10000, mu = circular::circular(0), kappa = 5)
-circ_sd_rad(x)
+
+vm_kappa <- 5
+vm_sd <- vm_kappa_to_circ_sd(vm_kappa)
+
+vm_circ_sd_to_kappa(vm_sd)
+
+x <- circular::rvonmises(10000, mu = circular::circular(0), kappa = vm_kappa)
+
+sprintf('Expected SD: \%.2f, actual SD: \%.2f', vm_sd, circ_sd_rad(x))
 
 }

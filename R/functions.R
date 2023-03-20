@@ -167,9 +167,9 @@ circ_lin_corr <- function(circ_x, lin_x, na.rm = F){
   }
   cos_a <- cos(circ_x)
   sin_a <- sin(circ_x)
-  r_xcos <- cor(lin_x, cos_a)
-  r_xsin <- cor(lin_x, sin_a)
-  r_cossin <- cor(cos_a, sin_a)
+  r_xcos <- stats::cor(lin_x, cos_a)
+  r_xsin <- stats::cor(lin_x, sin_a)
+  r_cossin <- stats::cor(cos_a, sin_a)
 
   r_squared <- ((r_xcos^2) + (r_xsin^2) - (2*r_xcos*r_xsin*r_cossin)) / (1 - (r_cossin^2))
 
@@ -698,9 +698,15 @@ inverse <- function (f, lower = 1e-16, upper = 1000) {
 #' @export
 #'
 #' @examples
-#' vm_kappa_to_circ_sd(5)
-#' x <- circular::rvonmises(10000, mu = circular::circular(0), kappa = 5)
-#' circ_sd_rad(x)
+#'
+#' vm_kappa <- 5
+#' vm_sd <- vm_kappa_to_circ_sd(vm_kappa)
+#'
+#' vm_circ_sd_to_kappa(vm_sd)
+#'
+#' x <- circular::rvonmises(10000, mu = circular::circular(0), kappa = vm_kappa)
+#'
+#' sprintf('Expected SD: %.2f, actual SD: %.2f', vm_sd, circ_sd_rad(x))
 #'
 
 vm_kappa_to_circ_sd <- function(kappa) {
@@ -715,17 +721,151 @@ vm_kappa_to_circ_sd_deg <- function(kappa) {
 }
 
 #' @export
+#' @describeIn vm_kappa_to_circ_sd get kappa from circular SD (in radians)
+
+vm_circ_sd_to_kappa <-  function(sd) {
+  vm_circ_sd_inverse <- inverse(vm_kappa_to_circ_sd)
+  sapply(sd, function(x) tryCatch(vm_circ_sd_inverse(x), error = function(e) paste("Can't convert sigma = ",x, " to kappa, error ",e)))
+}
+
+
+#' @export
 #' @describeIn vm_kappa_to_circ_sd get kappa from circular SD (in degrees)
 
 vm_circ_sd_deg_to_kappa <-  function(sd_deg) {
   vm_circ_sd_to_kappa(sd_deg/pi*180)
 }
 
-#' @export
-#' @describeIn vm_kappa_to_circ_sd get kappa from circular SD (in radians)
 
-vm_circ_sd_to_kappa <-  function(sd) {
-  vm_circ_sd_inverse <- inverse(vm_circ_sd)
-  sapply(sd, function(x) tryCatch(vm_circ_sd_inverse(x), error = function(e) paste("Can't convert sigma = ",x, " to kappa, error ",e)))
+
+weighted.var.se <- function(x, w, na.rm=FALSE){
+  # Computes the variance of a weighted mean following Cochran 1977 definition
+  # from https://stats.stackexchange.com/a/33959
+  if (na.rm) { w <- w[i <- !is.na(x)]; x <- x[i] }
+  n = length(w)
+  xWbar = weighted.mean(x,w,na.rm=na.rm)
+  wbar = mean(w)
+  out = n/((n-1)*sum(w)^2)*(sum((w*x-wbar*xWbar)^2)-2*xWbar*sum((w-wbar)*(w*x-wbar*xWbar))+xWbar^2*sum((w-wbar)^2))
+  return(out)
+
 }
 
+#' Compute predictions for circular LOESS
+#' @param model a circular LOESS object
+#' @param newdata a data.frame with a variable x on which the predictions are computed
+#' @param ... other arguments (ignored)
+#'
+#' @return a data.frame with predictions
+#' @method predict circ_loess
+#' @export
+#'
+predict.circ_loess <- function(model,  newdata, ...) {
+  res <- circ_loess(angle = model$angle, y = model$y, xseq = newdata$x, circ_space = model$circ_space, span = model$span, ...)
+  list(fit = data.frame(y = res$y_est, ymin = res$y_est - 1.96*res$y_se, ymax = res$y_est + 1.96*res$y_se), se.fit = res$y_se)
+  # res_dt <- data.frame(x = newdata$x, y = res$y_est, ymin = res$y_est - 1.96*res$y_se, ymax = res$y_est + 1.96*res$y_se, se = res$y_se)
+  # res_dt
+}
+
+# predict.circ_loess <- function(model,  xseq, se, level,...) {
+#   res <- circ_loess(angle = model$angle, y = model$y, x_grid = xseq)
+#   res_dt <- data.frame(x = xseq, y = res$y_est, ymin = res$y_est - 1.96*res$y_se, ymax = res$y_est + 1.96*res$y_se, se = res$y_se)
+#   res_dt
+# }
+
+
+
+#' An implementation of circular-linear locally-weighted regression (LOESS)
+#'
+#' Provides an locally-weighted average when the independent variable is circular and depended variable is linear. Mainly to use with ggplot2.
+#'
+#' @param formula the formula, e.g., y ~ x
+#' @param data data to use
+#' @param angle a vector of angles (not used if a formula is provided)
+#' @param y dependent variable vector (not used if a formula is provided)
+#' @param xseq a grid to compute predictions on (optional, the default is to use 500 points spanning the circle)
+#' @param circ_space circular space to use (90, 180, 360, or 2*pi)
+#' @param span a span to adjust the degree of smoothing
+#' @param ... other arguments (ignored)
+#'
+#' @details Weights for the regression are computed as
+#' \deqn{w = (1-(d/d_{max})^3)^3}
+#' where _d_ is the angular difference between the point at which the estimate is computed and the angles in the data, and $d_max$ is the maximum possible distance. If `span` is above 1, all points are included and $d_max = {circ_space}/4*span$. Otherwise, a proportion $\alpha$ of the points included based on their distance to the point at which the estimate is computed and $d_max$ is the corresponding maximal distance.
+
+#' @return an object of `circ_loess` class with the following parameters:
+#' * angle the angles in the data
+#' * y the dependent variable vales in the data
+#' * xseq the grid on which the loess values are estimated
+#' * y_est the estimated loess values
+#' * y_se standard errors
+#' * w weights
+#'
+#' @seealso stats::loess()
+#'
+#' @export
+#'
+#' @examples
+#' p <- ggplot(Pascucci_et_al_2019_data, aes(x = orientation, y = err))+geom_point(alpha = 0.05)+labs(x = 'Orientation, deg.', y = 'Error, deg.')
+#' p1 <- p + geom_smooth(method = 'loess') + ggtitle('Standard LOESS')
+#' p2 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.5)) + ggtitle('Circular LOESS, span = 0.5')
+#' p3 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.2)) + ggtitle('Circular LOESS, span = 0.2')
+#' (p1+p2+p3)
+#'
+circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq = NULL, weights = NULL, circ_space = NULL, span = 0.75, ...){
+
+  if (!is.null(formula)){
+    M <- stats::model.frame(formula, data)
+    angle <- M[,2]
+    y <- M[,1]
+  }
+
+  if (is.null(circ_space)){
+    print('circular space is not set, tryin to guess based on the data (prone to errors)...')
+    if (max(abs(angle))>90){
+      circ_space <- 360
+      print('circ_loess assuming 360 deg. space')
+    } else if (max(abs(angle))>45){
+      circ_space <- 180
+      print('circ_loess assuming 180 deg. space')
+    } else if (max(abs(angle))>15){
+      circ_space <- 90
+      print('circ_loess assuming 90 deg. space')
+    } else {
+      circ_space <- 2*pi
+      print('circ_loess assuming 2pi space')
+    }
+  }
+  if (circ_space %in% c(90,180,360)){
+    diff_fun <- get(paste0('angle_diff_', circ_space))
+  } else if (circ_space == 2*pi){
+    diff_fun <- angle_diff_rad
+  } else stop('Unknown circ_space value. Should be 90, 180, 360, or 2*pi.')
+
+  range <- c(-0.5, 0.5)*circ_space
+
+  angle <- diff_fun(angle, 0)
+
+  if (is.null(xseq)){
+    xseq <- seq(min(angle), max(angle), length.out = 500)
+  }
+
+  y_est <- sapply(xseq, function(x) {
+    dist <- abs(diff_fun(x, angle))
+    if (span < 1){
+      included_obs <- dist <= quantile(dist, span)
+      angle <- angle[included_obs]
+      dist <- dist[included_obs]
+      y <- y[included_obs]
+      max_dist <- max(dist)
+    } else {
+      max_dist <- diff(range)/2*span
+
+    }
+
+
+    w <- (1-(dist/max_dist)^3)^3
+
+    list(stats::weighted.mean(y,w), weighted.var.se(y, w)^0.5, w)
+  })
+  structure(list(angle = angle, y = y, xseq = xseq, y_est = unlist(y_est[1,]), circ_space = circ_space, span = span,
+                 y_se = unlist(y_est[2,]), w = unlist(y_est[3,])), class = "circ_loess")
+}
