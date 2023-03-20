@@ -1,7 +1,7 @@
 Package: circhelp
 Type: Package
 Title: Circular Analyses Helper Functions
-Version: 0.1.1
+Version: 0.2
 Authors@R: c(person("Andrey", "Chetverikov", email = "a.chetverikov@donders.ru.nl",
   role = c("aut", "cre")),
   person("Eline", "Van Geert", email = "eline.vangeert@kuleuven.be",
