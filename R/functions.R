@@ -687,15 +687,45 @@ inverse <- function (f, lower = 1e-16, upper = 1000) {
   function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper, extendInt = 'yes')[[1]]
 }
 
-vm_circ_sd <- function(kappa) {
+#' Conversion between the circular SD and kappa of von Mises
+#'
+#' @param kappa von Mises kappa parameter
+#' @param sd_deg circular SD of von Mises (degrees)
+#' @param sd circular SD of von Mises (radians)
+#'
+#' @return `vm_kappa_to_circ_sd` and `vm_kappa_to_circ_sd_deg` return circular SD (in radians or degrees, respectively) corresponding to a given kappa. `vm_circ_sd_to_kappa` and `vm_circ_sd_deg_to_kappa` return kappa corresponding to a given circular SD (in radians or degrees, respectively).
+#'
+#' @export
+#'
+#' @examples
+#' vm_kappa_to_circ_sd(5)
+#' x <- circular::rvonmises(10000, mu = circular::circular(0), kappa = 5)
+#' circ_sd_rad(x)
+#'
+
+vm_kappa_to_circ_sd <- function(kappa) {
   sqrt(-2*log(a_fun(kappa)))
 }
 
-vm_circ_sd_inverse_deg <-  function(sd_deg) {
-  vm_circ_sd_inverse <- inverse(vm_circ_sd)
-  sapply(sd_deg, function(x) tryCatch(vm_circ_sd_inverse(x/180*pi), error = function(e) paste("Can't convert sigma = ",x, " to kappa, error ",e)))
+
+#' @export
+#' @describeIn vm_kappa_to_circ_sd get circular SD (in degrees) from kappa
+vm_kappa_to_circ_sd_deg <- function(kappa) {
+  vm_kappa_to_circ_sd(kappa)/pi*180
 }
 
-vm_circ_sd_deg <- function(kappa) {
-  sqrt(-2*log(a_fun(kappa)))/pi*180
+#' @export
+#' @describeIn vm_kappa_to_circ_sd get kappa from circular SD (in degrees)
+
+vm_circ_sd_deg_to_kappa <-  function(sd_deg) {
+  vm_circ_sd_to_kappa(sd_deg/pi*180)
 }
+
+#' @export
+#' @describeIn vm_kappa_to_circ_sd get kappa from circular SD (in radians)
+
+vm_circ_sd_to_kappa <-  function(sd) {
+  vm_circ_sd_inverse <- inverse(vm_circ_sd)
+  sapply(sd, function(x) tryCatch(vm_circ_sd_inverse(x), error = function(e) paste("Can't convert sigma = ",x, " to kappa, error ",e)))
+}
+
