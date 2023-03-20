@@ -2,7 +2,8 @@
 % Please edit documentation in R/functions.R
 \name{circ_loess}
 \alias{circ_loess}
-\title{An implementation of circular-linear locally-weighted regression (LOESS)}
+\title{An implementation of circular-linear locally-weighted regression (LOESS)
+\loadmathjax}
 \usage{
 circ_loess(
   formula = NULL,
@@ -36,12 +37,14 @@ circ_loess(
 \value{
 an object of \code{circ_loess} class with the following parameters:
 \itemize{
-\item angle the angles in the data
-\item y the dependent variable vales in the data
-\item xseq the grid on which the loess values are estimated
-\item y_est the estimated loess values
-\item y_se standard errors
-\item w weights
+\item \code{angle} the angles in the data
+\item \code{y} the dependent variable vales in the data
+\item \code{xseq} the grid on which the loess values are estimated
+\item \code{y_est} the estimated loess values
+\item \code{y_se} standard errors
+\item \code{w} weights
+\item \code{circ_space} circular space used
+\item \code{span} span used
 }
 }
 \description{
@@ -49,8 +52,8 @@ Provides an locally-weighted average when the independent variable is circular a
 }
 \details{
 Weights for the regression are computed as
-\deqn{w = (1-(d/d_{max})^3)^3}
-where \emph{d} is the angular difference between the point at which the estimate is computed and the angles in the data, and $d_max$ is the maximum possible distance. If \code{span} is above 1, all points are included and $d_max = {circ_space}/4*span$. Otherwise, a proportion $\alpha$ of the points included based on their distance to the point at which the estimate is computed and $d_max$ is the corresponding maximal distance.
+\mjsdeqn{w = (1-(d/d_{max})^3)^3}
+where \emph{d} is the angular difference between the point at which the estimate is computed and the angles in the data, and \mjseqn{d_{max}} is the maximum possible distance. If \code{span} is above 1, all points are included and \mjseqn{d_{max} = {circ\_space}/(4*span)}. Otherwise, a proportion \mjseqn{\alpha} of the points included based on their distance to the point at which the estimate is computed and \mjseqn{d_{max}} is the corresponding maximal distance.
 }
 \examples{
 p <- ggplot(Pascucci_et_al_2019_data, aes(x = orientation, y = err))+geom_point(alpha = 0.05)+labs(x = 'Orientation, deg.', y = 'Error, deg.')

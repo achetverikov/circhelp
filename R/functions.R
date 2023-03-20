@@ -775,6 +775,7 @@ predict.circ_loess <- function(model,  newdata, ...) {
 
 
 #' An implementation of circular-linear locally-weighted regression (LOESS)
+#' \loadmathjax
 #'
 #' Provides an locally-weighted average when the independent variable is circular and depended variable is linear. Mainly to use with ggplot2.
 #'
@@ -788,16 +789,18 @@ predict.circ_loess <- function(model,  newdata, ...) {
 #' @param ... other arguments (ignored)
 #'
 #' @details Weights for the regression are computed as
-#' \deqn{w = (1-(d/d_{max})^3)^3}
-#' where _d_ is the angular difference between the point at which the estimate is computed and the angles in the data, and $d_max$ is the maximum possible distance. If `span` is above 1, all points are included and $d_max = {circ_space}/4*span$. Otherwise, a proportion $\alpha$ of the points included based on their distance to the point at which the estimate is computed and $d_max$ is the corresponding maximal distance.
+#' \mjsdeqn{w = (1-(d/d_{max})^3)^3}
+#' where _d_ is the angular difference between the point at which the estimate is computed and the angles in the data, and \mjseqn{d_{max}} is the maximum possible distance. If `span` is above 1, all points are included and \mjseqn{d_{max} = {circ\_space}/(4*span)}. Otherwise, a proportion \mjseqn{\alpha} of the points included based on their distance to the point at which the estimate is computed and \mjseqn{d_{max}} is the corresponding maximal distance.
 
 #' @return an object of `circ_loess` class with the following parameters:
-#' * angle the angles in the data
-#' * y the dependent variable vales in the data
-#' * xseq the grid on which the loess values are estimated
-#' * y_est the estimated loess values
-#' * y_se standard errors
-#' * w weights
+#' * `angle` the angles in the data
+#' * `y` the dependent variable vales in the data
+#' * `xseq` the grid on which the loess values are estimated
+#' * `y_est` the estimated loess values
+#' * `y_se` standard errors
+#' * `w` weights
+#' * `circ_space` circular space used
+#' * `span` span used
 #'
 #' @seealso stats::loess()
 #'
