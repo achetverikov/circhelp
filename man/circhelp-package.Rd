@@ -9,11 +9,11 @@
 A small helper package for circular data analyses.
 }
 \author{
-\strong{Maintainer}: Andrey Chetverikov \email{a.chetverikov@donders.ru.nl}
+\strong{Maintainer}: Andrey Chetverikov \email{a.chetverikov@donders.ru.nl} (\href{https://orcid.org/0000-0003-2767-6310}{ORCID})
 
 Other contributors:
 \itemize{
-  \item Eline Van Geert \email{eline.vangeert@kuleuven.be} [contributor]
+  \item Eline Van Geert \email{eline.vangeert@kuleuven.be} (\href{https://orcid.org/0000-0002-7848-5998}{ORCID}) [contributor]
 }
 
 }

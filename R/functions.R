@@ -561,6 +561,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
 #'
 #' @import ggplot2
 #' @importFrom patchwork wrap_plots
+#' @keywords internal
 #'
 make_plots_of_biases <- function(data, poly_deg, sd_val){
   requireNamespace('patchwork')
@@ -758,6 +759,7 @@ weighted.var.se <- function(x, w, na.rm=FALSE){
 #' @return a data.frame with predictions
 #' @method predict circ_loess
 #' @export
+#' @keywords internal
 #'
 predict.circ_loess <- function(model,  newdata, ...) {
   res <- circ_loess(angle = model$angle, y = model$y, xseq = newdata$x, circ_space = model$circ_space, span = model$span, ...)

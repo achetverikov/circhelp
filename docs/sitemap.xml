@@ -1,31 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>/404.html</loc>
+    <loc>/reference/make_plots_of_biases.html</loc>
   </url>
   <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>/articles/cardinal_biases.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/weighted_circ_mean.html</loc>
-  </url>
-  <url>
-    <loc>/reference/remove_cardinal_biases.html</loc>
-  </url>
-  <url>
-    <loc>/reference/pad_circ.html</loc>
+    <loc>/reference/index.html</loc>
   </url>
   <url>
     <loc>/reference/circ_mean_rad.html</loc>
@@ -37,30 +16,63 @@
     <loc>/reference/circ_descr.html</loc>
   </url>
   <url>
-    <loc>/reference/circ_corr.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/correct_angle_rad.html</loc>
-  </url>
-  <url>
-    <loc>/reference/Pascucci_et_al_2019_data.html</loc>
-  </url>
-  <url>
     <loc>/reference/Bae_Luck_2018_data.html</loc>
   </url>
   <url>
-    <loc>/reference/get_boundary_preds.html</loc>
+    <loc>/reference/remove_cardinal_biases.html</loc>
   </url>
   <url>
     <loc>/reference/angle_diff_rad.html</loc>
   </url>
   <url>
+    <loc>/reference/Pascucci_et_al_2019_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/correct_angle_rad.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_boundary_preds.html</loc>
+  </url>
+  <url>
+    <loc>/reference/pad_circ.html</loc>
+  </url>
+  <url>
     <loc>/reference/circ_lin_corr.html</loc>
   </url>
   <url>
-    <loc>/reference/make_plots_of_biases.html</loc>
+    <loc>/reference/circ_corr.html</loc>
+  </url>
+  <url>
+    <loc>/reference/weighted_circ_mean.html</loc>
+  </url>
+  <url>
+    <loc>/reference/vm_kappa_to_circ_sd.html</loc>
+  </url>
+  <url>
+    <loc>/reference/circ_loess.html</loc>
+  </url>
+  <url>
+    <loc>/reference/circhelp-package.html</loc>
+  </url>
+  <url>
+    <loc>/reference/predict.circ_loess.html</loc>
+  </url>
+  <url>
+    <loc>/articles/cardinal_biases.html</loc>
+  </url>
+  <url>
+    <loc>/articles/index.html</loc>
+  </url>
+  <url>
+    <loc>/index.html</loc>
+  </url>
+  <url>
+    <loc>/404.html</loc>
+  </url>
+  <url>
+    <loc>/authors.html</loc>
+  </url>
+  <url>
+    <loc>/LICENSE.html</loc>
   </url>
 </urlset>

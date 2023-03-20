@@ -3,8 +3,9 @@ Type: Package
 Title: Circular Analyses Helper Functions
 Version: 0.2
 Authors@R: c(person("Andrey", "Chetverikov", email = "a.chetverikov@donders.ru.nl",
-  role = c("aut", "cre")),
+  comment = c(ORCID = "0000-0003-2767-6310"), role = c("aut", "cre")),
   person("Eline", "Van Geert", email = "eline.vangeert@kuleuven.be",
+  comment = c(ORCID = "0000-0002-7848-5998"),
   role = c("ctb")))
 Description: A small helper package for circular data analyses.
 License: CC0

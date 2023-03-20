@@ -19,3 +19,4 @@ a data.frame with predictions
 \description{
 Compute predictions for circular LOESS
 }
+\keyword{internal}

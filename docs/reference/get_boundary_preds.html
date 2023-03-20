@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">circhelp</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2</span>
       </span>
     </div>
 
@@ -26,7 +26,7 @@
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -54,37 +54,52 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">get_boundary_preds</span><span class="op">(</span>
-  <span class="va">group</span>,
-  <span class="va">data</span>,
-  <span class="va">space</span>,
-  <span class="va">reassign_range</span>,
-  <span class="va">gam_ctrl</span>,
-  <span class="va">poly_deg</span>,
-  <span class="va">angle_diff_fun</span>
-<span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">get_boundary_preds</span><span class="op">(</span></span>
+<span>  <span class="va">group</span>,</span>
+<span>  <span class="va">data</span>,</span>
+<span>  <span class="va">space</span>,</span>
+<span>  <span class="va">reassign_range</span>,</span>
+<span>  <span class="va">gam_ctrl</span>,</span>
+<span>  <span class="va">poly_deg</span>,</span>
+<span>  <span class="va">angle_diff_fun</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>group</dt>
 <dd><p>group (bin) id</p></dd>
+
+
 <dt>data</dt>
 <dd><p>dataset</p></dd>
+
+
 <dt>space</dt>
 <dd><p>see <code><a href="remove_cardinal_biases.html">remove_cardinal_biases()</a></code></p></dd>
+
+
 <dt>reassign_range</dt>
 <dd><p>see <code><a href="remove_cardinal_biases.html">remove_cardinal_biases()</a></code></p></dd>
+
+
 <dt>gam_ctrl</dt>
 <dd><p>control object for gam models</p></dd>
+
+
 <dt>poly_deg</dt>
 <dd><p>see <code><a href="remove_cardinal_biases.html">remove_cardinal_biases()</a></code></p></dd>
+
+
 <dt>angle_diff_fun</dt>
 <dd><p>a function to compute difference between angles</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>a data.table with predicted values</p>
+    
+
+<p>a data.table with predicted values</p>
     </div>
 
   </div>
@@ -99,7 +114,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

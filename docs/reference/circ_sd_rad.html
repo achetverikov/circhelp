@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">circhelp</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.2</span>
       </span>
     </div>
 
@@ -26,7 +26,7 @@
   <a href="../reference/index.html">Reference</a>
 </li>
 <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
      
     <span class="caret"></span>
@@ -54,37 +54,44 @@
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="fu">circ_sd_rad</span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-
-<span class="fu">circ_sd_360</span><span class="op">(</span><span class="va">x</span><span class="op">)</span>
-
-<span class="fu">circ_sd_180</span><span class="op">(</span><span class="va">x</span><span class="op">)</span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">circ_sd_rad</span><span class="op">(</span><span class="va">x</span>, na.rm <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">circ_sd_360</span><span class="op">(</span><span class="va">x</span>, na.rm <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">circ_sd_180</span><span class="op">(</span><span class="va">x</span>, na.rm <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
     <h2>Arguments</h2>
     <dl><dt>x</dt>
 <dd><p>vector of angles</p></dd>
+
+
+<dt>na.rm</dt>
+<dd><p>a logical value indicating whether NA values should be removed before the computation proceeds</p></dd>
+
 </dl></div>
     <div id="value">
     <h2>Value</h2>
-    <p>standard deviation of values in the vector</p>
+    
+
+<p>standard deviation of values in the vector</p>
     </div>
     <div id="functions">
     <h2>Functions</h2>
     
-<ul><li><p><code>circ_sd_rad</code>: SD of angles in radians</p></li>
-<li><p><code>circ_sd_360</code>: SD of angles in 360 degree space</p></li>
-<li><p><code>circ_sd_180</code>: SD of angles in 180 degree space</p></li>
+<ul><li><p><code>circ_sd_rad()</code>: SD of angles in radians</p></li>
+<li><p><code>circ_sd_360()</code>: SD of angles in 360 degree space</p></li>
+<li><p><code>circ_sd_180()</code>: SD of angles in 180 degree space</p></li>
 </ul></div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span class="fu">circ_sd_rad</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">50</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.184643</span>
-<span class="r-in"><span class="fu">circ_sd_180</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">50</span><span class="op">)</span><span class="op">)</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.8903343</span>
-<span class="r-in"></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">circ_sd_rad</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">50</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.005869</span>
+<span class="r-in"><span><span class="fu">circ_sd_180</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">50</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.9536755</span>
+<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </div>
@@ -99,7 +106,7 @@
 </div>
 
 <div class="pkgdown">
-  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
+  <p></p><p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
 </div>
 
       </footer></div>

@@ -23,3 +23,11 @@ reference:
 - contents:
   - Bae_Luck_2018_data
   - Pascucci_et_al_2019_data
+authors:
+  sidebar:
+    roles: [aut, ctb]
+figures:
+  dpi: 180
+  fig.ext: png
+  fig.width: 10
+  fig.asp: 0.5
