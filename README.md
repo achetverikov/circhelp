@@ -15,8 +15,7 @@ circular features (e.g., orientation). <!-- badges: end -->
 
 ## Installation
 
-You can install the current version from [GitHub](https://github.com/)
-with:
+You can install the current version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
