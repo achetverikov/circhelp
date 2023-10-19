@@ -60,3 +60,16 @@ test_that("Circular correlation matches BAMBI::circ_cor", {
   print(sprintf('Difference between expected and observed correlation is %.6f', exp_r-obs_r))
   expect_lt(abs(exp_r-obs_r), tolerance)
 })
+
+test_that("conversion from circular SD to kappa works both ways", {
+  test_sd_deg <- runif(1,0,100) # SD in degrees
+  test_sd_rad <- test_sd_deg/180*pi
+
+  kappa_from_deg <- vm_circ_sd_deg_to_kappa(test_sd_deg)
+  kappa_from_rad <- vm_circ_sd_to_kappa(test_sd_rad)
+  expect_equal(kappa_from_deg, kappa_from_rad)
+  expect_equal(test_sd_deg, vm_kappa_to_circ_sd_deg(kappa_from_deg))
+  expect_equal(test_sd_rad, vm_kappa_to_circ_sd(kappa_from_deg))
+
+
+})

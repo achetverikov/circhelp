@@ -734,7 +734,7 @@ vm_circ_sd_to_kappa <-  function(sd) {
 #' @describeIn vm_kappa_to_circ_sd get kappa from circular SD (in degrees)
 
 vm_circ_sd_deg_to_kappa <-  function(sd_deg) {
-  vm_circ_sd_to_kappa(sd_deg/pi*180)
+  vm_circ_sd_to_kappa(sd_deg/180*pi)
 }
 
 
