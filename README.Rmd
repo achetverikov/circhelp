@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-You can install the development version from [GitHub](https://github.com/) with:
+You can install the current version from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
