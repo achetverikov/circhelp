@@ -15,7 +15,8 @@ remove_cardinal_biases(
   var_sigma_poly_deg = 4,
   reassign_at_boundaries = TRUE,
   reassign_range = 2,
-  debug = FALSE
+  debug = FALSE,
+  do_plots = NULL
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ remove_cardinal_biases(
 \item{reassign_range}{maximum distance to the boundary at which reassignment can occur (default: 2 degrees)}
 
 \item{debug}{print some extra info (default: False)}
+
+\item{do_plots}{deprecated, use the parameter 'plots' instead}
 }
 \value{
 If plots=='return', returns the three plots showing the biases (created with \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}). Otherwise, returns a list with the following elements:

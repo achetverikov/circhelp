@@ -357,6 +357,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
 #' @param space circular space to use (a string: '180' or '360')
 #' @param bias_type bias type to use ('fit', 'card', or 'obl', see details)
 #' @param plots a string 'hide', 'show', or 'return' to hide, show, or return plots (default: 'hide')
+#' @param do_plots deprecated, use the parameter 'plots' instead
 #' @param poly_deg degree of the fitted polynomials for each bin (default: 4)
 #' @param var_sigma allow standard deviation (width) of the fitted response distribution to vary as a function of distance to the nearest cardinal (default: True)
 #' @param var_sigma_poly_deg degree of the fitted polynomials for each bin for the first approximation for the response distribution to select the best fitting model (default: 4)
@@ -404,9 +405,15 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
 #' Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],
 #' remove_cardinal_biases(err, TargetDirection, space = '360', plots = 'show')]
 #'
-remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plots = 'hide', poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, debug = FALSE){
+remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plots = 'hide', poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, debug = FALSE, do_plots = NULL){
   if (!(bias_type %in% c('fit','card','obl')) ){
     stop("`bias_type` should be 'fit','card', or 'obl'" )
+  }
+  if (!missing(do_plots)) {
+    warnings("\nYou have supplied 'do_plots' argument, it is now deprecated in favor of a 'plots' argument")
+    if (do_plots){
+      plots = 'show'
+    }
   }
 
   if (space == '180'){
