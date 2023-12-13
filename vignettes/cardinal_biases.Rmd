@@ -62,7 +62,7 @@ Cardinal biases (as any other biases) add noise to the data, but they can also m
 
 ```{r correct_biases_ex, fig.width = fig_width*3, out.width='100%'}
 ex_subj_data <- data[observer==4, ]
-res <- remove_cardinal_biases(ex_subj_data$err, ex_subj_data$orientation, do_plot = T)
+res <- remove_cardinal_biases(ex_subj_data$err, ex_subj_data$orientation, plots = 'show')
 ```
 
 To illustrate how it works, we can plot some output from this function. The first plot shows the errors the same way as in the previous plot but adds the fitted polynomials to them. The second one shows the errors with the biases removed. The third one plots only the bias (disregarding the sign of the average error). 

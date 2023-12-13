@@ -9,7 +9,7 @@ remove_cardinal_biases(
   x,
   space = "180",
   bias_type = "fit",
-  do_plot = FALSE,
+  plots = "hide",
   poly_deg = 4,
   var_sigma = TRUE,
   var_sigma_poly_deg = 4,
@@ -27,7 +27,7 @@ remove_cardinal_biases(
 
 \item{bias_type}{bias type to use ('fit', 'card', or 'obl', see details)}
 
-\item{do_plot}{show plots (default: False)}
+\item{plots}{a string 'hide', 'show', or 'return' to hide, show, or return plots (default: 'hide')}
 
 \item{poly_deg}{degree of the fitted polynomials for each bin (default: 4)}
 
@@ -42,7 +42,7 @@ remove_cardinal_biases(
 \item{debug}{print some extra info (default: False)}
 }
 \value{
-a list with the follwing elements:
+If plots=='return', returns the three plots showing the biases (created with \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}). Otherwise, returns a list with the following elements:
 \itemize{
 \item is_outlier - 0 for outliers (defined as ±3*pred_sigma for the model with varying sigma or as ±3\*SD for the simple model)
 \item pred predicted error
@@ -76,10 +76,10 @@ If bias_type is set to 'obl' or 'card', only one set of bins is used, centred at
 # Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
 # https://doi.org/10.5281/zenodo.2544946
 
-Pascucci_et_al_2019_data[observer==4, remove_cardinal_biases(err, orientation, do_plot = TRUE)]
+Pascucci_et_al_2019_data[observer==4, remove_cardinal_biases(err, orientation, plots = 'show')]
 
 # Data in motion domain from Bae & Luck (2018, Neuroimage), https://osf.io/2h6w9/
 Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],
-remove_cardinal_biases(err, TargetDirection, space = '360', do_plot = TRUE)]
+remove_cardinal_biases(err, TargetDirection, space = '360', plots = 'show')]
 
 }

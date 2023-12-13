@@ -356,7 +356,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
 #' @param x a vector of true stimuli in degrees (see space)
 #' @param space circular space to use (a string: '180' or '360')
 #' @param bias_type bias type to use ('fit', 'card', or 'obl', see details)
-#' @param do_plot show plots (default: False)
+#' @param plots a string 'hide', 'show', or 'return' to hide, show, or return plots (default: 'hide')
 #' @param poly_deg degree of the fitted polynomials for each bin (default: 4)
 #' @param var_sigma allow standard deviation (width) of the fitted response distribution to vary as a function of distance to the nearest cardinal (default: True)
 #' @param var_sigma_poly_deg degree of the fitted polynomials for each bin for the first approximation for the response distribution to select the best fitting model (default: 4)
@@ -377,7 +377,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
 #' If bias_type is set to 'obl' or 'card', only one set of bins is used, centred at cardinal or oblique angles, respectively.
 #'
 #'
-#' @return a list with the follwing elements:
+#' @return If plots=='return', returns the three plots showing the biases (created with [patchwork::wrap_plots()]). Otherwise, returns a list with the following elements:
 #' \itemize{
 #' \item is_outlier - 0 for outliers (defined as ±3*pred_sigma for the model with varying sigma or as ±3\*SD for the simple model)
 #' \item pred predicted error
@@ -398,13 +398,13 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
 #' # Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
 #' # https://doi.org/10.5281/zenodo.2544946
 #'
-#' Pascucci_et_al_2019_data[observer==4, remove_cardinal_biases(err, orientation, do_plot = TRUE)]
+#' Pascucci_et_al_2019_data[observer==4, remove_cardinal_biases(err, orientation, plots = 'show')]
 #'
 #' # Data in motion domain from Bae & Luck (2018, Neuroimage), https://osf.io/2h6w9/
 #' Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],
-#' remove_cardinal_biases(err, TargetDirection, space = '360', do_plot = TRUE)]
+#' remove_cardinal_biases(err, TargetDirection, space = '360', plots = 'show')]
 #'
-remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_plot = FALSE, poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, debug = FALSE){
+remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plots = 'hide', poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, debug = FALSE){
   if (!(bias_type %in% c('fit','card','obl')) ){
     stop("`bias_type` should be 'fit','card', or 'obl'" )
   }
@@ -528,7 +528,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
 
   for_fit[,be_c:=err-pred]
   for_fit[,which_bin:=as.numeric(gr_var)]
-  for_fit[,center_y:=predict(rlm(err~x_var),
+  for_fit[,center_y:=predict(MASS::rlm(err~x_var),
                              newdata = data.frame(x_var = center_x)), by=.(gr_var)]
 
   if (var_sigma){
@@ -541,13 +541,17 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', do_
   # for_fit[outlier==F,pred:=gls(err~x2, weights = varFunc(~sqrt(abs(dist_to_card))), data = .SD)$fitted, by=.(card_groups)]
   # for_fit[outlier==F,weights:=attr(gls(err~x2, weights = varFunc(~sqrt(abs(dist_to_card))), data = .SD)$model$varStruct, 'weights'), by=.(card_groups)]
   #for_fit[outlier==F,pred_rlm:=rlm(err~poly(x2,1), data = .SD)$fitted, by=.(card_groups)]
-  if (do_plot){
+  if (plots %in% c('show', 'return')){
     for_fit[,outlier_f := factor(ifelse(outlier, 'Outlier','Non-outlier'))]
     sd_val <- for_fit[,circ_sd_fun(err)]
-    plots <- make_plots_of_biases(for_fit, poly_deg, sd_val)
-    print(plots)
+    plots_obj <- make_plots_of_biases(for_fit, poly_deg, sd_val)
+    if (plots == 'show'){
+      print(plots_obj)
+    } else {
+      return(plots_obj)
+    }
   }
-  for_fit[,.(is_outlier = as.numeric(outlier), pred, be_c, which_bin, bias, bias_type, pred_lin, pred_sigma, coef_sigma_int, coef_sigma_slope)]
+  return(for_fit[,.(is_outlier = as.numeric(outlier), pred, be_c, which_bin, bias, bias_type, pred_lin, pred_sigma, coef_sigma_int, coef_sigma_slope)])
 }
 
 
