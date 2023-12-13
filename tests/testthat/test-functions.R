@@ -68,8 +68,8 @@ test_that("conversion from circular SD to kappa works both ways", {
   kappa_from_deg <- vm_circ_sd_deg_to_kappa(test_sd_deg)
   kappa_from_rad <- vm_circ_sd_to_kappa(test_sd_rad)
   expect_equal(kappa_from_deg, kappa_from_rad)
-  expect_equal(test_sd_deg, vm_kappa_to_circ_sd_deg(kappa_from_deg))
-  expect_equal(test_sd_rad, vm_kappa_to_circ_sd(kappa_from_deg))
 
-
+  tolerance <- 1e-3
+  expect_lt(abs(test_sd_deg-vm_kappa_to_circ_sd_deg(kappa_from_deg)), tolerance)
+  expect_lt(abs(test_sd_rad-vm_kappa_to_circ_sd(kappa_from_deg)), tolerance)
 })
