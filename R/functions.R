@@ -415,6 +415,12 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
     stop("If 'bias_type' is set to 'custom', you need to specify 'break_points'")
 
   }
+
+  if (any(is.na(x))|any(is.na(err))){
+    stop('There are NAs in x or err. Please remove missing values before running the function.')
+  }
+
+
   if (!missing(do_plots)) {
     warnings("\nYou have supplied 'do_plots' argument, it is now deprecated in favor of a 'plots' argument")
     if (do_plots){
@@ -456,7 +462,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
                       x2 = x2,
                       err, card_groups, obl_groups)
   if (missing(init_outliers)){
-    for_fit[,outlier:=abs(err)>(3*circ_sd_fun(err))]
+    for_fit[,outlier:=abs(err)>(3*circ_sd_fun(err, na.rm = T))]
   } else for_fit[,outlier:=init_outliers]
   for_fit[,dist_to_card:=angle_diff_90(x2, 0)]
   for_fit[,dist_to_obl:=angle_diff_90(x, 45)]
@@ -517,8 +523,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
   for_fit[,gr_var := bin_labels[min_bp_i]]
 
   if (plots == 'show'){
-    print(ggplot(for_fit, aes(x = x, y = err, color = gr_var))+geom_point()+
-            geom_vline(xintercept = break_points)+geom_vline(color = 'blue', xintercept = bin_centers))
+    print(ggplot(for_fit, aes(x = x, y = err, color = gr_var))+geom_point()+geom_vline(xintercept = angle_diff_fun(break_points,0))+geom_vline(color = 'blue', xintercept = angle_diff_fun(bin_centers,0)))
   }
   for_fit[,min_boundary_i := apply(sapply(break_points, \(bp) abs(angle_diff_fun(x, bp))),1,which.min)]
 
@@ -529,6 +534,15 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
   if (reassign_at_boundaries)
     for_fit[,at_the_boundary:=(abs(min_boundary_dist)-reassign_range)<(1e-12)]
 
+
+  # } else stop("Something went wrong: bias_type should be defined by this point.")
+
+  # if (bias_type%in%c('card','obl')){
+  #   for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
+  #   for_fit[,bin_range:=90]
+  #   for_fit[,bin_boundary_left:=center_x-bin_range/2]
+  #   for_fit[,bin_boundary_right:=center_x+bin_range/2]
+  # }
 
   if (var_sigma){
     # get predictions
