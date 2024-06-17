@@ -11,7 +11,8 @@ get_boundary_preds(
   reassign_range,
   gam_ctrl,
   poly_deg,
-  angle_diff_fun
+  angle_diff_fun,
+  weights = NULL
 )
 }
 \arguments{

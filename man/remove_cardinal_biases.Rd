@@ -15,6 +15,8 @@ remove_cardinal_biases(
   var_sigma_poly_deg = 4,
   reassign_at_boundaries = TRUE,
   reassign_range = 2,
+  break_points = NULL,
+  init_outliers = NULL,
   debug = FALSE,
   do_plots = NULL
 )
