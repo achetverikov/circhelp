@@ -66,5 +66,5 @@ p3 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180
 
 }
 \seealso{
-stats::loess()
+\code{\link[stats:loess]{stats::loess()}}
 }

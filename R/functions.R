@@ -545,7 +545,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
   for_fit[,dc_var := angle_diff_fun(x, center_x)]
   for_fit[,gr_var := bin_labels[min_bp_i]]
 
-  if (plots == 'show'){
+  if (plots == 'show' & debug == T){
     print(ggplot(for_fit, aes(x = x, y = err, color = gr_var))+geom_point()+geom_vline(xintercept = angle_diff_fun(break_points,0))+geom_vline(color = 'blue', xintercept = angle_diff_fun(bin_centers,0)))
   }
   for_fit[,min_boundary_i := apply(sapply(break_points, \(bp) abs(angle_diff_fun(x, bp))),1,which.min)]
@@ -1002,7 +1002,7 @@ predict.circ_loess <- function(object, newdata, ...) {
 #' * `circ_space` circular space used
 #' * `span` span used
 #'
-#' @seealso stats::loess()
+#' @seealso [stats::loess()]
 #'
 #' @export
 #'

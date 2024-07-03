@@ -35,7 +35,13 @@
       <a href="../articles/cardinal_biases.html">Correcting for cardinal biases to improve serial dependence estimates</a>
     </li>
   </ul></li>
-      </ul><ul class="nav navbar-nav navbar-right"></ul></div><!--/.nav-collapse -->
+      </ul><ul class="nav navbar-nav navbar-right"><li>
+  <a href="https://github.com/achetverikov/circhelp/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul></div><!--/.nav-collapse -->
   </div><!--/.container -->
 </div><!--/.navbar -->
 
@@ -45,7 +51,7 @@
   <div class="col-md-9 contents">
     <div class="page-header">
     <h1>Remove cardinal biases</h1>
-    
+    <small class="dont-index">Source: <a href="https://github.com/achetverikov/circhelp/blob/HEAD/R/functions.R" class="external-link"><code>R/functions.R</code></a></small>
     <div class="hidden name"><code>remove_cardinal_biases.Rd</code></div>
     </div>
 
@@ -164,10 +170,9 @@
 <span class="r-in"><span><span class="va">ex_data</span> <span class="op">&lt;-</span> <span class="va">Pascucci_et_al_2019_data</span><span class="op">[</span><span class="va">observer</span><span class="op">==</span><span class="fl">4</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">ex_data</span><span class="op">$</span><span class="va">err</span>, <span class="va">ex_data</span><span class="op">$</span><span class="va">orientation</span>, plots <span class="op">=</span> <span class="st">'show'</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing bins to group the data..."</span>
-<span class="r-plt img"><img src="remove_cardinal_biases-1.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Reassigning points at the boundaries..."</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing final fits..."</span>
-<span class="r-plt img"><img src="remove_cardinal_biases-2.png" alt="" width="1800" height="900"></span>
+<span class="r-plt img"><img src="remove_cardinal_biases-1.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      is_outlier       pred        be_c which_bin  bias bias_type    pred_lin</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;num&gt;      &lt;num&gt;       &lt;num&gt;     &lt;num&gt; &lt;num&gt;    &lt;char&gt;       &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   1:          0  7.9231406  -4.9231406         2     3       obl   7.7417971</span>
@@ -201,10 +206,9 @@
 <span class="r-in"><span><span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span>, <span class="va">ex_data_bae</span><span class="op">$</span><span class="va">TargetDirection</span>,</span></span>
 <span class="r-in"><span>                       space <span class="op">=</span> <span class="st">'360'</span>, plots <span class="op">=</span> <span class="st">'show'</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing bins to group the data..."</span>
-<span class="r-plt img"><img src="remove_cardinal_biases-3.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Reassigning points at the boundaries..."</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing final fits..."</span>
-<span class="r-plt img"><img src="remove_cardinal_biases-4.png" alt="" width="1800" height="900"></span>
+<span class="r-plt img"><img src="remove_cardinal_biases-2.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       is_outlier       pred        be_c which_bin    bias bias_type    pred_lin</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;      &lt;num&gt;       &lt;num&gt;     &lt;num&gt;   &lt;num&gt;    &lt;char&gt;       &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    1:          1  -8.170082  177.570082         4 -169.40       obl  -4.9493375</span>
@@ -238,10 +242,9 @@
 <span class="r-in"><span>                       space <span class="op">=</span> <span class="st">'360'</span>, plots <span class="op">=</span> <span class="st">'show'</span>,</span></span>
 <span class="r-in"><span>                       init_outliers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span><span class="op">)</span><span class="op">&gt;</span><span class="fl">60</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing bins to group the data..."</span>
-<span class="r-plt img"><img src="remove_cardinal_biases-5.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Reassigning points at the boundaries..."</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing final fits..."</span>
-<span class="r-plt img"><img src="remove_cardinal_biases-6.png" alt="" width="1800" height="900"></span>
+<span class="r-plt img"><img src="remove_cardinal_biases-3.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       is_outlier       pred        be_c which_bin    bias bias_type  pred_lin</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;      &lt;num&gt;       &lt;num&gt;     &lt;num&gt;   &lt;num&gt;    &lt;char&gt;     &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    1:          1  -9.113946  178.513946         4 -169.40       obl -4.710449</span>
@@ -278,9 +281,8 @@
 <span class="r-in"><span>                       reassign_at_boundaries<span class="op">=</span> <span class="cn">FALSE</span>, poly_deg <span class="op">=</span> <span class="fl">8</span>,</span></span>
 <span class="r-in"><span>                       init_outliers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span><span class="op">)</span><span class="op">&gt;</span><span class="fl">60</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing bins to group the data..."</span>
-<span class="r-plt img"><img src="remove_cardinal_biases-7.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing final fits..."</span>
-<span class="r-plt img"><img src="remove_cardinal_biases-8.png" alt="" width="1800" height="900"></span>
+<span class="r-plt img"><img src="remove_cardinal_biases-4.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       is_outlier       pred         be_c which_bin    bias bias_type   pred_lin</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;      &lt;num&gt;        &lt;num&gt;     &lt;num&gt;   &lt;num&gt;    &lt;char&gt;      &lt;num&gt;</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    1:          1 -9.3547551  178.7547551         1 -169.40    custom -0.3342663</span>

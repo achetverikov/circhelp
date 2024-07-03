@@ -8,6 +8,7 @@ Authors@R: c(person("Andrey", "Chetverikov", email = "andrey.chetverikov@uib.no"
   comment = c(ORCID = "0000-0002-7848-5998"),
   role = c("ctb")))
 Description: A small helper package for circular data analyses, specifically aimed for psychologists and neuroscientists dealing with circular data. Includes light-weight functions for computing descriptive statistics in different circular spaces (e.g., 2pi, 180, or 360 degrees), functions to handle angle-dependent biases, padding circular data, and more.
+URL: https://achetverikov.github.io/circhelp/index.html, https://github.com/achetverikov/circhelp
 License: CC0
 Encoding: UTF-8
 LazyData: true
