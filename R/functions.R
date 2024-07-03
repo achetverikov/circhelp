@@ -37,7 +37,7 @@ circ_mean_360<-function(x, na.rm = F){
 #'
 #' @param a first angle
 #' @param b second angle
-#' @details By default, all functions return values in ± half-range space (e.g., -pi to pi for 2pi radian space used by angle_diff_rad) but angle_diff_180_45 and angle_diff_360_90 return values in \[-1/4 range, 3/4 range\] space
+#' @details By default, all functions return values in ± half-range space (e.g., -pi to pi for 2pi radian space used by `angle_diff_rad()`) but `angle_diff_180_45()` and `angle_diff_360_90()` return values in \[-1/4 range, 3/4 range\] space
 #'
 #' @return difference between a and b
 #' @export
@@ -106,7 +106,7 @@ angle_diff_360_90<-function(a,b){
 #'
 #' @return correlation coefficient
 #' @references {
-#' Jammalamadaka, S. R., & SenGupta, A. (2001). Topics in Circular Statistics. WORLD SCIENTIFIC. https://doi.org/10.1142/4031
+#' Jammalamadaka, S. R., & SenGupta, A. (2001). Topics in Circular Statistics. WORLD SCIENTIFIC. \doi{10.1142/4031}
 #' }
 #' @export
 #'
@@ -152,7 +152,7 @@ circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL, na.rm = F){
 #' @return circular-linear correlation measure
 #' @export
 #' @references {
-#' Jammalamadaka, S. R., & SenGupta, A. (2001). Topics in Circular Statistics. WORLD SCIENTIFIC. https://doi.org/10.1142/4031
+#' Jammalamadaka, S. R., & SenGupta, A. (2001). Topics in Circular Statistics. WORLD SCIENTIFIC. \doi{10.1142/4031}
 #' }
 #' @examples
 #'
@@ -354,19 +354,21 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
 #'
 #' @param err a vector of errors, deviations of response from the true stimuli
 #' @param x a vector of true stimuli in degrees (see space)
-#' @param space circular space to use (a string: '180' or '360')
-#' @param bias_type bias type to use ('fit', 'card', or 'obl', see details)
-#' @param plots a string 'hide', 'show', or 'return' to hide, show, or return plots (default: 'hide')
-#' @param do_plots deprecated, use the parameter 'plots' instead
+#' @param space circular space to use (a string: `180` or `360`)
+#' @param bias_type bias type to use (`fit`, `card`, `obl`, or `custom`, see details)
+#' @param plots a string `hide`, `show`, or `return` to hide, show, or return plots (default: `hide`)
+#' @param do_plots deprecated, use the parameter `plots` instead
 #' @param poly_deg degree of the fitted polynomials for each bin (default: 4)
 #' @param var_sigma allow standard deviation (width) of the fitted response distribution to vary as a function of distance to the nearest cardinal (default: True)
 #' @param var_sigma_poly_deg degree of the fitted polynomials for each bin for the first approximation for the response distribution to select the best fitting model (default: 4)
 #' @param reassign_at_boundaries select the bin for the observations at the boundaries between bins based on the best-fitting polynomial (default: True)
 #' @param reassign_range maximum distance to the boundary at which reassignment can occur (default: 2 degrees)
+#' @param break_points can be used to assign custom break points instead of cardinal/oblique ones with `bias_type` set to `custom` (default: NULL)
+#' @param init_outliers a vector determining which errors are initially assumed to be outliers (default: NULL)
 #' @param debug print some extra info (default: False)
 #'
 #' @details
-#' If the bias_type is set to 'fit', the function computes the cardinal biases in the following way:
+#' If the `bias_type` is set to `fit`, the function computes the cardinal biases in the following way:
 #' \enumerate{
 #' \item Create two sets of bins, splitting the stimuli vector into bins centered at cardinal and at oblique directions.
 #' \item For each set of bins, fit a nth-degree polynomial for the responses in each bin, optionally allowing the distribution of responses to vary in width as a function of distance to the nearest cardinal (regardless of whether the bins are centered at the cardinal or at the oblique, the width of the response distribution usually increases as the distance to cardinals increase).
@@ -375,12 +377,13 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
 #' }
 #' The bias is computed by flipping the sign of errors when the average predicted error is negative, so, that, for example, if on average the responses are shifted clockwise relative to the true values, the trial-by-trial error would count as bias when it is also shifted clockwise.
 #'
-#' If bias_type is set to 'obl' or 'card', only one set of bins is used, centred at cardinal or oblique angles, respectively.
+#' If `bias_type` is set to `obl` or `card`, only one set of bins is used, centred at cardinal or oblique angles, respectively.
 #'
 #'
-#' @return If plots=='return', returns the three plots showing the biases (created with [patchwork::wrap_plots()]). Otherwise, returns a list with the following elements:
+#' @return If `plots=='return'`, returns the three plots showing the biases
+#' (combined together with [patchwork::wrap_plots()]). Otherwise, returns a list with the following elements:
 #' \itemize{
-#' \item is_outlier - 0 for outliers (defined as ±3*pred_sigma for the model with varying sigma or as ±3\*SD for the simple model)
+#' \item is_outlier - 0 for outliers (defined as `±3*pred_sigma` for the model with varying sigma or as `±3\*SD` for the simple model)
 #' \item pred predicted error
 #' \item be_c error corrected for biases (`be_c = observed error - pred`)
 #' \item which_bin the numeric ID of the bin that the stimulus belong to
@@ -399,15 +402,34 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
 #' # Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
 #' # https://doi.org/10.5281/zenodo.2544946
 #'
-#' Pascucci_et_al_2019_data[observer==4, remove_cardinal_biases(err, orientation, plots = 'show')]
+#' ex_data <- Pascucci_et_al_2019_data[observer==4, ]
+#' remove_cardinal_biases(ex_data$err, ex_data$orientation, plots = 'show')
 #'
-#' # Data in motion domain from Bae & Luck (2018, Neuroimage), https://osf.io/2h6w9/
-#' Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],
-#' remove_cardinal_biases(err, TargetDirection, space = '360', plots = 'show')]
+#' # Data in motion domain from Bae & Luck (2018, Neuroimage),
+#' # https://osf.io/2h6w9/
+#' ex_data_bae <- Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],]
+#' remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
+#'                        space = '360', plots = 'show')
 #'
-
+#' # Using a stricter initial outlier boundary
+#'
+#' remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
+#'                        space = '360', plots = 'show',
+#'                        init_outliers = abs(ex_data_bae$err)>60)
+#'
+#' # We can also use just one bin by setting `bias_type` to custom
+#' # and setting the `break_points` at the ends of the range for x
+#'
+#' remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
+#'                        space = '360', bias_type = 'custom',
+#'                        break_points = c(-180,180), plots = 'show',
+#'                        reassign_at_boundaries= FALSE, poly_deg = 8,
+#'                        init_outliers = abs(ex_data_bae$err)>60)
+#'
 remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plots = 'hide', poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, break_points = NULL, init_outliers = NULL, debug = FALSE, do_plots = NULL){
-  require(gamlss)
+
+  outlier = dist_to_card = dist_to_obl = logLik = x_var = min_bp_i = center_x = dc_var = gr_var = min_boundary_i = min_boundary_dist = bin_range = bin_boundary_left = bin_boundary_right = at_the_boundary = row_i = likelihood = dnorm = pred = pred_sigma = new_weight = i.gr_var = dist_to_bin_centre = coef = predict = bias = pred_lin = be_c = which_bin = center_y = outlier_f = coef_sigma_int = . = coef_sigma_slope  = NULL  # due to NSE notes in R CMD check
+
   if (!(bias_type %in% c("fit", "card", "obl","custom"))) {
     stop("`bias_type` should be 'fit','card', 'obl', or 'custom'")
   }
@@ -468,6 +490,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
   for_fit[,dist_to_obl:=angle_diff_90(x, 45)]
   gam_ctrl <- gamlss::gamlss.control(trace = F)
 
+  print('Computing bins to group the data...')
   if (bias_type == 'fit'){
     if (var_sigma){
       sigma_formula <- '~abs(dist_to_card)' # assumes that uncertainty changes linearly as a function of distance to cardinals regardless of the bias direction
@@ -547,12 +570,13 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
   if (var_sigma){
     # get predictions
     if (reassign_at_boundaries){
+      print('Reassigning points at the boundaries...')
       if (any(for_fit[,unique(bin_range)]<(2*reassign_range))) {
         stop('Reassignment range too large compared to bin sizes')
       }
       for_fit[,row_i:=1:.N]
-      resid_at_boundaries <- for_fit[,
-                                     get_boundary_preds(gr_var, copy(for_fit), space, reassign_range, gam_ctrl, ifelse(rep_n>2, poly_deg, 1), angle_diff_fun), by = .(gr_var)]
+      resid_at_boundaries <- for_fit[outlier==F,
+                                     get_boundary_preds(gr_var, copy(for_fit[outlier==F]), space, reassign_range, gam_ctrl, ifelse(rep_n>2, poly_deg, 1), angle_diff_fun), by = .(gr_var)]
       resid_at_boundaries[,likelihood:=dnorm(err, pred, pred_sigma, log = F)]
       resid_at_boundaries[,new_weight := ifelse(at_the_boundary==F, 1, likelihood/sum(likelihood)), by =.(err, x_var)]
       cur_weights <- resid_at_boundaries[at_the_boundary==T, ]$new_weight
@@ -560,7 +584,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
       for (rep_n in 1:10){
         weight_dt <- resid_at_boundaries[,.(row_i, gr_var, new_weight)]
         resid_at_boundaries <- resid_at_boundaries[,
-                                                   get_boundary_preds(gr_var, copy(for_fit), space, reassign_range, gam_ctrl, ifelse(rep_n>2, poly_deg, 1), angle_diff_fun, weights = weight_dt ), by = .(gr_var)]
+                                                   get_boundary_preds(gr_var, copy(for_fit[outlier==F]), space, reassign_range, gam_ctrl, ifelse(rep_n>2, poly_deg, 1), angle_diff_fun, weights = weight_dt ), by = .(gr_var)]
         # resid_at_boundaries[,new_weight := ifelse(at_the_boundary==F, 1, 1-abs(resid_at_boundaries)/sum(abs(resid_at_boundaries))), by =.(err, x_var)]
         resid_at_boundaries[,likelihood:=dnorm(err, pred, pred_sigma, log = F)]
         resid_at_boundaries[,new_weight := ifelse(at_the_boundary==F, 1, likelihood/sum(likelihood)), by =.(err, x_var)]
@@ -573,7 +597,9 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
 
         cur_weights <- resid_at_boundaries[at_the_boundary==T, ]$new_weight
         weights_change <- sum(abs(cur_weights - prev_weights))
-        print(sprintf('Reassignment step: %i; change in weights: %.5f', rep_n, weights_change))
+        if (debug){
+          print(sprintf('Reassignment step: %i; change in weights: %.5f', rep_n, weights_change))
+        }
         for_fit[resid_at_boundaries_c, `:=` (gr_var = i.gr_var), on = .(row_i)]
         for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
         for_fit[,x_var:=center_x+angle_diff_fun(x_var, center_x)]
@@ -587,7 +613,9 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
             stable_weights <- stable_weights + 1
           } else stable_weights <- 0
           if (stable_weights > 3) {
-            print('Reassignment stopped at stable weights')
+            if (debug){
+              print('Reassignment stopped at stable weights')
+            }
             break
           }
         }
@@ -597,6 +625,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
     for_fit[,x_var:=center_x+angle_diff_fun(x_var, center_x)]
     for_fit[,dc_var := angle_diff_fun(x, center_x)]
 
+    print('Computing final fits...')
 
     likelihoods <- c()
     for (cg in unique(for_fit$gr_var)){
@@ -647,7 +676,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
   if (plots %in% c('show', 'return')){
     for_fit[,outlier_f := factor(ifelse(outlier, 'Outlier','Non-outlier'))]
     sd_val <- for_fit[,circ_sd_fun(err)]
-    plots_obj <- circhelp:::make_plots_of_biases(for_fit, poly_deg, sd_val)
+    plots_obj <- make_plots_of_biases(for_fit, poly_deg, sd_val)
     if (plots == 'show'){
       print(plots_obj)
     } else {
@@ -657,6 +686,42 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
   return(for_fit[,.(is_outlier = as.numeric(outlier), pred, be_c, which_bin, bias, bias_type, pred_lin, pred_sigma, coef_sigma_int, coef_sigma_slope, shifted_x = x_var, total_log_lik = sum(likelihoods))])
 }
 
+#' Remove cardinal biases for data with orientation (color, motion, ...) set in discrete steps
+#'
+#' @param err a vector of errors, deviations of response from the true stimuli
+#' @param x a vector of true stimuli in degrees (see space)
+#' @param space circular space to use (a string: `180` or `360`)
+#' @param init_outliers a vector determining which errors are initially assumed to be outliers (default: NULL)
+#'
+#' @return returns a data.table with the following columns:
+#' \itemize{
+#' \item is_outlier - 0 for outliers (defined as ±3*predicted SD, where SD and mean are computed after excluding initially assumed outliers)
+#' \item be_c error corrected for biases (`be_c = observed error - pred`)
+#' }
+#' @export
+#'
+remove_cardinal_biases_discrete <- function(err, x, space, init_outliers = NULL) {
+  outlier = be_c = mean_err = is_outlier = . = NULL  # due to NSE notes in R CMD check
+
+  if (space %in% c("180", "360")) {
+    angle_diff_fun <- get(paste0("angle_diff_", space))
+    circ_sd_fun <- get(paste0("circ_sd_", space))
+    circ_mean_fun <- get(paste0("circ_mean_", space))
+  } else {
+    stop("`space` argument should be 180 or 360.")
+  }
+
+  data <- data.table(err, x)
+  if (missing(init_outliers)) {
+    data[, outlier := abs(err) > (3 * circ_sd_fun(err))]
+  } else {
+    data[, outlier := init_outliers]
+  }
+  data[, c("mean_err") := .(circ_mean_fun(err[outlier == F])), by = x]
+  data[, be_c := angle_diff_fun(err, mean_err), by = x]
+  data[, is_outlier := abs(be_c) > (3 * circ_sd_fun(be_c[outlier == F])), by = x]
+  data[, .(be_c, is_outlier)]
+}
 
 #' Plots biases using the data from `remove_cardinal_biases`
 #'
@@ -673,6 +738,8 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
 make_plots_of_biases <- function(data, poly_deg, sd_val){
   requireNamespace('patchwork')
   requireNamespace('ggplot2')
+
+  outlier = x_var = gr_var = err = outlier_f = pred = pred_sigma = be_c = bias  = NULL  # due to NSE notes in R CMD check
 
   common_plot_pars <- list(scale_x_continuous(breaks = seq(-180,360,90)),
                            labs(x = 'Orientation', shape = NULL, color = 'Bin'),
@@ -758,6 +825,7 @@ pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, ve
 #'
 
 get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun, weights = NULL){
+  gr_var = outlier = err = x_var = dc_var = center_x = dist_to_card = bin_boundary_left = bin_boundary_right = bin_range = dist_to_bin_centre = row_i = at_the_boundary = dist_to_boundary = dist_to_boundary_norm = new_weight = weight = pred = . = predict = pred_sigma = resid_at_boundaries = NULL # due to NSE notes in R CMD check
   cur_df <- data[gr_var==group&outlier==F,.(err, x_var, dc_var,
                                             dist_to_bin_centre = angle_diff_fun(x_var, center_x), weight = NULL, adc = abs(dist_to_card), center_x, bin_boundary_left, bin_boundary_right, bin_range)]
   #
@@ -821,7 +889,7 @@ a_fun <- function(x) {
 }
 
 inverse <- function (f, lower = 1e-16, upper = 1000) {
-  function (y) uniroot((function (x) f(x) - y), lower = lower, upper = upper, extendInt = 'yes')[[1]]
+  function (y) stats::uniroot((function (x) f(x) - y), lower = lower, upper = upper, extendInt = 'yes')[[1]]
 }
 
 #' Conversion between the circular SD and kappa of von Mises
@@ -880,7 +948,7 @@ weighted.var.se <- function(x, w, na.rm=FALSE){
   # from https://stats.stackexchange.com/a/33959
   if (na.rm) { w <- w[i <- !is.na(x)]; x <- x[i] }
   n = length(w)
-  xWbar = weighted.mean(x,w,na.rm=na.rm)
+  xWbar = stats::weighted.mean(x,w,na.rm=na.rm)
   wbar = mean(w)
   out = n/((n-1)*sum(w)^2)*(sum((w*x-wbar*xWbar)^2)-2*xWbar*sum((w-wbar)*(w*x-wbar*xWbar))+xWbar^2*sum((w-wbar)^2))
   return(out)
@@ -888,27 +956,21 @@ weighted.var.se <- function(x, w, na.rm=FALSE){
 }
 
 #' Compute predictions for circular LOESS
-#' @param model a circular LOESS object
+#' @param object a circular LOESS object
 #' @param newdata a data.frame with a variable x on which the predictions are computed
-#' @param ... other arguments (ignored)
+#' @param ... other arguments (passed to circ_loess)
+#'
 #'
 #' @return a data.frame with predictions
 #' @method predict circ_loess
 #' @export
 #' @keywords internal
 #'
-predict.circ_loess <- function(model,  newdata, ...) {
-  res <- circ_loess(angle = model$angle, y = model$y, xseq = newdata$x, circ_space = model$circ_space, span = model$span, ...)
+predict.circ_loess <- function(object, newdata, ...) {
+  res <- circ_loess(angle = object$angle, y = object$y, xseq = newdata$x, circ_space = object$circ_space, span = object$span, ...)
   list(fit = data.frame(y = res$y_est, ymin = res$y_est - 1.96*res$y_se, ymax = res$y_est + 1.96*res$y_se), se.fit = res$y_se)
-  # res_dt <- data.frame(x = newdata$x, y = res$y_est, ymin = res$y_est - 1.96*res$y_se, ymax = res$y_est + 1.96*res$y_se, se = res$y_se)
-  # res_dt
 }
 
-# predict.circ_loess <- function(model,  xseq, se, level,...) {
-#   res <- circ_loess(angle = model$angle, y = model$y, x_grid = xseq)
-#   res_dt <- data.frame(x = xseq, y = res$y_est, ymin = res$y_est - 1.96*res$y_se, ymax = res$y_est + 1.96*res$y_se, se = res$y_se)
-#   res_dt
-# }
 
 
 
@@ -945,13 +1007,16 @@ predict.circ_loess <- function(model,  newdata, ...) {
 #' @export
 #'
 #' @examples
-#' p <- ggplot(Pascucci_et_al_2019_data, aes(x = orientation, y = err))+geom_point(alpha = 0.05)+labs(x = 'Orientation, deg.', y = 'Error, deg.')
+#' p <- ggplot(Pascucci_et_al_2019_data, aes(x = orientation, y = err)) +
+#'  geom_point(alpha = 0.05)+labs(x = 'Orientation, deg.', y = 'Error, deg.')
 #' p1 <- p + geom_smooth(method = 'loess') + ggtitle('Standard LOESS')
-#' p2 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.5)) + ggtitle('Circular LOESS, span = 0.5')
-#' p3 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.2)) + ggtitle('Circular LOESS, span = 0.2')
+#' p2 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.5)) +
+#'  ggtitle('Circular LOESS, span = 0.5')
+#' p3 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.2)) +
+#'  ggtitle('Circular LOESS, span = 0.2')
 #' (p1+p2+p3)
 #'
-circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq = NULL, weights = NULL, circ_space = NULL, span = 0.75, ...){
+circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq = NULL,  circ_space = NULL, span = 0.75, ...){
 
   if (!is.null(formula)){
     M <- stats::model.frame(formula, data)
@@ -992,7 +1057,7 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
   y_est <- sapply(xseq, function(x) {
     dist <- abs(diff_fun(x, angle))
     if (span < 1){
-      included_obs <- dist <= quantile(dist, span)
+      included_obs <- dist <= stats::quantile(dist, span)
       angle <- angle[included_obs]
       dist <- dist[included_obs]
       y <- y[included_obs]
@@ -1010,3 +1075,4 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
   structure(list(angle = angle, y = y, xseq = xseq, y_est = unlist(y_est[1,]), circ_space = circ_space, span = span,
                  y_se = unlist(y_est[2,]), w = unlist(y_est[3,])), class = "circ_loess")
 }
+

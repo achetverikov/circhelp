@@ -24,6 +24,11 @@ A data frame with 20480 rows and 8 variables:
 Bae_Luck_2018_data
 }
 \description{
-A dataset with the motion estimation results from Bae & Luck (2018, Neuroimage, https://doi.org/10.1016/j.neuroimage.2018.09.029) available from https://osf.io/4m2kb/ (some variables are removed, see the link for the full dataset).
+A dataset with the motion estimation results from Bae & Luck (2018) available from https://osf.io/4m2kb/ (some variables are removed, see the link for the full dataset).
+}
+\references{
+{
+Bae, G.-Y., & Luck, S. J. (2018). Decoding motion direction using the topography of sustained ERPs and alpha oscillations. NeuroImage, 184(August 2018), 242–255. \doi{10.1016/J.NEUROIMAGE.2018.09.029}
+}
 }
 \keyword{datasets}

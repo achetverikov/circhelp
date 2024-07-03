@@ -26,11 +26,11 @@ remove_cardinal_biases(
 
 \item{x}{a vector of true stimuli in degrees (see space)}
 
-\item{space}{circular space to use (a string: '180' or '360')}
+\item{space}{circular space to use (a string: \code{180} or \code{360})}
 
-\item{bias_type}{bias type to use ('fit', 'card', or 'obl', see details)}
+\item{bias_type}{bias type to use (\code{fit}, \code{card}, \code{obl}, or \code{custom}, see details)}
 
-\item{plots}{a string 'hide', 'show', or 'return' to hide, show, or return plots (default: 'hide')}
+\item{plots}{a string \code{hide}, \code{show}, or \code{return} to hide, show, or return plots (default: \code{hide})}
 
 \item{poly_deg}{degree of the fitted polynomials for each bin (default: 4)}
 
@@ -42,14 +42,19 @@ remove_cardinal_biases(
 
 \item{reassign_range}{maximum distance to the boundary at which reassignment can occur (default: 2 degrees)}
 
+\item{break_points}{can be used to assign custom break points instead of cardinal/oblique ones with \code{bias_type} set to \code{custom} (default: NULL)}
+
+\item{init_outliers}{a vector determining which errors are initially assumed to be outliers (default: NULL)}
+
 \item{debug}{print some extra info (default: False)}
 
-\item{do_plots}{deprecated, use the parameter 'plots' instead}
+\item{do_plots}{deprecated, use the parameter \code{plots} instead}
 }
 \value{
-If plots=='return', returns the three plots showing the biases (created with \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}). Otherwise, returns a list with the following elements:
+If \code{plots=='return'}, returns the three plots showing the biases
+(combined together with \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}). Otherwise, returns a list with the following elements:
 \itemize{
-\item is_outlier - 0 for outliers (defined as ±3*pred_sigma for the model with varying sigma or as ±3\*SD for the simple model)
+\item is_outlier - 0 for outliers (defined as \verb{±3*pred_sigma} for the model with varying sigma or as \verb{±3\\*SD} for the simple model)
 \item pred predicted error
 \item be_c error corrected for biases (\verb{be_c = observed error - pred})
 \item which_bin the numeric ID of the bin that the stimulus belong to
@@ -65,7 +70,7 @@ If plots=='return', returns the three plots showing the biases (created with \co
 Remove cardinal biases
 }
 \details{
-If the bias_type is set to 'fit', the function computes the cardinal biases in the following way:
+If the \code{bias_type} is set to \code{fit}, the function computes the cardinal biases in the following way:
 \enumerate{
 \item Create two sets of bins, splitting the stimuli vector into bins centered at cardinal and at oblique directions.
 \item For each set of bins, fit a nth-degree polynomial for the responses in each bin, optionally allowing the distribution of responses to vary in width as a function of distance to the nearest cardinal (regardless of whether the bins are centered at the cardinal or at the oblique, the width of the response distribution usually increases as the distance to cardinals increase).
@@ -74,17 +79,35 @@ If the bias_type is set to 'fit', the function computes the cardinal biases in t
 }
 The bias is computed by flipping the sign of errors when the average predicted error is negative, so, that, for example, if on average the responses are shifted clockwise relative to the true values, the trial-by-trial error would count as bias when it is also shifted clockwise.
 
-If bias_type is set to 'obl' or 'card', only one set of bins is used, centred at cardinal or oblique angles, respectively.
+If \code{bias_type} is set to \code{obl} or \code{card}, only one set of bins is used, centred at cardinal or oblique angles, respectively.
 }
 \examples{
 
 # Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
 # https://doi.org/10.5281/zenodo.2544946
 
-Pascucci_et_al_2019_data[observer==4, remove_cardinal_biases(err, orientation, plots = 'show')]
+ex_data <- Pascucci_et_al_2019_data[observer==4, ]
+remove_cardinal_biases(ex_data$err, ex_data$orientation, plots = 'show')
 
-# Data in motion domain from Bae & Luck (2018, Neuroimage), https://osf.io/2h6w9/
-Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],
-remove_cardinal_biases(err, TargetDirection, space = '360', plots = 'show')]
+# Data in motion domain from Bae & Luck (2018, Neuroimage),
+# https://osf.io/2h6w9/
+ex_data_bae <- Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],]
+remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
+                       space = '360', plots = 'show')
+
+# Using a stricter initial outlier boundary
+
+remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
+                       space = '360', plots = 'show',
+                       init_outliers = abs(ex_data_bae$err)>60)
+
+# We can also use just one bin by setting `bias_type` to custom
+# and setting the `break_points` at the ends of the range for x
+
+remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
+                       space = '360', bias_type = 'custom',
+                       break_points = c(-180,180), plots = 'show',
+                       reassign_at_boundaries= FALSE, poly_deg = 8,
+                       init_outliers = abs(ex_data_bae$err)>60)
 
 }

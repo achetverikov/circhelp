@@ -4,14 +4,14 @@
 \alias{predict.circ_loess}
 \title{Compute predictions for circular LOESS}
 \usage{
-\method{predict}{circ_loess}(model, newdata, ...)
+\method{predict}{circ_loess}(object, newdata, ...)
 }
 \arguments{
-\item{model}{a circular LOESS object}
+\item{object}{a circular LOESS object}
 
 \item{newdata}{a data.frame with a variable x on which the predictions are computed}
 
-\item{...}{other arguments (ignored)}
+\item{...}{other arguments (passed to circ_loess)}
 }
 \value{
 a data.frame with predictions

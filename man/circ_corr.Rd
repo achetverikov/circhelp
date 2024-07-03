@@ -30,6 +30,6 @@ circ_corr(data[,1], data[,2])
 }
 \references{
 {
-Jammalamadaka, S. R., & SenGupta, A. (2001). Topics in Circular Statistics. WORLD SCIENTIFIC. https://doi.org/10.1142/4031
+Jammalamadaka, S. R., & SenGupta, A. (2001). Topics in Circular Statistics. WORLD SCIENTIFIC. \doi{10.1142/4031}
 }
 }

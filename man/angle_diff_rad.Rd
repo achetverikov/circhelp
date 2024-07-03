@@ -33,7 +33,7 @@ difference between a and b
 Differences between angles in different circular spaces
 }
 \details{
-By default, all functions return values in ± half-range space (e.g., -pi to pi for 2pi radian space used by angle_diff_rad) but angle_diff_180_45 and angle_diff_360_90 return values in [-1/4 range, 3/4 range] space
+By default, all functions return values in ± half-range space (e.g., -pi to pi for 2pi radian space used by \code{angle_diff_rad()}) but \code{angle_diff_180_45()} and \code{angle_diff_360_90()} return values in [-1/4 range, 3/4 range] space
 }
 \section{Functions}{
 \itemize{

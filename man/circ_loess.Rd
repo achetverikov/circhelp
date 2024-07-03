@@ -11,7 +11,6 @@ circ_loess(
   angle = NULL,
   y = NULL,
   xseq = NULL,
-  weights = NULL,
   circ_space = NULL,
   span = 0.75,
   ...
@@ -56,10 +55,13 @@ Weights for the regression are computed as
 where \emph{d} is the angular difference between the point at which the estimate is computed and the angles in the data, and \mjseqn{d_{max}} is the maximum possible distance. If \code{span} is above 1, all points are included and \mjseqn{d_{max} = {circ\_space}/(4*span)}. Otherwise, a proportion \mjseqn{\alpha} of the points included based on their distance to the point at which the estimate is computed and \mjseqn{d_{max}} is the corresponding maximal distance.
 }
 \examples{
-p <- ggplot(Pascucci_et_al_2019_data, aes(x = orientation, y = err))+geom_point(alpha = 0.05)+labs(x = 'Orientation, deg.', y = 'Error, deg.')
+p <- ggplot(Pascucci_et_al_2019_data, aes(x = orientation, y = err)) +
+ geom_point(alpha = 0.05)+labs(x = 'Orientation, deg.', y = 'Error, deg.')
 p1 <- p + geom_smooth(method = 'loess') + ggtitle('Standard LOESS')
-p2 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.5)) + ggtitle('Circular LOESS, span = 0.5')
-p3 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.2)) + ggtitle('Circular LOESS, span = 0.2')
+p2 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.5)) +
+ ggtitle('Circular LOESS, span = 0.5')
+p3 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.2)) +
+ ggtitle('Circular LOESS, span = 0.2')
 (p1+p2+p3)
 
 }
