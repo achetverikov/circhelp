@@ -8,6 +8,7 @@ reference:
 - title: Cardinal biases
 - contents:
   - remove_cardinal_biases
+  - remove_cardinal_biases_discrete
 - title: Plotting
 - contents:
   - circ_loess

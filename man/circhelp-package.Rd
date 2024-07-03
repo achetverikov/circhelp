@@ -9,7 +9,7 @@
 A small helper package for circular data analyses, specifically aimed for psychologists and neuroscientists dealing with circular data. Includes light-weight functions for computing descriptive statistics in different circular spaces (e.g., 2pi, 180, or 360 degrees), functions to handle angle-dependent biases, padding circular data, and more.
 }
 \author{
-\strong{Maintainer}: Andrey Chetverikov \email{a.chetverikov@donders.ru.nl} (\href{https://orcid.org/0000-0003-2767-6310}{ORCID})
+\strong{Maintainer}: Andrey Chetverikov \email{andrey.chetverikov@uib.no} (\href{https://orcid.org/0000-0003-2767-6310}{ORCID})
 
 Other contributors:
 \itemize{
