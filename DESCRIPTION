@@ -2,7 +2,7 @@ Package: circhelp
 Type: Package
 Title: Circular Analyses Helper Functions
 Version: 1.1
-Authors@R: c(person("Andrey", "Chetverikov", email = "a.chetverikov@donders.ru.nl",
+Authors@R: c(person("Andrey", "Chetverikov", email = "andrey.chetverikov@uib.no",
   comment = c(ORCID = "0000-0003-2767-6310"), role = c("aut", "cre")),
   person("Eline", "Van Geert", email = "eline.vangeert@kuleuven.be",
   comment = c(ORCID = "0000-0002-7848-5998"),
