@@ -86,28 +86,31 @@ If \code{bias_type} is set to \code{obl} or \code{card}, only one set of bins is
 # Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
 # https://doi.org/10.5281/zenodo.2544946
 
-ex_data <- Pascucci_et_al_2019_data[observer==4, ]
-remove_cardinal_biases(ex_data$err, ex_data$orientation, plots = 'show')
+ex_data <- Pascucci_et_al_2019_data[observer == 4, ]
+remove_cardinal_biases(ex_data$err, ex_data$orientation, plots = "show")
 
 # Data in motion domain from Bae & Luck (2018, Neuroimage),
 # https://osf.io/2h6w9/
-ex_data_bae <- Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],]
+ex_data_bae <- Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5], ]
 remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
-                       space = '360', plots = 'show')
+  space = "360", plots = "show"
+)
 
 # Using a stricter initial outlier boundary
 
 remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
-                       space = '360', plots = 'show',
-                       init_outliers = abs(ex_data_bae$err)>60)
+  space = "360", plots = "show",
+  init_outliers = abs(ex_data_bae$err) > 60
+)
 
 # We can also use just one bin by setting `bias_type` to custom
 # and setting the `break_points` at the ends of the range for x
 
 remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
-                       space = '360', bias_type = 'custom',
-                       break_points = c(-180,180), plots = 'show',
-                       reassign_at_boundaries= FALSE, poly_deg = 8,
-                       init_outliers = abs(ex_data_bae$err)>60)
+  space = "360", bias_type = "custom",
+  break_points = c(-180, 180), plots = "show",
+  reassign_at_boundaries = FALSE, poly_deg = 8,
+  init_outliers = abs(ex_data_bae$err) > 60
+)
 
 }

@@ -34,7 +34,7 @@ Pads the data by adding a part of the data (default: 1/6th) from one end to anot
 }
 \examples{
 
-dt <- data.table(x = runif(1000,-90,90), y = rnorm(1000))
-pad_circ(dt, 'x', verbose = TRUE)
+dt <- data.table(x = runif(1000, -90, 90), y = rnorm(1000))
+pad_circ(dt, "x", verbose = TRUE)
 
 }

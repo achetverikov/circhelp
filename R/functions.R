@@ -1,4 +1,3 @@
-
 #' Circular mean
 #'
 #' @param x vector of values
@@ -8,13 +7,12 @@
 #' @export
 #'
 #' @examples
-#' x <- runif(1000,-pi,pi)
+#' x <- runif(1000, -pi, pi)
 #' mean(x)
 #' circ_mean_rad(x)
 #'
 #' @describeIn circ_mean_rad circular mean in 2pi space
-circ_mean_rad<-function (x, na.rm = F){
-  # from CircStats package
+circ_mean_rad <- function(x, na.rm = FALSE) {
   sinr <- sum(sin(x), na.rm = na.rm)
   cosr <- sum(cos(x), na.rm = na.rm)
   circmean <- atan2(sinr, cosr)
@@ -23,14 +21,14 @@ circ_mean_rad<-function (x, na.rm = F){
 
 #' @describeIn circ_mean_rad circular mean in 180° space (e.g., line orientation)
 #' @export
-circ_mean_180<-function(x, na.rm = F){
-  circ_mean_rad(x/90*pi, na.rm = na.rm)/pi*90
+circ_mean_180 <- function(x, na.rm = FALSE) {
+  circ_mean_rad(x / 90 * pi, na.rm = na.rm) / pi * 90
 }
 
 #' @describeIn circ_mean_rad circular mean in 360° space
 #' @export
-circ_mean_360<-function(x, na.rm = F){
-  circ_mean_rad(x/180*pi, na.rm = na.rm)/pi*180
+circ_mean_360 <- function(x, na.rm = FALSE) {
+  circ_mean_rad(x / 180 * pi, na.rm = na.rm) / pi * 180
 }
 
 #' Differences between angles in different circular spaces
@@ -53,46 +51,46 @@ circ_mean_360<-function(x, na.rm = F){
 
 #' @describeIn angle_diff_rad angle difference in radians
 #' @export
-angle_diff_rad<-function(a,b){
-  c = a - b
-  (c+pi)%%(2*pi) - pi
+angle_diff_rad <- function(a, b) {
+  c <- a - b
+  (c + pi) %% (2 * pi) - pi
 }
 
 #' @describeIn angle_diff_rad angle difference in 360 degree space
 #' @export
 
-angle_diff_360<-function(a,b){
-  angle_diff_rad(a/180*pi, b/180*pi)/pi*180
+angle_diff_360 <- function(a, b) {
+  angle_diff_rad(a / 180 * pi, b / 180 * pi) / pi * 180
 }
 
 #' @describeIn angle_diff_rad angle difference in 180 degree space (e.g., line orientation)
 #' @export
 #'
-angle_diff_180<-function(a,b){
-  angle_diff_rad(a/90*pi, b/90*pi)/pi*90
+angle_diff_180 <- function(a, b) {
+  angle_diff_rad(a / 90 * pi, b / 90 * pi) / pi * 90
 }
 
 #' @describeIn angle_diff_rad angle difference in 90 degree space
 #' @export
 
-angle_diff_90<-function(a,b){
-  angle_diff_rad(a/45*pi, b/45*pi)/pi*45
+angle_diff_90 <- function(a, b) {
+  angle_diff_rad(a / 45 * pi, b / 45 * pi) / pi * 45
 }
 
 #' @describeIn angle_diff_rad angle difference in 180 degree space from -45 to 135
 #' @export
 
-angle_diff_180_45<-function(a,b){
-  c = a - b
-  (c+45)%%180 - 45
+angle_diff_180_45 <- function(a, b) {
+  c <- a - b
+  (c + 45) %% 180 - 45
 }
 
 #' @describeIn angle_diff_rad angle difference in 360 degree space from -90 to 270
 #' @export
 
-angle_diff_360_90<-function(a,b){
-  c = a - b
-  (c+90)%%360 - 90
+angle_diff_360_90 <- function(a, b) {
+  c <- a - b
+  (c + 90) %% 360 - 90
 }
 
 #' Circular correlation coefficient
@@ -111,29 +109,27 @@ angle_diff_360_90<-function(a,b){
 #' @export
 #'
 #' @examples
-#' requireNamespace('mgcv')
-#' data <- mgcv::rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
-#' circ_corr(data[,1], data[,2])
-
-
-circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL, na.rm = F){
-  if (na.rm){
+#' requireNamespace("mgcv")
+#' data <- mgcv::rmvn(10000, c(0, 0), V = matrix(c(1, 0.5, 0.5, 1), ncol = 2))
+#' circ_corr(data[, 1], data[, 2])
+circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL, na.rm = FALSE) {
+  if (na.rm) {
     a <- a[!is.na(a)]
     b <- b[!is.na(b)]
   }
   mu_a <- circ_mean_rad(a)
   mu_b <- circ_mean_rad(b)
-  if (!is.null(mu)){
-    mu_a = mu_b = mu
-  } else if (ill_defined){
-    mean_diff <- circ_mean_rad(a-b)
-    mean_sum <- circ_mean_rad(a+b)
-    mu_a <- (mean_diff + mean_sum)/2
-    mu_b <- (mean_sum - mean_diff)/2
+  if (!is.null(mu)) {
+    mu_a <- mu_b <- mu
+  } else if (ill_defined) {
+    mean_diff <- circ_mean_rad(a - b)
+    mean_sum <- circ_mean_rad(a + b)
+    mu_a <- (mean_diff + mean_sum) / 2
+    mu_b <- (mean_sum - mean_diff) / 2
   }
   sin_a <- sin(a - mu_a)
   sin_b <- sin(b - mu_b)
-  rho <- sum(sin_a*sin_b)/sqrt(sum(sin_a*sin_a)*sum(sin_b*sin_b))
+  rho <- sum(sin_a * sin_b) / sqrt(sum(sin_a * sin_a) * sum(sin_b * sin_b))
   rho
 }
 
@@ -158,10 +154,9 @@ circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL, na.rm = F){
 #'
 #' x <- rnorm(50)
 #' a <- as.vector(circular::rvonmises(50, 0, 5))
-#' circ_lin_corr(x+a, x)
-
-circ_lin_corr <- function(circ_x, lin_x, na.rm = F){
-  if (na.rm){
+#' circ_lin_corr(x + a, x)
+circ_lin_corr <- function(circ_x, lin_x, na.rm = FALSE) {
+  if (na.rm) {
     circ_x <- circ_x[!is.na(circ_x)]
     lin_x <- lin_x[!is.na(lin_x)]
   }
@@ -171,10 +166,9 @@ circ_lin_corr <- function(circ_x, lin_x, na.rm = F){
   r_xsin <- stats::cor(lin_x, sin_a)
   r_cossin <- stats::cor(cos_a, sin_a)
 
-  r_squared <- ((r_xcos^2) + (r_xsin^2) - (2*r_xcos*r_xsin*r_cossin)) / (1 - (r_cossin^2))
+  r_squared <- ((r_xcos^2) + (r_xsin^2) - (2 * r_xcos * r_xsin * r_cossin)) / (1 - (r_cossin^2))
 
   sqrt(r_squared)
-
 }
 #' Weighted circular parameters
 #'
@@ -186,48 +180,49 @@ circ_lin_corr <- function(circ_x, lin_x, na.rm = F){
 #' @export
 #'
 #' @examples
-#' x <- rnorm(1000,0, 0.5)
+#' x <- rnorm(1000, 0, 0.5)
 #' w <- runif(1000, 0, 1)
 #' weighted.mean(x, w)
 #' weighted_circ_mean(x, w)
 #'
 #' @describeIn weighted_circ_mean weighted circular mean
 
-weighted_circ_mean<-function(x, w, na.rm = F){
-  if (length(w)!=length(x))
-    stop('Weights (w) should have the same length as values (x)')
+weighted_circ_mean <- function(x, w, na.rm = FALSE) {
+  if (length(w) != length(x)) {
+    stop("Weights (w) should have the same length as values (x)")
+  }
 
-  sum_w<-sum(w, na.rm = na.rm)
-  atan2(sum(w*sin(x), na.rm = na.rm)/sum_w, sum(w*cos(x), na.rm = na.rm)/sum_w)
-
+  sum_w <- sum(w, na.rm = na.rm)
+  atan2(sum(w * sin(x), na.rm = na.rm) / sum_w, sum(w * cos(x), na.rm = na.rm) / sum_w)
 }
 
 #' @describeIn weighted_circ_mean an alternative way to compute weighted circular mean (the results are the same)
 #' @export
-weighted_circ_mean2 <- function(x, w, na.rm = F){
-  if (length(w)!=length(x))
-    stop('Weights (w) should have the same length as values (x)')
-  z = exp(1i*x)
-  Arg(sum(w*z, na.rm = na.rm)/sum(w, na.rm = na.rm))
+weighted_circ_mean2 <- function(x, w, na.rm = FALSE) {
+  if (length(w) != length(x)) {
+    stop("Weights (w) should have the same length as values (x)")
+  }
+  z <- exp(1i * x)
+  Arg(sum(w * z, na.rm = na.rm) / sum(w, na.rm = na.rm))
 }
 
 #' @describeIn weighted_circ_mean weighted circular SD
 #' @export
 
-weighted_circ_sd<-function(x, w, na.rm = F){
-  sum_w<-sum(w, na.rm = na.rm)
+weighted_circ_sd <- function(x, w, na.rm = FALSE) {
+  sum_w <- sum(w, na.rm = na.rm)
 
-  r <- sqrt((sum(w*sin(x), na.rm = na.rm)/sum_w)^2+(sum(w*cos(x), na.rm = na.rm)/sum_w)^2)
-  sqrt(-2*log(r))
+  r <- sqrt((sum(w * sin(x), na.rm = na.rm) / sum_w)^2 + (sum(w * cos(x), na.rm = na.rm) / sum_w)^2)
+  sqrt(-2 * log(r))
 }
 
 #' @describeIn weighted_circ_mean weighted mean resultant length
 #' @export
 
-weighted_circ_rho<-function(x, w, na.rm = F){
-  sum_w<-sum(w, na.rm = na.rm)
+weighted_circ_rho <- function(x, w, na.rm = FALSE) {
+  sum_w <- sum(w, na.rm = na.rm)
 
-  r <- sqrt((sum(w*sin(x), na.rm = na.rm)/sum_w)^2+(sum(w*cos(x), na.rm = na.rm)/sum_w)^2)
+  r <- sqrt((sum(w * sin(x), na.rm = na.rm) / sum_w)^2 + (sum(w * cos(x), na.rm = na.rm) / sum_w)^2)
   r
 }
 
@@ -239,7 +234,7 @@ weighted_circ_rho<-function(x, w, na.rm = F){
 #' @export
 #'
 #' @examples
-#' correct_angle_rad(4*pi)
+#' correct_angle_rad(4 * pi)
 #'
 correct_angle_rad <- function(x) {
   angle_diff_rad(x, 0)
@@ -258,35 +253,36 @@ correct_angle_rad <- function(x) {
 #' circ_sd_180(rnorm(50))
 #'
 #' @describeIn circ_sd_rad SD of angles in radians
-circ_sd_rad <- function(x, na.rm = F){
-  if (na.rm)
+circ_sd_rad <- function(x, na.rm = FALSE) {
+  if (na.rm) {
     x <- x[!is.na(x)]
+  }
 
-  r = sum(exp(1i*x));
+  r <- sum(exp(1i * x))
 
   # mean resultant length
-  rho = abs(r)/length(x);
+  rho <- abs(r) / length(x)
 
-  sqrt(-2*log(rho))
+  sqrt(-2 * log(rho))
 }
 
 #' @describeIn circ_sd_rad SD of angles in 360 degree space
 #' @export
 
-circ_sd_360 <- function(x, na.rm = F){
-  circ_sd_rad(x/180*pi, na.rm = na.rm)/pi*180
+circ_sd_360 <- function(x, na.rm = FALSE) {
+  circ_sd_rad(x / 180 * pi, na.rm = na.rm) / pi * 180
 }
 #' @describeIn circ_sd_rad SD of angles in 180 degree space
 #' @export
-circ_sd_180 <- function(x, na.rm = F){
-  circ_sd_rad(x/90*pi, na.rm = na.rm)/pi*90
+circ_sd_180 <- function(x, na.rm = FALSE) {
+  circ_sd_rad(x / 90 * pi, na.rm = na.rm) / pi * 90
 }
 
-circ_dist <- function(x, y){
-  angle(exp(1i*x)/exp(1i*y))
+circ_dist <- function(x, y) {
+  angle(exp(1i * x) / exp(1i * y))
 }
 
-angle <- function(x){
+angle <- function(x) {
   atan2(Im(x), Re(x))
 }
 
@@ -309,44 +305,45 @@ angle <- function(x){
 #' @export
 #'
 #' @examples
-#' x <- c(rnorm(50,0,0.5), rnorm(20,1,0.5))
+#' x <- c(rnorm(50, 0, 0.5), rnorm(20, 1, 0.5))
 #' circ_descr(x)
 #'
-circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
-  if (na.rm){
+circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
+  if (na.rm) {
     x <- x[!is.na(x)]
   }
-  if (is.null(w))
-    w = rep(1, length(x))
+  if (is.null(w)) {
+    w <- rep(1, length(x))
+  }
   # compute weighted sum of cos and sin of angles
-  r = sum(w*exp(1i*x));
-  mu = angle(r);
+  r <- sum(w * exp(1i * x))
+  mu <- angle(r)
 
   # mean resultant length
-  rho = abs(r)/sum(w);
+  rho <- abs(r) / sum(w)
   # for data with known spacing, apply correction factor to correct for bias
   # in the estimation of r (see Zar, p. 601, equ. 26.16)
-  if (!is.null(d)){
-    c = d/2/sin(d/2);
-    rho = c*rho;
+  if (!is.null(d)) {
+    c <- d / 2 / sin(d / 2)
+    rho <- c * rho
   }
 
   # 2nd moment
-  alpha_rel = angle(exp(1i*x)/exp(1i*mu))
+  alpha_rel <- angle(exp(1i * x) / exp(1i * mu))
 
-  p = 2
-  cbar = mean(cos(p*alpha_rel)*w)
-  sbar = mean(sin(p*alpha_rel)*w)
-  mp = cbar + 1i*sbar
+  p <- 2
+  cbar <- mean(cos(p * alpha_rel) * w)
+  sbar <- mean(sin(p * alpha_rel) * w)
+  mp <- cbar + 1i * sbar
 
-  rho2 = abs(mp) # shouldn't rho2 be adjusted for d as well?
-  mu2 = angle(mp)
+  rho2 <- abs(mp) # shouldn't rho2 be adjusted for d as well?
+  mu2 <- angle(mp)
 
-  b = sum(w*sin(2*circ_dist(x,mu)))/sum(w)
-  b0 = rho2*sin(circ_dist(mu2,2*mu))/(1-rho)^(3/2)
+  b <- sum(w * sin(2 * circ_dist(x, mu))) / sum(w)
+  b0 <- rho2 * sin(circ_dist(mu2, 2 * mu)) / (1 - rho)^(3 / 2)
 
-  b_rel_to_zero = sum(w*sin(2*circ_dist(x,0)))/sum(w)
-  s0 = sqrt(-2*log(rho))
+  b_rel_to_zero <- sum(w * sin(2 * circ_dist(x, 0))) / sum(w)
+  s0 <- sqrt(-2 * log(rho))
   list(mu = mu, sigma = s0, skew_pewsey = b, skew_fischer = b0, rho = rho, skew_rel_to_zero = b_rel_to_zero)
 }
 
@@ -402,288 +399,285 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = F){
 #' # Data in orientation domain from Pascucci et al. (2019, PLOS Bio),
 #' # https://doi.org/10.5281/zenodo.2544946
 #'
-#' ex_data <- Pascucci_et_al_2019_data[observer==4, ]
-#' remove_cardinal_biases(ex_data$err, ex_data$orientation, plots = 'show')
+#' ex_data <- Pascucci_et_al_2019_data[observer == 4, ]
+#' remove_cardinal_biases(ex_data$err, ex_data$orientation, plots = "show")
 #'
 #' # Data in motion domain from Bae & Luck (2018, Neuroimage),
 #' # https://osf.io/2h6w9/
-#' ex_data_bae <- Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5],]
+#' ex_data_bae <- Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5], ]
 #' remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
-#'                        space = '360', plots = 'show')
+#'   space = "360", plots = "show"
+#' )
 #'
 #' # Using a stricter initial outlier boundary
 #'
 #' remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
-#'                        space = '360', plots = 'show',
-#'                        init_outliers = abs(ex_data_bae$err)>60)
+#'   space = "360", plots = "show",
+#'   init_outliers = abs(ex_data_bae$err) > 60
+#' )
 #'
 #' # We can also use just one bin by setting `bias_type` to custom
 #' # and setting the `break_points` at the ends of the range for x
 #'
 #' remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
-#'                        space = '360', bias_type = 'custom',
-#'                        break_points = c(-180,180), plots = 'show',
-#'                        reassign_at_boundaries= FALSE, poly_deg = 8,
-#'                        init_outliers = abs(ex_data_bae$err)>60)
+#'   space = "360", bias_type = "custom",
+#'   break_points = c(-180, 180), plots = "show",
+#'   reassign_at_boundaries = FALSE, poly_deg = 8,
+#'   init_outliers = abs(ex_data_bae$err) > 60
+#' )
 #'
-remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plots = 'hide', poly_deg = 4,  var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, break_points = NULL, init_outliers = NULL, debug = FALSE, do_plots = NULL){
+remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plots = "hide", poly_deg = 4, var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, break_points = NULL, init_outliers = NULL, debug = FALSE, do_plots = NULL) {
+  outlier <- dist_to_card <- dist_to_obl <- logLik <- x_var <- min_bp_i <- center_x <- dc_var <- gr_var <- min_boundary_i <- min_boundary_dist <- bin_range <- bin_boundary_left <- bin_boundary_right <- at_the_boundary <- row_i <- likelihood <- dnorm <- pred <- pred_sigma <- new_weight <- i.gr_var <- dist_to_bin_centre <- coef <- predict <- bias <- pred_lin <- be_c <- which_bin <- center_y <- outlier_f <- coef_sigma_int <- . <- coef_sigma_slope <- NULL # due to NSE notes in R CMD check
 
-  outlier = dist_to_card = dist_to_obl = logLik = x_var = min_bp_i = center_x = dc_var = gr_var = min_boundary_i = min_boundary_dist = bin_range = bin_boundary_left = bin_boundary_right = at_the_boundary = row_i = likelihood = dnorm = pred = pred_sigma = new_weight = i.gr_var = dist_to_bin_centre = coef = predict = bias = pred_lin = be_c = which_bin = center_y = outlier_f = coef_sigma_int = . = coef_sigma_slope  = NULL  # due to NSE notes in R CMD check
-
-  if (!(bias_type %in% c("fit", "card", "obl","custom"))) {
+  if (!(bias_type %in% c("fit", "card", "obl", "custom"))) {
     stop("`bias_type` should be 'fit','card', 'obl', or 'custom'")
   }
-  if (bias_type=='custom' & missing(break_points)){
+  if (bias_type == "custom" & missing(break_points)) {
     stop("If 'bias_type' is set to 'custom', you need to specify 'break_points'")
-
   }
 
-  if (any(is.na(x))|any(is.na(err))){
-    stop('There are NAs in x or err. Please remove missing values before running the function.')
+  if (any(is.na(x)) | any(is.na(err))) {
+    stop("There are NAs in x or err. Please remove missing values before running the function.")
   }
 
 
   if (!missing(do_plots)) {
     warnings("\nYou have supplied 'do_plots' argument, it is now deprecated in favor of a 'plots' argument")
-    if (do_plots){
-      plots = 'show'
+    if (do_plots) {
+      plots <- "show"
     }
   } else {
     if (!(plots %in% c("show", "hide", "return"))) {
       stop("`plots` should be 'show','hide', or 'return'")
     }
-
   }
 
-  if (space == '180'){
-    x <- angle_diff_180(x,0)
-    x2 <- angle_diff_180_45(x,0)
-    obl_groups <- cut(x, breaks = seq(-90, 90, 90), include.lowest = T)
+  if (space == "180") {
+    x <- angle_diff_180(x, 0)
+    x2 <- angle_diff_180_45(x, 0)
+    obl_groups <- cut(x, breaks = seq(-90, 90, 90), include.lowest = TRUE)
     obl_bin_centers <- c(-45, 45)
-    card_groups <- cut(x2, breaks = seq(-45, 180-45, 90), include.lowest = T)
+    card_groups <- cut(x2, breaks = seq(-45, 180 - 45, 90), include.lowest = TRUE)
     card_bin_centers <- c(0, 90)
     angle_diff_fun <- angle_diff_180
     circ_sd_fun <- circ_sd_180
-
-  } else if (space == '360'){
-    x <- angle_diff_360(x,0)
-    x2 <- (x+45)%%360 - 45
-    obl_groups <- cut(x, breaks = seq(-180, 180, 90), include.lowest = T)
+  } else if (space == "360") {
+    x <- angle_diff_360(x, 0)
+    x2 <- (x + 45) %% 360 - 45
+    obl_groups <- cut(x, breaks = seq(-180, 180, 90), include.lowest = TRUE)
     obl_bin_centers <- seq(-135, 135, 90)
-    card_groups <- cut(x2, breaks = seq(-45, 360-45, 90), include.lowest = T)
+    card_groups <- cut(x2, breaks = seq(-45, 360 - 45, 90), include.lowest = TRUE)
     card_bin_centers <- seq(0, 270, 90)
     angle_diff_fun <- angle_diff_360
     circ_sd_fun <- circ_sd_360
-  } else stop('`space` argument should be 180 or 360.')
+  } else {
+    stop("`space` argument should be 180 or 360.")
+  }
 
-  if (debug){
+  if (debug) {
     print(table(card_groups))
     print(table(obl_groups))
   }
-  for_fit<-data.table(x = x,
-                      x2 = x2,
-                      err, card_groups, obl_groups)
-  if (missing(init_outliers)){
-    for_fit[,outlier:=abs(err)>(3*circ_sd_fun(err, na.rm = T))]
-  } else for_fit[,outlier:=init_outliers]
-  for_fit[,dist_to_card:=angle_diff_90(x2, 0)]
-  for_fit[,dist_to_obl:=angle_diff_90(x, 45)]
-  gam_ctrl <- gamlss::gamlss.control(trace = F)
-
-  print('Computing bins to group the data...')
-  if (bias_type == 'fit'){
-    if (var_sigma){
-      sigma_formula <- '~abs(dist_to_card)' # assumes that uncertainty changes linearly as a function of distance to cardinals regardless of the bias direction
-      ll1<-sum(for_fit[outlier==F,logLik(gamlss::gamlss(err~poly(dist_to_card, var_sigma_poly_deg), sigma_formula,.SD, control = gam_ctrl)), by=.(card_groups)]$V1)
-      ll2<-sum(for_fit[outlier==F,logLik(gamlss::gamlss(err~poly(dist_to_obl, var_sigma_poly_deg), sigma_formula, .SD, control = gam_ctrl)), by=.(obl_groups)]$V1)
-    }
-    else {
-      ll1<-sum(for_fit[outlier==F,logLik(MASS::rlm(err~poly(x2,poly_deg))), by=.(card_groups)]$V1)
-      ll2<-sum(for_fit[outlier==F,logLik(MASS::rlm(err~poly(x,poly_deg))), by=.(obl_groups)]$V1)
-    }
-    if (debug)
-      print(sprintf('LL for bias type 1: %.2f, LL for bias type 2: %.2f', ll1, ll2))
-    #
-    # if (ll1>=ll2){
-    #   bias_type = 'card'
-    # } else bias_type = 'obl'
-    if (ll1>=ll2){
-      bias_type = 'card'
-    } else {
-      bias_type = 'obl'
-    }
-
+  for_fit <- data.table(
+    x = x,
+    x2 = x2,
+    err, card_groups, obl_groups
+  )
+  if (missing(init_outliers)) {
+    for_fit[, outlier := abs(err) > (3 * circ_sd_fun(err, na.rm = TRUE))]
+  } else {
+    for_fit[, outlier := init_outliers]
   }
-  if (bias_type == 'obl'){
+  for_fit[, dist_to_card := angle_diff_90(x2, 0)]
+  for_fit[, dist_to_obl := angle_diff_90(x, 45)]
+  gam_ctrl <- gamlss::gamlss.control(trace = FALSE)
+
+  print("Computing bins to group the data...")
+  if (bias_type == "fit") {
+    if (var_sigma) {
+      sigma_formula <- "~abs(dist_to_card)" # assumes that uncertainty changes linearly as a function of distance to cardinals regardless of the bias direction
+      ll1 <- sum(for_fit[outlier == FALSE, logLik(gamlss::gamlss(err ~ poly(dist_to_card, var_sigma_poly_deg), sigma_formula, .SD, control = gam_ctrl)), by = .(card_groups)]$V1)
+      ll2 <- sum(for_fit[outlier == FALSE, logLik(gamlss::gamlss(err ~ poly(dist_to_obl, var_sigma_poly_deg), sigma_formula, .SD, control = gam_ctrl)), by = .(obl_groups)]$V1)
+    } else {
+      ll1 <- sum(for_fit[outlier == FALSE, logLik(MASS::rlm(err ~ poly(x2, poly_deg))), by = .(card_groups)]$V1)
+      ll2 <- sum(for_fit[outlier == FALSE, logLik(MASS::rlm(err ~ poly(x, poly_deg))), by = .(obl_groups)]$V1)
+    }
+    if (debug) {
+      print(sprintf("LL for bias type 1: %.2f, LL for bias type 2: %.2f", ll1, ll2))
+    }
+    if (ll1 >= ll2) {
+      bias_type <- "card"
+    } else {
+      bias_type <- "obl"
+    }
+  }
+  if (bias_type == "obl") {
     break_points <- card_bin_centers
-  } else if (bias_type == 'card'){
+  } else if (bias_type == "card") {
     break_points <- obl_bin_centers
   }
 
-  for_fit$pred_sigma<-NA_real_
-  for_fit$coef_sigma_int<-NA_real_
-  for_fit$coef_sigma_slope<-NA_real_
+  for_fit$pred_sigma <- NA_real_
+  for_fit$coef_sigma_int <- NA_real_
+  for_fit$coef_sigma_slope <- NA_real_
 
   break_points <- sort(break_points)
   bin_boundaries <- c(break_points[length(break_points)], break_points)
-  bin_centers <- break_points+(shift(break_points,1, fill = break_points[length(break_points)])-break_points)/2
-  bin_centers[1] <- angle_diff_fun(break_points[length(break_points)]+(break_points[1]+as.numeric(space)-break_points[length(break_points)])/2,0)
-  bin_width <- abs(angle_diff_fun(bin_boundaries,shift(bin_boundaries,1))[2:length(bin_boundaries)])
-  bin_width[1] <- break_points[1]+as.numeric(space)-break_points[length(break_points)]
+  bin_centers <- break_points + (shift(break_points, 1, fill = break_points[length(break_points)]) - break_points) / 2
+  bin_centers[1] <- angle_diff_fun(break_points[length(break_points)] + (break_points[1] + as.numeric(space) - break_points[length(break_points)]) / 2, 0)
+  bin_width <- abs(angle_diff_fun(bin_boundaries, shift(bin_boundaries, 1))[2:length(bin_boundaries)])
+  bin_width[1] <- break_points[1] + as.numeric(space) - break_points[length(break_points)]
   bin_labels <- sapply(2:(length(bin_boundaries)), \(i) {
-    sprintf('[%.2f, %.2f]',bin_boundaries[i-1], bin_boundaries[i])
+    sprintf("[%.2f, %.2f]", bin_boundaries[i - 1], bin_boundaries[i])
   })
   bin_labels <- factor(bin_labels, levels = bin_labels)
 
-  for_fit[,x_var := x]
-  get_bin_i <- function(x, bin_centers, bin_width){
-    within_bin <- sapply(1:length(bin_centers),\(i) abs(angle_diff_fun(x, bin_centers[i]))<=(bin_width[i]/2))
+  for_fit[, x_var := x]
+  get_bin_i <- function(x, bin_centers, bin_width) {
+    within_bin <- sapply(1:length(bin_centers), \(i) abs(angle_diff_fun(x, bin_centers[i])) <= (bin_width[i] / 2))
     max.col(within_bin, "first")
   }
-  for_fit[,min_bp_i:=get_bin_i(x, bin_centers, bin_width)]
-  for_fit[,center_x := bin_centers[min_bp_i]]
-  for_fit[,dc_var := angle_diff_fun(x, center_x)]
-  for_fit[,gr_var := bin_labels[min_bp_i]]
+  for_fit[, min_bp_i := get_bin_i(x, bin_centers, bin_width)]
+  for_fit[, center_x := bin_centers[min_bp_i]]
+  for_fit[, dc_var := angle_diff_fun(x, center_x)]
+  for_fit[, gr_var := bin_labels[min_bp_i]]
 
-  if (plots == 'show' & debug == T){
-    print(ggplot(for_fit, aes(x = x, y = err, color = gr_var))+geom_point()+geom_vline(xintercept = angle_diff_fun(break_points,0))+geom_vline(color = 'blue', xintercept = angle_diff_fun(bin_centers,0)))
+  if (plots == "show" & debug == TRUE) {
+    print(ggplot(for_fit, aes(x = x, y = err, color = gr_var)) +
+      geom_point() +
+      geom_vline(xintercept = angle_diff_fun(break_points, 0)) +
+      geom_vline(color = "blue", xintercept = angle_diff_fun(bin_centers, 0)))
   }
-  for_fit[,min_boundary_i := apply(sapply(break_points, \(bp) abs(angle_diff_fun(x, bp))),1,which.min)]
+  for_fit[, min_boundary_i := apply(sapply(break_points, \(bp) abs(angle_diff_fun(x, bp))), 1, which.min)]
 
-  for_fit[,min_boundary_dist := angle_diff_fun(x, break_points[min_boundary_i])]
-  for_fit[,bin_range:=bin_width[min_bp_i]]
-  for_fit[,bin_boundary_left:=bin_boundaries[min_bp_i]]
-  for_fit[,bin_boundary_right:=bin_boundaries[min_bp_i+1]]
-  if (reassign_at_boundaries)
-    for_fit[,at_the_boundary:=(abs(min_boundary_dist)-reassign_range)<(1e-12)]
+  for_fit[, min_boundary_dist := angle_diff_fun(x, break_points[min_boundary_i])]
+  for_fit[, bin_range := bin_width[min_bp_i]]
+  for_fit[, bin_boundary_left := bin_boundaries[min_bp_i]]
+  for_fit[, bin_boundary_right := bin_boundaries[min_bp_i + 1]]
+  if (reassign_at_boundaries) {
+    for_fit[, at_the_boundary := (abs(min_boundary_dist) - reassign_range) < (1e-12)]
+  }
 
-
-  # } else stop("Something went wrong: bias_type should be defined by this point.")
-
-  # if (bias_type%in%c('card','obl')){
-  #   for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
-  #   for_fit[,bin_range:=90]
-  #   for_fit[,bin_boundary_left:=center_x-bin_range/2]
-  #   for_fit[,bin_boundary_right:=center_x+bin_range/2]
-  # }
-
-  if (var_sigma){
+  if (var_sigma) {
     # get predictions
-    if (reassign_at_boundaries){
-      print('Reassigning points at the boundaries...')
-      if (any(for_fit[,unique(bin_range)]<(2*reassign_range))) {
-        stop('Reassignment range too large compared to bin sizes')
+    if (reassign_at_boundaries) {
+      print("Reassigning points at the boundaries...")
+      if (any(for_fit[, unique(bin_range)] < (2 * reassign_range))) {
+        stop("Reassignment range too large compared to bin sizes")
       }
-      for_fit[,row_i:=1:.N]
-      resid_at_boundaries <- for_fit[outlier==F,
-                                     get_boundary_preds(gr_var, copy(for_fit[outlier==F]), space, reassign_range, gam_ctrl, ifelse(rep_n>2, poly_deg, 1), angle_diff_fun), by = .(gr_var)]
-      resid_at_boundaries[,likelihood:=dnorm(err, pred, pred_sigma, log = F)]
-      resid_at_boundaries[,new_weight := ifelse(at_the_boundary==F, 1, likelihood/sum(likelihood)), by =.(err, x_var)]
-      cur_weights <- resid_at_boundaries[at_the_boundary==T, ]$new_weight
+      for_fit[, row_i := 1:.N]
+      resid_at_boundaries <- for_fit[outlier == FALSE,
+        get_boundary_preds(gr_var, copy(for_fit[outlier == FALSE]), space, reassign_range, gam_ctrl, ifelse(rep_n > 2, poly_deg, 1), angle_diff_fun),
+        by = .(gr_var)
+      ]
+      resid_at_boundaries[, likelihood := dnorm(err, pred, pred_sigma, log = FALSE)]
+      resid_at_boundaries[, new_weight := ifelse(at_the_boundary == FALSE, 1, likelihood / sum(likelihood)), by = .(err, x_var)]
+      cur_weights <- resid_at_boundaries[at_the_boundary == TRUE, ]$new_weight
       stable_weights <- 0
-      for (rep_n in 1:10){
-        weight_dt <- resid_at_boundaries[,.(row_i, gr_var, new_weight)]
+      for (rep_n in 1:10) {
+        weight_dt <- resid_at_boundaries[, .(row_i, gr_var, new_weight)]
         resid_at_boundaries <- resid_at_boundaries[,
-                                                   get_boundary_preds(gr_var, copy(for_fit[outlier==F]), space, reassign_range, gam_ctrl, ifelse(rep_n>2, poly_deg, 1), angle_diff_fun, weights = weight_dt ), by = .(gr_var)]
-        # resid_at_boundaries[,new_weight := ifelse(at_the_boundary==F, 1, 1-abs(resid_at_boundaries)/sum(abs(resid_at_boundaries))), by =.(err, x_var)]
-        resid_at_boundaries[,likelihood:=dnorm(err, pred, pred_sigma, log = F)]
-        resid_at_boundaries[,new_weight := ifelse(at_the_boundary==F, 1, likelihood/sum(likelihood)), by =.(err, x_var)]
+          get_boundary_preds(gr_var, copy(for_fit[outlier == FALSE]), space, reassign_range, gam_ctrl, ifelse(rep_n > 2, poly_deg, 1), angle_diff_fun, weights = weight_dt),
+          by = .(gr_var)
+        ]
+        resid_at_boundaries[, likelihood := dnorm(err, pred, pred_sigma, log = FALSE)]
+        resid_at_boundaries[, new_weight := ifelse(at_the_boundary == FALSE, 1, likelihood / sum(likelihood)), by = .(err, x_var)]
 
-        # resid_at_boundaries[,resid:=angle_diff_fun(err, pred)]
-        # print(ggplot(resid_at_boundaries, aes(x = x_var, y = err, color = gr_var, alpha = weight))+geom_point()+geom_line(aes(y = pred), alpha = 1)+geom_vline(xintercept = for_fit[,unique(c(bin_boundary_left, bin_boundary_right))], linetype = 2, alpha = 0.5)+facet_grid(gr_var~.))
-        resid_at_boundaries_c <- dcast(resid_at_boundaries[at_the_boundary==T], row_i~gr_var, value.var = 'resid_at_boundaries')
-        resid_at_boundaries_c <- resid_at_boundaries_c[,gr_var:=names(.SD)[max.col(replace(-abs(.SD), is.na(.SD), -Inf))], .SDcols = 2:ncol(resid_at_boundaries_c)]
+        resid_at_boundaries_c <- dcast(resid_at_boundaries[at_the_boundary == TRUE], row_i ~ gr_var, value.var = "resid_at_boundaries")
+        resid_at_boundaries_c <- resid_at_boundaries_c[, gr_var := names(.SD)[max.col(replace(-abs(.SD), is.na(.SD), -Inf))], .SDcols = 2:ncol(resid_at_boundaries_c)]
         prev_weights <- cur_weights
 
-        cur_weights <- resid_at_boundaries[at_the_boundary==T, ]$new_weight
+        cur_weights <- resid_at_boundaries[at_the_boundary == TRUE, ]$new_weight
         weights_change <- sum(abs(cur_weights - prev_weights))
-        if (debug){
-          print(sprintf('Reassignment step: %i; change in weights: %.5f', rep_n, weights_change))
+        if (debug) {
+          print(sprintf("Reassignment step: %i; change in weights: %.5f", rep_n, weights_change))
         }
-        for_fit[resid_at_boundaries_c, `:=` (gr_var = i.gr_var), on = .(row_i)]
-        for_fit[,center_x:=bin_centers[as.numeric(gr_var)]]
-        for_fit[,x_var:=center_x+angle_diff_fun(x_var, center_x)]
-        for_fit[,dc_var := angle_diff_fun(x, center_x)]
-        for_fit[,bin_range:=bin_width[as.numeric(gr_var)]]
-        for_fit[,bin_boundary_left:=bin_boundaries[as.numeric(gr_var)]]
-        for_fit[,bin_boundary_right:=bin_boundaries[as.numeric(gr_var)+1]]
+        for_fit[resid_at_boundaries_c, `:=`(gr_var = i.gr_var), on = .(row_i)]
+        for_fit[, center_x := bin_centers[as.numeric(gr_var)]]
+        for_fit[, x_var := center_x + angle_diff_fun(x_var, center_x)]
+        for_fit[, dc_var := angle_diff_fun(x, center_x)]
+        for_fit[, bin_range := bin_width[as.numeric(gr_var)]]
+        for_fit[, bin_boundary_left := bin_boundaries[as.numeric(gr_var)]]
+        for_fit[, bin_boundary_right := bin_boundaries[as.numeric(gr_var) + 1]]
 
-        if (rep_n > 1){
-          if (weights_change < 0.01){
+        if (rep_n > 1) {
+          if (weights_change < 0.01) {
             stable_weights <- stable_weights + 1
-          } else stable_weights <- 0
+          } else {
+            stable_weights <- 0
+          }
           if (stable_weights > 3) {
-            if (debug){
-              print('Reassignment stopped at stable weights')
+            if (debug) {
+              print("Reassignment stopped at stable weights")
             }
             break
           }
         }
       }
     }
-    for_fit[,dist_to_bin_centre:=angle_diff_fun(x_var, center_x)]
-    for_fit[,x_var:=center_x+angle_diff_fun(x_var, center_x)]
-    for_fit[,dc_var := angle_diff_fun(x, center_x)]
+    for_fit[, dist_to_bin_centre := angle_diff_fun(x_var, center_x)]
+    for_fit[, x_var := center_x + angle_diff_fun(x_var, center_x)]
+    for_fit[, dc_var := angle_diff_fun(x, center_x)]
 
-    print('Computing final fits...')
+    print("Computing final fits...")
 
     likelihoods <- c()
-    for (cg in unique(for_fit$gr_var)){
-      cur_df <- for_fit[gr_var==cg,.(err, x_var, dist_to_bin_centre, dc_var, outlier, dist_to_card)]
-      fit <- gamlss::gamlss(err~pb(dist_to_bin_centre),
-                            ~abs(dist_to_bin_centre),
-                            data = cur_df,
-                            weights = 1-as.numeric(cur_df$outlier),
-                            control = gam_ctrl)
+    for (cg in unique(for_fit$gr_var)) {
+      cur_df <- for_fit[gr_var == cg, .(err, x_var, dist_to_bin_centre, dc_var, outlier, dist_to_card)]
+      fit <- gamlss::gamlss(err ~ pb(dist_to_bin_centre),
+        ~ abs(dist_to_bin_centre),
+        data = cur_df,
+        weights = 1 - as.numeric(cur_df$outlier),
+        control = gam_ctrl
+      )
 
-      if (debug){
+      if (debug) {
         print(coef(fit))
       }
 
-      for_fit[gr_var==cg, pred:=predict(fit, type='response')]
-      for_fit[gr_var==cg, pred_sigma:=predict(fit, what = 'sigma', type='response')]
+      for_fit[gr_var == cg, pred := predict(fit, type = "response")]
+      for_fit[gr_var == cg, pred_sigma := predict(fit, what = "sigma", type = "response")]
 
-      for_fit[gr_var==cg, bias:=err*sign(pred)]
+      for_fit[gr_var == cg, bias := err * sign(pred)]
 
-      if (debug){
-        requireNamespace('ggplot2')
-        print(ggplot(for_fit[gr_var==cg], aes(x = dist_to_bin_centre, y = err))+geom_point()+geom_line(aes(y = pred)))
+      if (debug) {
+        requireNamespace("ggplot2")
+        print(ggplot(for_fit[gr_var == cg], aes(x = dist_to_bin_centre, y = err)) +
+          geom_point() +
+          geom_line(aes(y = pred)))
       }
-      for_fit[gr_var==cg, c('coef_sigma_int','coef_sigma_slope'):= data.frame(t(coef(fit, what = 'sigma')))]
+      for_fit[gr_var == cg, c("coef_sigma_int", "coef_sigma_slope") := data.frame(t(coef(fit, what = "sigma")))]
       likelihoods <- c(likelihoods, logLik(fit))
     }
   } else {
-    for_fit[,pred:=predict(MASS::rlm(err~poly(x_var,poly_deg),.SD[outlier==F]),newdata=.SD[,.(x_var)]),  by=.(card_groups)]
+    for_fit[, pred := predict(MASS::rlm(err ~ poly(x_var, poly_deg), .SD[outlier == FALSE]), newdata = .SD[, .(x_var)]), by = .(card_groups)]
   }
 
-  for_fit[,pred_lin:=MASS::rlm(err~x_var)$fitted.values, by=.(gr_var)]
+  for_fit[, pred_lin := MASS::rlm(err ~ x_var)$fitted.values, by = .(gr_var)]
 
-  for_fit[,be_c:=err-pred]
-  for_fit[,which_bin:=as.numeric(gr_var)]
-  for_fit[,center_y:=predict(MASS::rlm(err~x_var),
-                             newdata = data.frame(x_var = center_x)), by=.(gr_var)]
+  for_fit[, be_c := err - pred]
+  for_fit[, which_bin := as.numeric(gr_var)]
+  for_fit[, center_y := predict(MASS::rlm(err ~ x_var),
+    newdata = data.frame(x_var = center_x)
+  ), by = .(gr_var)]
 
-  if (var_sigma){
-    for_fit[,outlier:=abs(be_c)>3*pred_sigma]
+  if (var_sigma) {
+    for_fit[, outlier := abs(be_c) > 3 * pred_sigma]
+  } else {
+    for_fit[, outlier := abs(be_c) > (3 * circ_sd_fun(be_c))]
   }
-  else {
-    for_fit[,outlier:=abs(be_c)>(3*circ_sd_fun(be_c))]
-  }
 
-  # for_fit[outlier==F,pred:=gls(err~x2, weights = varFunc(~sqrt(abs(dist_to_card))), data = .SD)$fitted, by=.(card_groups)]
-  # for_fit[outlier==F,weights:=attr(gls(err~x2, weights = varFunc(~sqrt(abs(dist_to_card))), data = .SD)$model$varStruct, 'weights'), by=.(card_groups)]
-  #for_fit[outlier==F,pred_rlm:=rlm(err~poly(x2,1), data = .SD)$fitted, by=.(card_groups)]
-  if (plots %in% c('show', 'return')){
-    for_fit[,outlier_f := factor(ifelse(outlier, 'Outlier','Non-outlier'))]
-    sd_val <- for_fit[,circ_sd_fun(err)]
+  if (plots %in% c("show", "return")) {
+    for_fit[, outlier_f := factor(ifelse(outlier, "Outlier", "Non-outlier"))]
+    sd_val <- for_fit[, circ_sd_fun(err)]
     plots_obj <- make_plots_of_biases(for_fit, poly_deg, sd_val)
-    if (plots == 'show'){
+    if (plots == "show") {
       print(plots_obj)
     } else {
       return(plots_obj)
     }
   }
-  return(for_fit[,.(is_outlier = as.numeric(outlier), pred, be_c, which_bin, bias, bias_type, pred_lin, pred_sigma, coef_sigma_int, coef_sigma_slope, shifted_x = x_var, total_log_lik = sum(likelihoods))])
+  return(for_fit[, .(is_outlier = as.numeric(outlier), pred, be_c, which_bin, bias, bias_type, pred_lin, pred_sigma, coef_sigma_int, coef_sigma_slope, shifted_x = x_var, total_log_lik = sum(likelihoods))])
 }
 
 #' Remove cardinal biases for data with orientation (color, motion, ...) set in discrete steps
@@ -701,7 +695,7 @@ remove_cardinal_biases <- function(err, x, space = '180', bias_type = 'fit', plo
 #' @export
 #'
 remove_cardinal_biases_discrete <- function(err, x, space, init_outliers = NULL) {
-  outlier = be_c = mean_err = is_outlier = . = NULL  # due to NSE notes in R CMD check
+  outlier <- be_c <- mean_err <- is_outlier <- . <- NULL # due to NSE notes in R CMD check
 
   if (space %in% c("180", "360")) {
     angle_diff_fun <- get(paste0("angle_diff_", space))
@@ -717,9 +711,9 @@ remove_cardinal_biases_discrete <- function(err, x, space, init_outliers = NULL)
   } else {
     data[, outlier := init_outliers]
   }
-  data[, c("mean_err") := .(circ_mean_fun(err[outlier == F])), by = x]
+  data[, c("mean_err") := .(circ_mean_fun(err[outlier == FALSE])), by = x]
   data[, be_c := angle_diff_fun(err, mean_err), by = x]
-  data[, is_outlier := abs(be_c) > (3 * circ_sd_fun(be_c[outlier == F])), by = x]
+  data[, is_outlier := abs(be_c) > (3 * circ_sd_fun(be_c[outlier == FALSE])), by = x]
   data[, .(be_c, is_outlier)]
 }
 
@@ -735,42 +729,46 @@ remove_cardinal_biases_discrete <- function(err, x, space, init_outliers = NULL)
 #' @importFrom patchwork wrap_plots
 #' @keywords internal
 #'
-make_plots_of_biases <- function(data, poly_deg, sd_val){
-  requireNamespace('patchwork')
-  requireNamespace('ggplot2')
+make_plots_of_biases <- function(data, poly_deg, sd_val) {
+  requireNamespace("patchwork")
+  requireNamespace("ggplot2")
 
-  outlier = x_var = gr_var = err = outlier_f = pred = pred_sigma = be_c = bias  = NULL  # due to NSE notes in R CMD check
+  outlier <- x_var <- gr_var <- err <- outlier_f <- pred <- pred_sigma <- be_c <- bias <- NULL # due to NSE notes in R CMD check
 
-  common_plot_pars <- list(scale_x_continuous(breaks = seq(-180,360,90)),
-                           labs(x = 'Orientation', shape = NULL, color = 'Bin'),
-                           theme(legend.position = c(1,1), legend.justification = c(1,1)),
-                          guides(color = guide_legend(override.aes = list(size = 1))))
-  alpha = 100/data[,.N]*length(unique(data$gr_var))
+  common_plot_pars <- list(
+    scale_x_continuous(breaks = seq(-180, 360, 90)),
+    labs(x = "Orientation", shape = NULL, color = "Bin"),
+    theme(legend.position = c(1, 1), legend.justification = c(1, 1)),
+    guides(color = guide_legend(override.aes = list(size = 1)))
+  )
+  alpha <- 100 / data[, .N] * length(unique(data$gr_var))
 
-  p1<-ggplot(data=data[outlier==F],aes(x = x_var, color = gr_var))+
-    geom_point(data = data, aes( y = err, shape = outlier_f), alpha = alpha)+
-    geom_line(aes(y = pred), size = 1)+
-    #geom_line(aes(y = pred_lin), linetype = 2, size = 1)+
-    geom_line(aes(y=pred+3*pred_sigma))+
-    geom_line(aes(y=pred-3*pred_sigma))+
-    geom_hline(yintercept = c(-1,1)*data[,3*sd_val], linetype = 2)+
-    common_plot_pars+
-    labs(y = 'Error')
+  p1 <- ggplot(data = data[outlier == FALSE], aes(x = x_var, color = gr_var)) +
+    geom_point(data = data, aes(y = err, shape = outlier_f), alpha = alpha) +
+    geom_line(aes(y = pred), size = 1) +
+    geom_line(aes(y = pred + 3 * pred_sigma)) +
+    geom_line(aes(y = pred - 3 * pred_sigma)) +
+    geom_hline(yintercept = c(-1, 1) * data[, 3 * sd_val], linetype = 2) +
+    common_plot_pars +
+    labs(y = "Error")
 
-  p1a<-ggplot(data=data[outlier==F],aes(x = x_var, color = gr_var))+
-    geom_point(data = data, aes( y = be_c, shape = outlier_f), alpha = alpha)+
-    geom_hline(yintercept = c(-1,1)*data[,3*circ_sd_180(be_c)], linetype = 2)+
-    geom_line(data=data[outlier==F], aes(y=3*pred_sigma))+
-    geom_line(data=data[outlier==F], aes(y=-3*pred_sigma))+
-    common_plot_pars+labs(y = 'Bias-corrected error')
+  p1a <- ggplot(data = data[outlier == FALSE], aes(x = x_var, color = gr_var)) +
+    geom_point(data = data, aes(y = be_c, shape = outlier_f), alpha = alpha) +
+    geom_hline(yintercept = c(-1, 1) * data[, 3 * circ_sd_180(be_c)], linetype = 2) +
+    geom_line(data = data[outlier == FALSE], aes(y = 3 * pred_sigma)) +
+    geom_line(data = data[outlier == FALSE], aes(y = -3 * pred_sigma)) +
+    common_plot_pars +
+    labs(y = "Bias-corrected error")
 
-  p1b<-ggplot(data, aes(x = x_var, y = bias,  color = gr_var, shape = outlier_f))+
-    geom_point(alpha = alpha)+
-    common_plot_pars+
-    geom_hline(yintercept = c(-1,1)*data[,3*sd_val], linetype = 2)+theme(legend.position = 'none')+labs(y = 'Bias')
+  p1b <- ggplot(data, aes(x = x_var, y = bias, color = gr_var, shape = outlier_f)) +
+    geom_point(alpha = alpha) +
+    common_plot_pars +
+    geom_hline(yintercept = c(-1, 1) * data[, 3 * sd_val], linetype = 2) +
+    theme(legend.position = "none") +
+    labs(y = "Bias")
 
-  p1<-p1+labs(shape = NULL)+guides(color = 'none')
-  patchwork::wrap_plots(p1,p1a,p1b, guides = 'collect')
+  p1 <- p1 + labs(shape = NULL) + guides(color = "none")
+  patchwork::wrap_plots(p1, p1a, p1b, guides = "collect")
 }
 
 #' Pad circular data on both ends
@@ -789,21 +787,22 @@ make_plots_of_biases <- function(data, poly_deg, sd_val){
 #'
 #' @examples
 #'
-#' dt <- data.table(x = runif(1000,-90,90), y = rnorm(1000))
-#' pad_circ(dt, 'x', verbose = TRUE)
+#' dt <- data.table(x = runif(1000, -90, 90), y = rnorm(1000))
+#' pad_circ(dt, "x", verbose = TRUE)
 #'
-pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, verbose = FALSE){
-  circ_range <- max(circ_borders)-min(circ_borders)
+pad_circ <- function(data, circ_var, circ_borders = c(-90, 90), circ_part = 1 / 6, verbose = FALSE) {
+  circ_range <- max(circ_borders) - min(circ_borders)
 
-  data1<-copy(data[get(circ_var)<(circ_borders[1]+circ_range*circ_part),])
-  data1[,(circ_var):=get(circ_var)+ circ_range]
+  data1 <- copy(data[get(circ_var) < (circ_borders[1] + circ_range * circ_part), ])
+  data1[, (circ_var) := get(circ_var) + circ_range]
 
-  data2<-copy(data[get(circ_var)>(circ_borders[2]-circ_range*circ_part),])
-  data2[,(circ_var):=get(circ_var)- circ_range]
-  if (verbose)
-    print(sprintf('Rows in original DT: %i, padded on the left: %i, padded on the right: %i', data[,.N],data1[,.N], data2[,.N]))
+  data2 <- copy(data[get(circ_var) > (circ_borders[2] - circ_range * circ_part), ])
+  data2[, (circ_var) := get(circ_var) - circ_range]
+  if (verbose) {
+    print(sprintf("Rows in original DT: %i, padded on the left: %i, padded on the right: %i", data[, .N], data1[, .N], data2[, .N]))
+  }
 
-  rbind(data,data1,data2)
+  rbind(data, data1, data2)
 }
 
 #' Get polynomial predictions for values at the boundaries
@@ -824,72 +823,60 @@ pad_circ <- function(data, circ_var, circ_borders=c(-90,90), circ_part = 1/6, ve
 #' @keywords internal
 #'
 
-get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun, weights = NULL){
-  gr_var = outlier = err = x_var = dc_var = center_x = dist_to_card = bin_boundary_left = bin_boundary_right = bin_range = dist_to_bin_centre = row_i = at_the_boundary = dist_to_boundary = dist_to_boundary_norm = new_weight = weight = pred = . = predict = pred_sigma = resid_at_boundaries = NULL # due to NSE notes in R CMD check
-  cur_df <- data[gr_var==group&outlier==F,.(err, x_var, dc_var,
-                                            dist_to_bin_centre = angle_diff_fun(x_var, center_x), weight = NULL, adc = abs(dist_to_card), center_x, bin_boundary_left, bin_boundary_right, bin_range)]
-  #
-  # # original prediction
-  # fit <- gamlss::gamlss(err~poly(dist_to_bin_centre, poly_deg),
-  #                       ~ abs(dist_to_bin_centre),
-  #                       data = cur_df,
-  #                       control = gam_ctrl)
-  # prediction incl. boundaries
+get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun, weights = NULL) {
+  gr_var <- outlier <- err <- x_var <- dc_var <- center_x <- dist_to_card <- bin_boundary_left <- bin_boundary_right <- bin_range <- dist_to_bin_centre <- row_i <- at_the_boundary <- dist_to_boundary <- dist_to_boundary_norm <- new_weight <- weight <- pred <- . <- predict <- pred_sigma <- resid_at_boundaries <- NULL # due to NSE notes in R CMD check
+  cur_df <- data[gr_var == group & outlier == FALSE, .(err, x_var, dc_var,
+    dist_to_bin_centre = angle_diff_fun(x_var, center_x), weight = NULL, adc = abs(dist_to_card), center_x, bin_boundary_left, bin_boundary_right, bin_range
+  )]
 
   curr_bin_range <- cur_df$bin_range[[1]]
   curr_bin_center <- cur_df$center_x[[1]]
   boundary1 <- cur_df$bin_boundary_left[[1]]
   boundary2 <- cur_df$bin_boundary_right[[1]]
 
-  data[,dist_to_bin_centre:=angle_diff_fun(x_var, curr_bin_center)]
-  data_incl_boundaries <- data[outlier == F &
-                                 abs(dist_to_bin_centre)<(curr_bin_range/2+reassign_range+1e-12),
-                               .(row_i, err, x_var, dc_var, gr_var,
-                                 dist_to_bin_centre,
-                                 at_the_boundary,
-                                 center_x)]
-  data_incl_boundaries[,dist_to_boundary:=(abs(dist_to_bin_centre)-curr_bin_range/2)]
-  data_incl_boundaries[,dist_to_boundary_norm:=(dist_to_boundary+reassign_range)/(2*reassign_range)]
+  data[, dist_to_bin_centre := angle_diff_fun(x_var, curr_bin_center)]
+  data_incl_boundaries <- data[
+    outlier == FALSE &
+      abs(dist_to_bin_centre) < (curr_bin_range / 2 + reassign_range + 1e-12),
+    .(
+      row_i, err, x_var, dc_var, gr_var,
+      dist_to_bin_centre,
+      at_the_boundary,
+      center_x
+    )
+  ]
+  data_incl_boundaries[, dist_to_boundary := (abs(dist_to_bin_centre) - curr_bin_range / 2)]
+  data_incl_boundaries[, dist_to_boundary_norm := (dist_to_boundary + reassign_range) / (2 * reassign_range)]
 
-  if (!missing(weights)){
-    data_incl_boundaries[,gr_var:=group]
-    data_incl_boundaries[weights, `:=` (weight = new_weight), on = .(row_i, gr_var)]
+  if (!missing(weights)) {
+    data_incl_boundaries[, gr_var := group]
+    data_incl_boundaries[weights, `:=`(weight = new_weight), on = .(row_i, gr_var)]
   } else {
-    data_incl_boundaries[,weight := ifelse(at_the_boundary==F, 1, ifelse(gr_var==group, 0.75, 0.25))]#*ifelse(dist_to_boundary_norm<0.5,1,pmax(0.75, 1-dist_to_boundary_norm)))]#]
-
+    data_incl_boundaries[, weight := ifelse(at_the_boundary == FALSE, 1, ifelse(gr_var == group, 0.75, 0.25))]
   }
-  # data_at_boundaries <- data[outlier == F & at_the_boundary == T &
-  #                              abs(dist_to_bin_centre)<(bin_range/2+reassign_range+1e-12),
-  #                            .(err, x_var, dc_var,
-  #                              dist_to_bin_centre,
-  #                              weight = 1 - as.numeric(outlier),
-  #                              adc = abs(dist_to_card), center_x)]
 
-  fit <- gamlss::gamlss(err~dist_to_bin_centre,
-                        ~ abs(dist_to_bin_centre),
-                        data = data_incl_boundaries,
-                        weights = weight,
-                        control = gam_ctrl)
 
-  # data_at_boundaries <- unique(data_at_boundaries)
+  fit <- gamlss::gamlss(err ~ dist_to_bin_centre,
+    ~ abs(dist_to_bin_centre),
+    data = data_incl_boundaries,
+    weights = weight,
+    control = gam_ctrl
+  )
 
-  data_incl_boundaries[, pred:= predict(fit, type ='response')]
-  data_incl_boundaries[, pred_sigma:= predict(fit, what = 'sigma', type ='response')]
-  # ggplot(data_incl_boundaries, aes(x = dist_to_bin_centre, y = err))+geom_point()+geom_line(aes(y = pred))
-  # pred_at_boundaries <- predict(fit, type ='response',
-  #                               newdata = data_incl_boundaries,
-  #                               data = cur_df)
-  data_incl_boundaries[, resid_at_boundaries:=err-pred]
+  data_incl_boundaries[, pred := predict(fit, type = "response")]
+  data_incl_boundaries[, pred_sigma := predict(fit, what = "sigma", type = "response")]
+
+  data_incl_boundaries[, resid_at_boundaries := err - pred]
   data_incl_boundaries[, .(row_i, at_the_boundary, x_var, dc_var, dist_to_bin_centre, err, pred, resid_at_boundaries, dist_to_boundary, dist_to_boundary_norm, weight, pred_sigma)]
 }
 
 
 a_fun <- function(x) {
-  besselI(x, 1, expon.scaled = T)/besselI(x, 0, expon.scaled = T)
+  besselI(x, 1, expon.scaled = TRUE) / besselI(x, 0, expon.scaled = TRUE)
 }
 
-inverse <- function (f, lower = 1e-16, upper = 1000) {
-  function (y) stats::uniroot((function (x) f(x) - y), lower = lower, upper = upper, extendInt = 'yes')[[1]]
+inverse <- function(f, lower = 1e-16, upper = 1000) {
+  function(y) stats::uniroot((function(x) f(x) - y), lower = lower, upper = upper, extendInt = "yes")[[1]]
 }
 
 #' Conversion between the circular SD and kappa of von Mises
@@ -911,48 +898,49 @@ inverse <- function (f, lower = 1e-16, upper = 1000) {
 #'
 #' x <- circular::rvonmises(10000, mu = circular::circular(0), kappa = vm_kappa)
 #'
-#' sprintf('Expected SD: %.2f, actual SD: %.2f', vm_sd, circ_sd_rad(x))
+#' sprintf("Expected SD: %.2f, actual SD: %.2f", vm_sd, circ_sd_rad(x))
 #'
-
 vm_kappa_to_circ_sd <- function(kappa) {
-  sqrt(-2*log(a_fun(kappa)))
+  sqrt(-2 * log(a_fun(kappa)))
 }
 
 
 #' @export
 #' @describeIn vm_kappa_to_circ_sd get circular SD (in degrees) from kappa
 vm_kappa_to_circ_sd_deg <- function(kappa) {
-  vm_kappa_to_circ_sd(kappa)/pi*180
+  vm_kappa_to_circ_sd(kappa) / pi * 180
 }
 
 #' @export
 #' @describeIn vm_kappa_to_circ_sd get kappa from circular SD (in radians)
 
-vm_circ_sd_to_kappa <-  function(sd) {
+vm_circ_sd_to_kappa <- function(sd) {
   vm_circ_sd_inverse <- inverse(vm_kappa_to_circ_sd)
-  sapply(sd, function(x) tryCatch(vm_circ_sd_inverse(x), error = function(e) paste("Can't convert sigma = ",x, " to kappa, error ",e)))
+  sapply(sd, function(x) tryCatch(vm_circ_sd_inverse(x), error = function(e) paste("Can't convert sigma = ", x, " to kappa, error ", e)))
 }
 
 
 #' @export
 #' @describeIn vm_kappa_to_circ_sd get kappa from circular SD (in degrees)
 
-vm_circ_sd_deg_to_kappa <-  function(sd_deg) {
-  vm_circ_sd_to_kappa(sd_deg/180*pi)
+vm_circ_sd_deg_to_kappa <- function(sd_deg) {
+  vm_circ_sd_to_kappa(sd_deg / 180 * pi)
 }
 
 
 
-weighted.var.se <- function(x, w, na.rm=FALSE){
+weighted.var.se <- function(x, w, na.rm = FALSE) {
   # Computes the variance of a weighted mean following Cochran 1977 definition
   # from https://stats.stackexchange.com/a/33959
-  if (na.rm) { w <- w[i <- !is.na(x)]; x <- x[i] }
-  n = length(w)
-  xWbar = stats::weighted.mean(x,w,na.rm=na.rm)
-  wbar = mean(w)
-  out = n/((n-1)*sum(w)^2)*(sum((w*x-wbar*xWbar)^2)-2*xWbar*sum((w-wbar)*(w*x-wbar*xWbar))+xWbar^2*sum((w-wbar)^2))
+  if (na.rm) {
+    w <- w[i <- !is.na(x)]
+    x <- x[i]
+  }
+  n <- length(w)
+  xWbar <- stats::weighted.mean(x, w, na.rm = na.rm)
+  wbar <- mean(w)
+  out <- n / ((n - 1) * sum(w)^2) * (sum((w * x - wbar * xWbar)^2) - 2 * xWbar * sum((w - wbar) * (w * x - wbar * xWbar)) + xWbar^2 * sum((w - wbar)^2))
   return(out)
-
 }
 
 #' Compute predictions for circular LOESS
@@ -968,7 +956,7 @@ weighted.var.se <- function(x, w, na.rm=FALSE){
 #'
 predict.circ_loess <- function(object, newdata, ...) {
   res <- circ_loess(angle = object$angle, y = object$y, xseq = newdata$x, circ_space = object$circ_space, span = object$span, ...)
-  list(fit = data.frame(y = res$y_est, ymin = res$y_est - 1.96*res$y_se, ymax = res$y_est + 1.96*res$y_se), se.fit = res$y_se)
+  list(fit = data.frame(y = res$y_est, ymin = res$y_est - 1.96 * res$y_se, ymax = res$y_est + 1.96 * res$y_se), se.fit = res$y_se)
 }
 
 
@@ -1008,71 +996,73 @@ predict.circ_loess <- function(object, newdata, ...) {
 #'
 #' @examples
 #' p <- ggplot(Pascucci_et_al_2019_data, aes(x = orientation, y = err)) +
-#'  geom_point(alpha = 0.05)+labs(x = 'Orientation, deg.', y = 'Error, deg.')
-#' p1 <- p + geom_smooth(method = 'loess') + ggtitle('Standard LOESS')
-#' p2 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.5)) +
-#'  ggtitle('Circular LOESS, span = 0.5')
-#' p3 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.2)) +
-#'  ggtitle('Circular LOESS, span = 0.2')
-#' (p1+p2+p3)
+#'   geom_point(alpha = 0.05) +
+#'   labs(x = "Orientation, deg.", y = "Error, deg.")
+#' p1 <- p + geom_smooth(method = "loess") + ggtitle("Standard LOESS")
+#' p2 <- p + geom_smooth(method = "circ_loess", method.args = list(circ_space = 180, span = 0.5)) +
+#'   ggtitle("Circular LOESS, span = 0.5")
+#' p3 <- p + geom_smooth(method = "circ_loess", method.args = list(circ_space = 180, span = 0.2)) +
+#'   ggtitle("Circular LOESS, span = 0.2")
+#' (p1 + p2 + p3)
 #'
-circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq = NULL,  circ_space = NULL, span = 0.75, ...){
-
-  if (!is.null(formula)){
+circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq = NULL, circ_space = NULL, span = 0.75, ...) {
+  if (!is.null(formula)) {
     M <- stats::model.frame(formula, data)
-    angle <- M[,2]
-    y <- M[,1]
+    angle <- M[, 2]
+    y <- M[, 1]
   }
 
-  if (is.null(circ_space)){
-    print('circular space is not set, tryin to guess based on the data (prone to errors)...')
-    if (max(abs(angle))>90){
+  if (is.null(circ_space)) {
+    print("circular space is not set, tryin to guess based on the data (prone to errors)...")
+    if (max(abs(angle)) > 90) {
       circ_space <- 360
-      print('circ_loess assuming 360 deg. space')
-    } else if (max(abs(angle))>45){
+      print("circ_loess assuming 360 deg. space")
+    } else if (max(abs(angle)) > 45) {
       circ_space <- 180
-      print('circ_loess assuming 180 deg. space')
-    } else if (max(abs(angle))>15){
+      print("circ_loess assuming 180 deg. space")
+    } else if (max(abs(angle)) > 15) {
       circ_space <- 90
-      print('circ_loess assuming 90 deg. space')
+      print("circ_loess assuming 90 deg. space")
     } else {
-      circ_space <- 2*pi
-      print('circ_loess assuming 2pi space')
+      circ_space <- 2 * pi
+      print("circ_loess assuming 2pi space")
     }
   }
-  if (circ_space %in% c(90,180,360)){
-    diff_fun <- get(paste0('angle_diff_', circ_space))
-  } else if (circ_space == 2*pi){
+  if (circ_space %in% c(90, 180, 360)) {
+    diff_fun <- get(paste0("angle_diff_", circ_space))
+  } else if (circ_space == 2 * pi) {
     diff_fun <- angle_diff_rad
-  } else stop('Unknown circ_space value. Should be 90, 180, 360, or 2*pi.')
+  } else {
+    stop("Unknown circ_space value. Should be 90, 180, 360, or 2*pi.")
+  }
 
-  range <- c(-0.5, 0.5)*circ_space
+  range <- c(-0.5, 0.5) * circ_space
 
   angle <- diff_fun(angle, 0)
 
-  if (is.null(xseq)){
+  if (is.null(xseq)) {
     xseq <- seq(min(angle), max(angle), length.out = 500)
   }
 
   y_est <- sapply(xseq, function(x) {
     dist <- abs(diff_fun(x, angle))
-    if (span < 1){
+    if (span < 1) {
       included_obs <- dist <= stats::quantile(dist, span)
       angle <- angle[included_obs]
       dist <- dist[included_obs]
       y <- y[included_obs]
       max_dist <- max(dist)
     } else {
-      max_dist <- diff(range)/2*span
-
+      max_dist <- diff(range) / 2 * span
     }
 
 
-    w <- (1-(dist/max_dist)^3)^3
+    w <- (1 - (dist / max_dist)^3)^3
 
-    list(stats::weighted.mean(y,w), weighted.var.se(y, w)^0.5, w)
+    list(stats::weighted.mean(y, w), weighted.var.se(y, w)^0.5, w)
   })
-  structure(list(angle = angle, y = y, xseq = xseq, y_est = unlist(y_est[1,]), circ_space = circ_space, span = span,
-                 y_se = unlist(y_est[2,]), w = unlist(y_est[3,])), class = "circ_loess")
+  structure(list(
+    angle = angle, y = y, xseq = xseq, y_est = unlist(y_est[1, ]), circ_space = circ_space, span = span,
+    y_se = unlist(y_est[2, ]), w = unlist(y_est[3, ])
+  ), class = "circ_loess")
 }
-

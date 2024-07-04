@@ -6,7 +6,7 @@
 \alias{circhelp-package}
 \title{circhelp: Circular Analyses Helper Functions}
 \description{
-A small helper package for circular data analyses, specifically aimed for psychologists and neuroscientists dealing with circular data. Includes light-weight functions for computing descriptive statistics in different circular spaces (e.g., 2pi, 180, or 360 degrees), functions to handle angle-dependent biases, padding circular data, and more.
+Light-weight functions for computing descriptive statistics in different circular spaces (e.g., 2pi, 180, or 360 degrees), to handle angle-dependent biases, pad circular data, and more. Specifically aimed for psychologists and neuroscientists analyzing circular data.
 }
 \seealso{
 Useful links:

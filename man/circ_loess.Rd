@@ -56,13 +56,14 @@ where \emph{d} is the angular difference between the point at which the estimate
 }
 \examples{
 p <- ggplot(Pascucci_et_al_2019_data, aes(x = orientation, y = err)) +
- geom_point(alpha = 0.05)+labs(x = 'Orientation, deg.', y = 'Error, deg.')
-p1 <- p + geom_smooth(method = 'loess') + ggtitle('Standard LOESS')
-p2 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.5)) +
- ggtitle('Circular LOESS, span = 0.5')
-p3 <- p + geom_smooth(method = 'circ_loess', method.args = list(circ_space = 180, span = 0.2)) +
- ggtitle('Circular LOESS, span = 0.2')
-(p1+p2+p3)
+  geom_point(alpha = 0.05) +
+  labs(x = "Orientation, deg.", y = "Error, deg.")
+p1 <- p + geom_smooth(method = "loess") + ggtitle("Standard LOESS")
+p2 <- p + geom_smooth(method = "circ_loess", method.args = list(circ_space = 180, span = 0.5)) +
+  ggtitle("Circular LOESS, span = 0.5")
+p3 <- p + geom_smooth(method = "circ_loess", method.args = list(circ_space = 180, span = 0.2)) +
+  ggtitle("Circular LOESS, span = 0.2")
+(p1 + p2 + p3)
 
 }
 \seealso{

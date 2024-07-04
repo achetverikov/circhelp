@@ -16,6 +16,6 @@ angle in [-pi, pi] space
 Get angle value in [-pi, pi] space
 }
 \examples{
-correct_angle_rad(4*pi)
+correct_angle_rad(4 * pi)
 
 }

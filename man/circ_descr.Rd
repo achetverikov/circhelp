@@ -4,7 +4,7 @@
 \alias{circ_descr}
 \title{A set of descriptive statistics for circular data}
 \usage{
-circ_descr(x, w = NULL, d = NULL, na.rm = F)
+circ_descr(x, w = NULL, d = NULL, na.rm = FALSE)
 }
 \arguments{
 \item{x}{vector of angles}
@@ -30,7 +30,7 @@ a list with descriptive statistics
 A set of descriptive statistics for circular data
 }
 \examples{
-x <- c(rnorm(50,0,0.5), rnorm(20,1,0.5))
+x <- c(rnorm(50, 0, 0.5), rnorm(20, 1, 0.5))
 circ_descr(x)
 
 }

@@ -4,7 +4,7 @@
 \alias{circ_lin_corr}
 \title{Circular-linear correlation}
 \usage{
-circ_lin_corr(circ_x, lin_x, na.rm = F)
+circ_lin_corr(circ_x, lin_x, na.rm = FALSE)
 }
 \arguments{
 \item{circ_x}{circular variable}
@@ -27,7 +27,7 @@ This measure is computed as \mjsdeqn{r^2 = (r_{xc}^2+r_{xs}^2-2 r_{xc} r_{xs}r_{
 
 x <- rnorm(50)
 a <- as.vector(circular::rvonmises(50, 0, 5))
-circ_lin_corr(x+a, x)
+circ_lin_corr(x + a, x)
 }
 \references{
 {

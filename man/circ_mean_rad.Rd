@@ -6,11 +6,11 @@
 \alias{circ_mean_360}
 \title{Circular mean}
 \usage{
-circ_mean_rad(x, na.rm = F)
+circ_mean_rad(x, na.rm = FALSE)
 
-circ_mean_180(x, na.rm = F)
+circ_mean_180(x, na.rm = FALSE)
 
-circ_mean_360(x, na.rm = F)
+circ_mean_360(x, na.rm = FALSE)
 }
 \arguments{
 \item{x}{vector of values}
@@ -33,7 +33,7 @@ Circular mean
 
 }}
 \examples{
-x <- runif(1000,-pi,pi)
+x <- runif(1000, -pi, pi)
 mean(x)
 circ_mean_rad(x)
 

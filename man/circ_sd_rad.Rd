@@ -6,11 +6,11 @@
 \alias{circ_sd_180}
 \title{Circular standard deviation}
 \usage{
-circ_sd_rad(x, na.rm = F)
+circ_sd_rad(x, na.rm = FALSE)
 
-circ_sd_360(x, na.rm = F)
+circ_sd_360(x, na.rm = FALSE)
 
-circ_sd_180(x, na.rm = F)
+circ_sd_180(x, na.rm = FALSE)
 }
 \arguments{
 \item{x}{vector of angles}

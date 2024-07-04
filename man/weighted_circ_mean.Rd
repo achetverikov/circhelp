@@ -7,13 +7,13 @@
 \alias{weighted_circ_rho}
 \title{Weighted circular parameters}
 \usage{
-weighted_circ_mean(x, w, na.rm = F)
+weighted_circ_mean(x, w, na.rm = FALSE)
 
-weighted_circ_mean2(x, w, na.rm = F)
+weighted_circ_mean2(x, w, na.rm = FALSE)
 
-weighted_circ_sd(x, w, na.rm = F)
+weighted_circ_sd(x, w, na.rm = FALSE)
 
-weighted_circ_rho(x, w, na.rm = F)
+weighted_circ_rho(x, w, na.rm = FALSE)
 }
 \arguments{
 \item{x}{vector of values (in radians)}
@@ -40,7 +40,7 @@ Weighted circular parameters
 
 }}
 \examples{
-x <- rnorm(1000,0, 0.5)
+x <- rnorm(1000, 0, 0.5)
 w <- runif(1000, 0, 1)
 weighted.mean(x, w)
 weighted_circ_mean(x, w)
