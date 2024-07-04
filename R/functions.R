@@ -391,6 +391,12 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #' \item coef_sigma_int, coef_sigma_slope intercept and slope for the sigma prediction
 #'
 #' }
+#' @references {
+#' \itemize{
+#' \item Chetverikov, A., & Jehee, J. F. M. (2023). Motion direction is represented as a bimodal probability distribution in the human visual cortex. Nature Communications, 14(7634). \doi{10.1038/s41467-023-43251-w}
+#' \item van Bergen, R. S., Ma, W. J., Pratte, M. S., & Jehee, J. F. M. (2015). Sensory uncertainty decoded from visual cortex predicts behavior. Nature Neuroscience, 18(12), 1728–1730. \doi{10.1038/nn.4150}
+#' }
+#' }
 #' @export
 #' @import data.table gamlss
 #' @importFrom MASS rlm
@@ -475,8 +481,10 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   }
 
   if (debug) {
-    print(table(card_groups))
-    print(table(obl_groups))
+    cat('N observation per group assuming cardinal bins: \n')
+    cat(table(card_groups))
+    cat('N observation per group assuming oblique bins: \n')
+    cat(table(obl_groups))
   }
   for_fit <- data.table(
     x = x,
@@ -492,7 +500,9 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   for_fit[, dist_to_obl := angle_diff_90(x, 45)]
   gam_ctrl <- gamlss::gamlss.control(trace = FALSE)
 
-  print("Computing bins to group the data...")
+  if (debug){
+    cat("Computing bins to group the data...\n")
+  }
   if (bias_type == "fit") {
     if (var_sigma) {
       sigma_formula <- "~abs(dist_to_card)" # assumes that uncertainty changes linearly as a function of distance to cardinals regardless of the bias direction
@@ -503,7 +513,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       ll2 <- sum(for_fit[outlier == FALSE, logLik(MASS::rlm(err ~ poly(x, poly_deg))), by = .(obl_groups)]$V1)
     }
     if (debug) {
-      print(sprintf("LL for bias type 1: %.2f, LL for bias type 2: %.2f", ll1, ll2))
+      cat(sprintf("LL for bias type 1: %.2f, LL for bias type 2: %.2f", ll1, ll2))
     }
     if (ll1 >= ll2) {
       bias_type <- "card"
@@ -543,10 +553,11 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   for_fit[, gr_var := bin_labels[min_bp_i]]
 
   if (plots == "show" & debug == TRUE) {
-    print(ggplot(for_fit, aes(x = x, y = err, color = gr_var)) +
+    P_boundaries <- ggplot(for_fit, aes(x = x, y = err, color = gr_var)) +
       geom_point() +
       geom_vline(xintercept = angle_diff_fun(break_points, 0)) +
-      geom_vline(color = "blue", xintercept = angle_diff_fun(bin_centers, 0)))
+      geom_vline(color = "blue", xintercept = angle_diff_fun(bin_centers, 0))
+    print(p_boundaries)
   }
   for_fit[, min_boundary_i := apply(sapply(break_points, \(bp) abs(angle_diff_fun(x, bp))), 1, which.min)]
 
@@ -561,7 +572,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   if (var_sigma) {
     # get predictions
     if (reassign_at_boundaries) {
-      print("Reassigning points at the boundaries...")
+      if (debug) cat("Reassigning points at the boundaries...")
       if (any(for_fit[, unique(bin_range)] < (2 * reassign_range))) {
         stop("Reassignment range too large compared to bin sizes")
       }
@@ -590,7 +601,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
         cur_weights <- resid_at_boundaries[at_the_boundary == TRUE, ]$new_weight
         weights_change <- sum(abs(cur_weights - prev_weights))
         if (debug) {
-          print(sprintf("Reassignment step: %i; change in weights: %.5f", rep_n, weights_change))
+          cat(sprintf("Reassignment step: %i; change in weights: %.5f", rep_n, weights_change))
         }
         for_fit[resid_at_boundaries_c, `:=`(gr_var = i.gr_var), on = .(row_i)]
         for_fit[, center_x := bin_centers[as.numeric(gr_var)]]
@@ -608,7 +619,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
           }
           if (stable_weights > 3) {
             if (debug) {
-              print("Reassignment stopped at stable weights")
+              cat("Reassignment stopped at stable weights")
             }
             break
           }
@@ -618,8 +629,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
     for_fit[, dist_to_bin_centre := angle_diff_fun(x_var, center_x)]
     for_fit[, x_var := center_x + angle_diff_fun(x_var, center_x)]
     for_fit[, dc_var := angle_diff_fun(x, center_x)]
-
-    print("Computing final fits...")
+    if (debug) cat("Computing final fits...")
 
     likelihoods <- c()
     for (cg in unique(for_fit$gr_var)) {
@@ -632,7 +642,8 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       )
 
       if (debug) {
-        print(coef(fit))
+        cat('Fitted GAMLSS model coefficients\n')
+        cat(coef(fit))
       }
 
       for_fit[gr_var == cg, pred := predict(fit, type = "response")]
@@ -641,10 +652,10 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       for_fit[gr_var == cg, bias := err * sign(pred)]
 
       if (debug) {
-        requireNamespace("ggplot2")
-        print(ggplot(for_fit[gr_var == cg], aes(x = dist_to_bin_centre, y = err)) +
+        p_pred <- ggplot(for_fit[gr_var == cg], aes(x = dist_to_bin_centre, y = err)) +
           geom_point() +
-          geom_line(aes(y = pred)))
+          geom_line(aes(y = pred))
+        print(p_pred)
       }
       for_fit[gr_var == cg, c("coef_sigma_int", "coef_sigma_slope") := data.frame(t(coef(fit, what = "sigma")))]
       likelihoods <- c(likelihoods, logLik(fit))
@@ -799,7 +810,7 @@ pad_circ <- function(data, circ_var, circ_borders = c(-90, 90), circ_part = 1 / 
   data2 <- copy(data[get(circ_var) > (circ_borders[2] - circ_range * circ_part), ])
   data2[, (circ_var) := get(circ_var) - circ_range]
   if (verbose) {
-    print(sprintf("Rows in original DT: %i, padded on the left: %i, padded on the right: %i", data[, .N], data1[, .N], data2[, .N]))
+    cat(sprintf("Rows in original DT: %i, padded on the left: %i, padded on the right: %i", data[, .N], data1[, .N], data2[, .N]))
   }
 
   rbind(data, data1, data2)
@@ -1013,19 +1024,19 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
   }
 
   if (is.null(circ_space)) {
-    print("circular space is not set, tryin to guess based on the data (prone to errors)...")
+    message("circular space is not set, tryin to guess based on the data (prone to errors)...")
     if (max(abs(angle)) > 90) {
       circ_space <- 360
-      print("circ_loess assuming 360 deg. space")
+      message("circ_loess assuming 360 deg. space")
     } else if (max(abs(angle)) > 45) {
       circ_space <- 180
-      print("circ_loess assuming 180 deg. space")
+      message("circ_loess assuming 180 deg. space")
     } else if (max(abs(angle)) > 15) {
       circ_space <- 90
-      print("circ_loess assuming 90 deg. space")
+      message("circ_loess assuming 90 deg. space")
     } else {
       circ_space <- 2 * pi
-      print("circ_loess assuming 2pi space")
+      message("circ_loess assuming 2pi space")
     }
   }
   if (circ_space %in% c(90, 180, 360)) {
