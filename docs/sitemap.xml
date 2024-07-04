@@ -61,6 +61,9 @@
     <loc>/reference/remove_cardinal_biases_discrete.html</loc>
   </url>
   <url>
+    <loc>/reference/weighted_sem.html</loc>
+  </url>
+  <url>
     <loc>/articles/cardinal_biases.html</loc>
   </url>
   <url>
@@ -77,5 +80,8 @@
   </url>
   <url>
     <loc>/LICENSE.html</loc>
+  </url>
+  <url>
+    <loc>/news/index.html</loc>
   </url>
 </urlset>

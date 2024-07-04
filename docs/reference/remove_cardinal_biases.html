@@ -35,6 +35,9 @@
       <a href="../articles/cardinal_biases.html">Correcting for cardinal biases to improve serial dependence estimates</a>
     </li>
   </ul></li>
+<li>
+  <a href="../news/index.html">Changelog</a>
+</li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
   <a href="https://github.com/achetverikov/circhelp/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
@@ -160,6 +163,11 @@
 </ol><p>The bias is computed by flipping the sign of errors when the average predicted error is negative, so, that, for example, if on average the responses are shifted clockwise relative to the true values, the trial-by-trial error would count as bias when it is also shifted clockwise.</p>
 <p>If <code>bias_type</code> is set to <code>obl</code> or <code>card</code>, only one set of bins is used, centred at cardinal or oblique angles, respectively.</p>
     </div>
+    <div id="references">
+    <h2>References</h2>
+    <p></p><ul><li><p>Chetverikov, A., &amp; Jehee, J. F. M. (2023). Motion direction is represented as a bimodal probability distribution in the human visual cortex. Nature Communications, 14(7634). <a href="https://doi.org/10.1038/s41467-023-43251-w" class="external-link">doi:10.1038/s41467-023-43251-w</a></p></li>
+<li><p>van Bergen, R. S., Ma, W. J., Pratte, M. S., &amp; Jehee, J. F. M. (2015). Sensory uncertainty decoded from visual cortex predicts behavior. Nature Neuroscience, 18(12), 1728–1730. <a href="https://doi.org/10.1038/nn.4150" class="external-link">doi:10.1038/nn.4150</a></p></li>
+</ul></div>
 
     <div id="ref-examples">
     <h2>Examples</h2>
@@ -167,11 +175,8 @@
 <span class="r-in"><span><span class="co"># Data in orientation domain from Pascucci et al. (2019, PLOS Bio),</span></span></span>
 <span class="r-in"><span><span class="co"># https://doi.org/10.5281/zenodo.2544946</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">ex_data</span> <span class="op">&lt;-</span> <span class="va">Pascucci_et_al_2019_data</span><span class="op">[</span><span class="va">observer</span><span class="op">==</span><span class="fl">4</span>, <span class="op">]</span></span></span>
-<span class="r-in"><span><span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">ex_data</span><span class="op">$</span><span class="va">err</span>, <span class="va">ex_data</span><span class="op">$</span><span class="va">orientation</span>, plots <span class="op">=</span> <span class="st">'show'</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing bins to group the data..."</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Reassigning points at the boundaries..."</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing final fits..."</span>
+<span class="r-in"><span><span class="va">ex_data</span> <span class="op">&lt;-</span> <span class="va">Pascucci_et_al_2019_data</span><span class="op">[</span><span class="va">observer</span> <span class="op">==</span> <span class="fl">4</span>, <span class="op">]</span></span></span>
+<span class="r-in"><span><span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">ex_data</span><span class="op">$</span><span class="va">err</span>, <span class="va">ex_data</span><span class="op">$</span><span class="va">orientation</span>, plots <span class="op">=</span> <span class="st">"show"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="remove_cardinal_biases-1.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      is_outlier       pred        be_c which_bin  bias bias_type    pred_lin</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           &lt;num&gt;      &lt;num&gt;       &lt;num&gt;     &lt;num&gt; &lt;num&gt;    &lt;char&gt;       &lt;num&gt;</span>
@@ -202,12 +207,10 @@
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Data in motion domain from Bae &amp; Luck (2018, Neuroimage),</span></span></span>
 <span class="r-in"><span><span class="co"># https://osf.io/2h6w9/</span></span></span>
-<span class="r-in"><span><span class="va">ex_data_bae</span> <span class="op">&lt;-</span> <span class="va">Bae_Luck_2018_data</span><span class="op">[</span><span class="va">subject_Num</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subject_Num</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>,<span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">ex_data_bae</span> <span class="op">&lt;-</span> <span class="va">Bae_Luck_2018_data</span><span class="op">[</span><span class="va">subject_Num</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subject_Num</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span><span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span>, <span class="va">ex_data_bae</span><span class="op">$</span><span class="va">TargetDirection</span>,</span></span>
-<span class="r-in"><span>                       space <span class="op">=</span> <span class="st">'360'</span>, plots <span class="op">=</span> <span class="st">'show'</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing bins to group the data..."</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Reassigning points at the boundaries..."</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing final fits..."</span>
+<span class="r-in"><span>  space <span class="op">=</span> <span class="st">"360"</span>, plots <span class="op">=</span> <span class="st">"show"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="remove_cardinal_biases-2.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       is_outlier       pred        be_c which_bin    bias bias_type    pred_lin</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;      &lt;num&gt;       &lt;num&gt;     &lt;num&gt;   &lt;num&gt;    &lt;char&gt;       &lt;num&gt;</span>
@@ -239,11 +242,9 @@
 <span class="r-in"><span><span class="co"># Using a stricter initial outlier boundary</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span>, <span class="va">ex_data_bae</span><span class="op">$</span><span class="va">TargetDirection</span>,</span></span>
-<span class="r-in"><span>                       space <span class="op">=</span> <span class="st">'360'</span>, plots <span class="op">=</span> <span class="st">'show'</span>,</span></span>
-<span class="r-in"><span>                       init_outliers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span><span class="op">)</span><span class="op">&gt;</span><span class="fl">60</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing bins to group the data..."</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Reassigning points at the boundaries..."</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing final fits..."</span>
+<span class="r-in"><span>  space <span class="op">=</span> <span class="st">"360"</span>, plots <span class="op">=</span> <span class="st">"show"</span>,</span></span>
+<span class="r-in"><span>  init_outliers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">60</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="remove_cardinal_biases-3.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       is_outlier       pred        be_c which_bin    bias bias_type  pred_lin</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;      &lt;num&gt;       &lt;num&gt;     &lt;num&gt;   &lt;num&gt;    &lt;char&gt;     &lt;num&gt;</span>
@@ -276,12 +277,11 @@
 <span class="r-in"><span><span class="co"># and setting the `break_points` at the ends of the range for x</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span>, <span class="va">ex_data_bae</span><span class="op">$</span><span class="va">TargetDirection</span>,</span></span>
-<span class="r-in"><span>                       space <span class="op">=</span> <span class="st">'360'</span>, bias_type <span class="op">=</span> <span class="st">'custom'</span>,</span></span>
-<span class="r-in"><span>                       break_points <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">180</span>,<span class="fl">180</span><span class="op">)</span>, plots <span class="op">=</span> <span class="st">'show'</span>,</span></span>
-<span class="r-in"><span>                       reassign_at_boundaries<span class="op">=</span> <span class="cn">FALSE</span>, poly_deg <span class="op">=</span> <span class="fl">8</span>,</span></span>
-<span class="r-in"><span>                       init_outliers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span><span class="op">)</span><span class="op">&gt;</span><span class="fl">60</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing bins to group the data..."</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "Computing final fits..."</span>
+<span class="r-in"><span>  space <span class="op">=</span> <span class="st">"360"</span>, bias_type <span class="op">=</span> <span class="st">"custom"</span>,</span></span>
+<span class="r-in"><span>  break_points <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">180</span>, <span class="fl">180</span><span class="op">)</span>, plots <span class="op">=</span> <span class="st">"show"</span>,</span></span>
+<span class="r-in"><span>  reassign_at_boundaries <span class="op">=</span> <span class="cn">FALSE</span>, poly_deg <span class="op">=</span> <span class="fl">8</span>,</span></span>
+<span class="r-in"><span>  init_outliers <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">60</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="remove_cardinal_biases-4.png" alt="" width="1800" height="900"></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       is_outlier       pred         be_c which_bin    bias bias_type   pred_lin</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;      &lt;num&gt;        &lt;num&gt;     &lt;num&gt;   &lt;num&gt;    &lt;char&gt;      &lt;num&gt;</span>

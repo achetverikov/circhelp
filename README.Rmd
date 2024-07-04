@@ -11,7 +11,6 @@ knitr::opts_chunk$set(
   fig.path = "man/figures/README-",
   out.width = "100%"
 )
-
 ```
 
 # circhelp
@@ -40,7 +39,7 @@ x <- rnorm(500)
 circ_descr(x)
 
 # compute difference in orientations
-a <- 5 
+a <- 5
 b <- 170
 angle_diff_180(a, b)
 
@@ -48,8 +47,8 @@ angle_diff_180(a, b)
 angle_diff_360(a, b)
 
 # compute correlation between angles
-data <- rmvn(10000, c(0,0), V = matrix(c(1,0.5,0.5,1), ncol = 2))
-circ_corr(data[,1], data[,2])
+data <- rmvn(10000, c(0, 0), V = matrix(c(1, 0.5, 0.5, 1), ncol = 2))
+circ_corr(data[, 1], data[, 2])
 ```
 
 The only (somewhat) complicated function is `remove_cardinal_biases`, see the [help files](https://achetverikov.github.io/circhelp/reference/remove_cardinal_biases.html) and [the vignette](https://achetverikov.github.io/circhelp/articles/cardinal_biases.html) for an example use case.
