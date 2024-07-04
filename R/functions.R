@@ -553,7 +553,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   for_fit[, gr_var := bin_labels[min_bp_i]]
 
   if (plots == "show" & debug == TRUE) {
-    P_boundaries <- ggplot(for_fit, aes(x = x, y = err, color = gr_var)) +
+    p_boundaries <- ggplot(for_fit, aes(x = x, y = err, color = gr_var)) +
       geom_point() +
       geom_vline(xintercept = angle_diff_fun(break_points, 0)) +
       geom_vline(color = "blue", xintercept = angle_diff_fun(bin_centers, 0))
@@ -940,18 +940,51 @@ vm_circ_sd_deg_to_kappa <- function(sd_deg) {
 
 
 
-weighted.var.se <- function(x, w, na.rm = FALSE) {
-  # Computes the variance of a weighted mean following Cochran 1977 definition
-  # from https://stats.stackexchange.com/a/33959
+#' Weighted standard error of the mean (SEM_w)
+#'
+#' Computes the variance of a weighted mean following the definitions given by Kirchner (2006).
+#' @param x variable to compute the SEM for
+#' @param w weights
+#' @param na.rm should NAs be removed
+#'
+#' @details
+#' James Kirchner describes two different cases when the weighted variance is computed. The code here implements Case I where "one wants to give more weight to some points than to others, because they are considered to be more important" and "the weights differ but the uncertainties associated with the individual xi are assumed to be the same" (Kirchner, 2006, p. 1). The formula used is:
+#' \mjsdeqn{SEM_w = \sqrt{\left(\sum_{i = 1}^{N} (w_{i} x_i^2)-\bar{x}^2\right)\frac{\sum_{i = 1}^{N} w_i^2}{1-\sum_{i = 1}^{N} w_i^2}} }
+#' The expected error is within 5% of the bootstrapped SEM (at larger sample sizes).
+#'
+#' @return weighted standard error of the mean
+#' @references {
+#' \itemize{
+#' \item Kirchner, J. 2006. Data Analysis Toolkit #12: Weighted averages and their uncertainties. \url{https://seismo.berkeley.edu/~kirchner/Toolkits/Toolkit_12.pdf}.  Retrieved on 04.07.2024.
+#' \item Bevington, P. R. 1969. Data Reduction and Error Analysis for the Physical Sciences. McGraw-Hill, 336 pp.
+#'
+#' }
+#' }
+#' @export
+#' @examples
+#' set.seed(1)
+#' n_obs <- 200
+#' w <- runif(n_obs)
+#' w <- w/sum(w)
+#' x <- rnorm(n_obs, sd = 5)
+#' weighted_sem(x, w)
+
+weighted_sem <- function(x, w, na.rm = FALSE) {
   if (na.rm) {
     w <- w[i <- !is.na(x)]
     x <- x[i]
   }
   n <- length(w)
-  xWbar <- stats::weighted.mean(x, w, na.rm = na.rm)
-  wbar <- mean(w)
-  out <- n / ((n - 1) * sum(w)^2) * (sum((w * x - wbar * xWbar)^2) - 2 * xWbar * sum((w - wbar) * (w * x - wbar * xWbar)) + xWbar^2 * sum((w - wbar)^2))
-  return(out)
+  w <- w/sum(w)
+  x_w_bar <- stats::weighted.mean(x, w, na.rm = na.rm)
+  # case I
+  var_w_1 <- (sum(w*x^2) - x_w_bar^2)/(1-sum(w^2))
+  sem_w_1 <- sqrt(var_w_1*sum(w^2))
+  # Kirchner also provides case II that assumes equal importance but different variances
+  # var_w_2 <- (sum(w*x^2)-x_w_bar^2)*n/(n-1)
+  # sem_w_2 <- sqrt(var_w_2/n)
+
+  return(sem_w_1)
 }
 
 #' Compute predictions for circular LOESS
@@ -1070,7 +1103,7 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 
     w <- (1 - (dist / max_dist)^3)^3
 
-    list(stats::weighted.mean(y, w), weighted.var.se(y, w)^0.5, w)
+    list(stats::weighted.mean(y, w), weighted_sem(y, w)^0.5, w)
   })
   structure(list(
     angle = angle, y = y, xseq = xseq, y_est = unlist(y_est[1, ]), circ_space = circ_space, span = span,

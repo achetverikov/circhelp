@@ -70,3 +70,21 @@ test_that("conversion from circular SD to kappa works both ways", {
   expect_lt(abs(test_sd_deg - vm_kappa_to_circ_sd_deg(kappa_from_deg)), tolerance)
   expect_lt(abs(test_sd_rad - vm_kappa_to_circ_sd(kappa_from_deg)), tolerance)
 })
+
+test_that("Weighted sample of the mean is computed correctly", {
+  n_obs <- 2000
+  w <- runif(n_obs)
+  #w <- rep(1, n_obs)
+  w <- w/sum(w)
+  x <- rnorm(n_obs, sd = 5)
+
+  sample_means <- replicate(100000, {
+    x_boot <- sample(x, n_obs, replace = T)
+    mean_w <- stats::weighted.mean(x_boot, w)
+    mean_w
+  })
+
+  bootstrap_sem <- sd(sample_means)
+  deviation = abs((bootstrap_sem-weighted_sem(x, w))/bootstrap_sem)
+  expect_lt(deviation, .05)
+})
