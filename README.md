@@ -11,7 +11,9 @@ direction, and other circular features. The package contains functions
 for descriptive statistics for circular data (computing means, SD, and
 skewness), angular differences, and correlation. It also includes a
 function to correct for cardinal biases in the human estimates of
-circular features (e.g., orientation). <!-- badges: end -->
+circular features (e.g., orientation). [![CRAN
+status](https://www.r-pkg.org/badges/version/circhelp)](https://CRAN.R-project.org/package=circhelp)
+<!-- badges: end -->
 
 ## Installation
 
@@ -44,22 +46,22 @@ library(mgcv)
 x <- rnorm(500)
 circ_descr(x)
 #> $mu
-#> [1] 0.07084994
+#> [1] -0.04213782
 #> 
 #> $sigma
-#> [1] 0.9691056
+#> [1] 1.006582
 #> 
 #> $skew_pewsey
-#> [1] 0.0118935
+#> [1] 0.0217308
 #> 
 #> $skew_fischer
-#> [1] -0.04671673
+#> [1] 0.1367552
 #> 
 #> $rho
-#> [1] 0.6252631
+#> [1] 0.6025387
 #> 
 #> $skew_rel_to_zero
-#> [1] 0.03426532
+#> [1] 0.009039555
 ```
 
 ``` r
@@ -83,7 +85,7 @@ angle_diff_360(a, b)
 # compute correlation between angles
 data <- rmvn(10000, c(0, 0), V = matrix(c(1, 0.5, 0.5, 1), ncol = 2))
 circ_corr(data[, 1], data[, 2])
-#> [1] 0.4392524
+#> [1] 0.444967
 ```
 
 The only (somewhat) complicated function is `remove_cardinal_biases`,
