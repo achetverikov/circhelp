@@ -1,6 +1,3 @@
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 # circhelp
 
 <!-- badges: start -->
@@ -56,22 +53,22 @@ library(mgcv)
 x <- rnorm(500)
 circ_descr(x)
 #> $mu
-#> [1] -0.09823461
+#> [1] -0.00686282
 #> 
 #> $sigma
-#> [1] 1.059664
+#> [1] 0.9944722
 #> 
 #> $skew_pewsey
-#> [1] -0.01063465
+#> [1] -0.01750534
 #> 
 #> $skew_fischer
-#> [1] 0.00987719
+#> [1] -0.06237638
 #> 
 #> $rho
-#> [1] 0.5703851
+#> [1] 0.6098834
 #> 
 #> $skew_rel_to_zero
-#> [1] -0.02364145
+#> [1] -0.01980849
 ```
 
 ``` r
@@ -95,7 +92,7 @@ angle_diff_360(a, b)
 # compute correlation between angles
 data <- rmvn(10000, c(0, 0), V = matrix(c(1, 0.5, 0.5, 1), ncol = 2))
 circ_corr(data[, 1], data[, 2])
-#> [1] 0.4448389
+#> [1] 0.4391056
 ```
 
 The only (somewhat) complicated function is `remove_cardinal_biases`,
