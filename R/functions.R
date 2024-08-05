@@ -1110,3 +1110,57 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
     y_se = unlist(y_est[2, ]), w = unlist(y_est[3, ])
   ), class = "circ_loess")
 }
+
+
+#' Compute asymmetry in weighted probability density
+#'
+#' @param dt data.table with the data
+#' @param circ_space circular space (180 or 360)
+#' @param weights_sd standard deviation of the Gaussian windiw to the use across xvar
+#' @param kernel_bw bandwidth for the kernel density estimator across yvar
+#' @param xvar x-axis variable (normally, dissimilarity)
+#' @param yvar y-axis variable (normally, errors)
+#' @param by a vector of grouping variables names
+#' @param n the number of steps for the x-axis variable at which the density is computed
+
+#'
+#' @return data.table with several variables
+#' @export
+#' @importFrom stats as.formula bw.SJ density weights
+#'
+
+density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = 'abs_td_dist', yvar = 'bias_to_distr_corr', by = c(), n = 181){
+  x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- NULL # due to NSE notes in R CMD check
+
+  if (!(circ_space%in%c(180,360))){
+    stop('`circ_space` should be 180 or 360')
+  }
+
+  max_diss <- circ_space/2
+  if (is.null(kernel_bw)){
+    kernel_bw <- bw.SJ(dt[,get(yvar)])
+  }
+
+  res <- rbindlist(sapply(1:max_diss, \(i) {
+
+    dt[, weights:=dnorm(get(xvar), mean = i, sd = weights_sd)]
+
+    res <- dt[,density(get(yvar), from = -max_diss, to = max_diss, n = n, bw = kernel_bw,
+                       weights = weights/sum(weights))[c('x','y')], by = by]
+    res[,x_val:=abs(x)]
+    res[,x_sign:=sign(x)]
+    res <- dcast(res, as.formula(paste(paste(by, collapse = '+'),'+x_val~x_sign')), value.var ='y')
+    res[,delta:=`1`-`-1`]
+    res[,total := `1`+`-1`]
+    res[,ratio := `1`/`-1`]
+    res
+
+    res$dist <- i
+    res
+  }, simplify = F))
+
+  attr(res,'kernel_bw') <- kernel_bw
+
+  res
+}
+

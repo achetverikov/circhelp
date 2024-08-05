@@ -3,8 +3,10 @@ title: "Correcting for cardinal biases to improve serial dependence estimates"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Correcting for cardinal biases to improve serial dependence estimates}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -12,6 +14,7 @@ library(patchwork)
 library(circhelp)
 library(data.table)
 library(ggplot2)
+
 if (requireNamespace("ragg", quietly = TRUE)) {
   knitr::opts_chunk$set(dev = "ragg_png")
 }
@@ -92,7 +95,7 @@ ggplot(pad_circ(datam, "diff_in_ori"), aes(x = diff_in_ori, y = value)) +
   labs(y = "Error, °", x = "Orientation difference, °")
 ```
 
-To make things clearer, I plot SD as a function of absolute orientation differences. 
+To make things clearer, I plot serial dependence as a function of absolute orientation differences. 
 
 ```{r, fig.width = fig_width*3, out.width='100%'}
 ggplot(datam, aes(
@@ -110,3 +113,26 @@ ggplot(datam, aes(
 ```
 
 As you can see, when estimated using error corrected for cardinal bias, SD looks "better" in the sense that around zero (where no bias is expected), the SD is closer to zero, and there is also less of a bump around 90°. Correcting for cardinal biases also reduces the variability of the errors, making the SD effect more pronounced. 
+
+
+# Estimating the serial dependence
+
+In the second part of the vignette, I show how to estimate the serial dependence bias itself using the asymmetry in error probability density. This can be done using the `density_asymmetry()` function. This function computes the weighted estimate of the asymmetry in error probability at each of N (181 by default) steps across the dissimilarity range.  
+
+```{r density}
+data[, abs_diff_in_ori := abs(diff_in_ori)]
+data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err_corrected, err_corrected)]
+
+err_dens <- density_asymmetry(data[!is.na(err_rel_to_prev_targ)], circ_space = 180, weights_sd = 10, xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", by = c(
+  "observer"
+))
+
+
+((ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
+  geom_line() +
+  geom_ribbon(alpha = 0.1) +
+  labs(y = "Asymmetry in error probability density, %")) +
+ (ggplot(data[!is.na(err_rel_to_prev_targ)], aes(x = abs_diff_in_ori, y = err_rel_to_prev_targ)) +
+  geom_smooth(method = "loess") +
+  labs(y = "Mean error, deg."))) & labs(x = "Absolute orientation difference, °")
+```
