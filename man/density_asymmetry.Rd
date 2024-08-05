@@ -12,7 +12,8 @@ density_asymmetry(
   xvar = "abs_td_dist",
   yvar = "bias_to_distr_corr",
   by = c(),
-  n = 181
+  n = 181,
+  average = T
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ density_asymmetry(
 \item{by}{a vector of grouping variables names}
 
 \item{n}{the number of steps for the x-axis variable at which the density is computed}
+
+\item{average}{average the asymmetry for each x-value}
 }
 \value{
 data.table with several variables

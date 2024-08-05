@@ -1122,15 +1122,15 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #' @param yvar y-axis variable (normally, errors)
 #' @param by a vector of grouping variables names
 #' @param n the number of steps for the x-axis variable at which the density is computed
-
+#' @param average average the asymmetry for each x-value
 #'
 #' @return data.table with several variables
 #' @export
 #' @importFrom stats as.formula bw.SJ density weights
 #'
 
-density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = 'abs_td_dist', yvar = 'bias_to_distr_corr', by = c(), n = 181){
-  x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- NULL # due to NSE notes in R CMD check
+density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = 'abs_td_dist', yvar = 'bias_to_distr_corr', by = c(), n = 181, average = T){
+  x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- NULL # due to NSE notes in R CMD check
 
   if (!(circ_space%in%c(180,360))){
     stop('`circ_space` should be 180 or 360')
@@ -1158,6 +1158,10 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
     res$dist <- i
     res
   }, simplify = F))
+
+  if (average){
+    res <- res[!is.na(delta),.(delta=mean(delta)), by = c('dist', by)]
+  }
 
   attr(res,'kernel_bw') <- kernel_bw
 
