@@ -1160,7 +1160,7 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
   }, simplify = F))
 
   if (average){
-    res <- res[!is.na(delta),.(delta=mean(delta)), by = c('dist', by)]
+    res <- res[!is.na(delta),.(delta=sum(delta)), by = c('dist', by)]
   }
 
   attr(res,'kernel_bw') <- kernel_bw
