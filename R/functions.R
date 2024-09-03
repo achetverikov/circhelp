@@ -376,6 +376,8 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #'
 #' If `bias_type` is set to `obl` or `card`, only one set of bins is used, centred at cardinal or oblique angles, respectively.
 #'
+#' For additional examples see the help vignette:
+#' \code{vignette("cardinal_biases", package = "circhelp")}
 #'
 #' @return If `plots=='return'`, returns the three plots showing the biases
 #' (combined together with [patchwork::wrap_plots()]). Otherwise, returns a list with the following elements:
@@ -1127,6 +1129,25 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #' @return data.table with several variables
 #' @export
 #' @importFrom stats as.formula bw.SJ density weights
+#'
+#' @examples
+#'
+#' library(data.table)
+#' data(Pascucci_et_al_2019_data)
+#' ex_data <- Pascucci_et_al_2019_data
+#' ex_data[, err := angle_diff_180(reported, orientation)] # response errors
+#' ex_data[, prev_ori := shift(orientation), by = observer] # orientation on previous trial
+#' ex_data[, diff_in_ori := angle_diff_180(prev_ori, orientation)] # shift in orientations between trials
+#' ex_data[, abs_diff_in_ori := abs(diff_in_ori)]
+#' ex_data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err, err)]
+#'
+#' err_dens <- density_asymmetry(ex_data[!is.na(err_rel_to_prev_targ)],
+#'  circ_space = 180, weights_sd = 10, xvar = "abs_diff_in_ori",
+#'   yvar = "err_rel_to_prev_targ", by = c("observer"))
+#'
+#' ggplot(err_dens, aes(x = dist, y = delta)) +
+#'   geom_line(stat = 'summary', fun = mean) +
+#'   labs(y = "Asymmetry in error probability density, %", x = "Absolute orientation difference, °")
 #'
 
 density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = 'abs_td_dist', yvar = 'bias_to_distr_corr', by = c(), n = 181, average = T){

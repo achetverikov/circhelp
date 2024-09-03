@@ -41,3 +41,23 @@ data.table with several variables
 \description{
 Compute asymmetry in weighted probability density
 }
+\examples{
+
+library(data.table)
+data(Pascucci_et_al_2019_data)
+ex_data <- Pascucci_et_al_2019_data
+ex_data[, err := angle_diff_180(reported, orientation)] # response errors
+ex_data[, prev_ori := shift(orientation), by = observer] # orientation on previous trial
+ex_data[, diff_in_ori := angle_diff_180(prev_ori, orientation)] # shift in orientations between trials
+ex_data[, abs_diff_in_ori := abs(diff_in_ori)]
+ex_data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err, err)]
+
+err_dens <- density_asymmetry(ex_data[!is.na(err_rel_to_prev_targ)],
+ circ_space = 180, weights_sd = 10, xvar = "abs_diff_in_ori",
+  yvar = "err_rel_to_prev_targ", by = c("observer"))
+ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
+  geom_line() +
+  geom_ribbon(alpha = 0.1) +
+  labs(y = "Asymmetry in error probability density, \%", x = "Absolute orientation difference, °")
+
+}

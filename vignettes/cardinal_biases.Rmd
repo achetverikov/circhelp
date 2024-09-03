@@ -29,7 +29,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-This is a small vignette showing how the correction for cardinal biases might be good for serial dependence (SD) studies. I will use the data from Experiment 2 in Pascucci et al. (2019, PLOS Biology, https://dx.doi.org/10.1371/journal.pbio.3000144) available from https://doi.org/10.5281/zenodo.2544946. First, I load the data, the required packages, and compute important variables.
+This is a small vignette showing how correcting for cardinal biases might improve serial dependence (SD) estimates. I will use the data from Experiment 2 in Pascucci et al. (2019, PLOS Biology, https://dx.doi.org/10.1371/journal.pbio.3000144) available from https://doi.org/10.5281/zenodo.2544946. First, I load the data, the required packages, and compute important variables.
 
 ```{r setup}
 # load the data
@@ -37,10 +37,10 @@ This is a small vignette showing how the correction for cardinal biases might be
 data <- Pascucci_et_al_2019_data
 data[, err := angle_diff_180(reported, orientation)] # response errors
 data[, prev_ori := shift(orientation), by = observer] # orientation on previous trial
-data[, diff_in_ori := angle_diff_180(prev_ori, orientation)] # shing in orientations between trials
+data[, diff_in_ori := angle_diff_180(prev_ori, orientation)] # shift in orientations between trials
 ```
 
-The responses in this data show a typical SD pattern with a bias towards previous orientations. I use the `pad_circ` function to account for circularity in the data when smoothing. It adds part of the data from one end to another end of the variable range (e.g., the data with the relative orientation from 60 to 90° are copied and pasted to the data set with the new relative orientation values of -120 to 90°). This is not the perfect way to account for circularity, but it is good enough for this kind of analysis. The thin lines show individual observers, the thick blue line shows the average.
+The responses in this data show a typical SD pattern with a bias towards previous orientations. I use the `pad_circ` function to account for circularity in the data when smoothing. It adds part of the data from one end to another end of the variable range (e.g., the data with the relative orientation from 60 to 90° are copied and pasted to the data set with the new relative orientation values of -120 to 90°). This is not the perfect way to account for circularity, but it is good enough for this kind of analysis. The thin lines show individual observers, and the thick blue line shows the average.
 
 ```{r serial_dependence}
 ggplot(pad_circ(data, "diff_in_ori"), aes(x = diff_in_ori, y = err)) +
@@ -61,9 +61,10 @@ ggplot(data[observer == 4, ], aes(x = angle_diff_180(orientation, 0), y = err)) 
   labs(y = "Error, °", x = "Orientation, °")
 ```
 
-Cardinal biases (as any other biases) add noise to the data, but they can also mimic other biases, such as SD. For example, if an observer is presented by an 8° line followed by a 2° line, the estimates of the 2° line would be pushed towards 8° because of the cardinal bias, not because of SD (or not only because of it). It's not necessarily a problem for a well-balanced design, but it's better to remove them to be on the safe side.
 
-`remove_cardinal_biases` removes the cardinal biases and other similar orientation-dependent idiosyncrasies by fitting a set of polynomials to the data and computing the residuals. In other words, it tries to predict how the errors change on average with changes in orientation and remove that dependence. In addition, it tries to estimate which responses are outliers while accounting for changes in response variance across orientations (see more in `?remove_cardinal_biases`). 
+Cardinal biases (like any other biases) not only add noise to the data but can also mimic other biases, such as SD. For example, if an observer is presented with an 8° line followed by a 2° line, the estimates of the 2° line would be pushed towards 8° because of the cardinal bias, not solely because of SD. It's not necessarily a problem for a well-balanced design, but it's better to remove them to be on the safe side.
+
+remove_cardinal_biases removes the cardinal biases and other similar orientation-dependent idiosyncrasies by fitting a set of polynomials to the data and computing the residuals. In other words, it tries to predict how the errors change on average with changes in orientation and removes that dependence. Additionally, it tries to estimate which responses are outliers while accounting for changes in response variance across orientations (see more in [circhelp::remove_cardinal_biases()]).
 
 ```{r correct_biases_ex, fig.width = fig_width*3, out.width='100%'}
 ex_subj_data <- data[observer == 4, ]
@@ -117,21 +118,28 @@ As you can see, when estimated using error corrected for cardinal bias, SD looks
 
 # Estimating the serial dependence
 
-In the second part of the vignette, I show how to estimate the serial dependence bias itself using the asymmetry in error probability density. This can be done using the `density_asymmetry()` function. This function computes the weighted estimate of the asymmetry in error probability at each of N (181 by default) steps across the dissimilarity range.  
+In the second part of the vignette, I show how to estimate the serial dependence bias itself using the asymmetry in error probability density. This can be done using the `density_asymmetry()` function. This function computes a smoothed estimate of the asymmetry in error probability at each of _N_ (181 by default) steps across the dissimilarity range.  
 
-```{r density}
+```{r density, fig.width=fig_width*2, out.width='66%'}
 data[, abs_diff_in_ori := abs(diff_in_ori)]
 data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err_corrected, err_corrected)]
 
 err_dens <- density_asymmetry(data[!is.na(err_rel_to_prev_targ)], circ_space = 180, weights_sd = 10, 
                               xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", by = c("observer"))
 
+data[,abs_diff_in_ori_bin:=apastats::adv_cut(abs_diff_in_ori, cuts = seq(0,90,10), include_oob = T, num_labels = F, labels_at_means = T)]
+
+mean_err <- apastats::get_superb_ci(data[!is.na(err_rel_to_prev_targ)], wid = 'observer', within = 'abs_diff_in_ori_bin', value_var = 'err_rel_to_prev_targ')
+setDT(mean_err)
+mean_err[,abs_diff_in_ori_bin:=as.numeric(abs_diff_in_ori_bin)]
 
 ((ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
   geom_line() +
   geom_ribbon(alpha = 0.1) +
   labs(y = "Asymmetry in error probability density, %")) +
- (ggplot(data[!is.na(err_rel_to_prev_targ)], aes(x = abs_diff_in_ori, y = err_rel_to_prev_targ)) +
-  geom_smooth(method = "loess") +
+ (ggplot(mean_err, 
+         aes(x = abs_diff_in_ori_bin, y = center, ymin = center+lowerwidth, ymax = center+upperwidth)) +
+  geom_line()+
+  geom_pointrange() +
   labs(y = "Mean error, deg."))) & labs(x = "Absolute orientation difference, °")
 ```

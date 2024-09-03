@@ -80,6 +80,9 @@ If the \code{bias_type} is set to \code{fit}, the function computes the cardinal
 The bias is computed by flipping the sign of errors when the average predicted error is negative, so, that, for example, if on average the responses are shifted clockwise relative to the true values, the trial-by-trial error would count as bias when it is also shifted clockwise.
 
 If \code{bias_type} is set to \code{obl} or \code{card}, only one set of bins is used, centred at cardinal or oblique angles, respectively.
+
+For additional examples see the help vignette:
+\code{vignette("cardinal_biases", package = "circhelp")}
 }
 \examples{
 

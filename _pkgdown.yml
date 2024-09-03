@@ -20,6 +20,7 @@ reference:
   - pad_circ
   - circ_corr
   - circ_lin_corr
+  - density_asymmetry
 - title: Datasets
 - contents:
   - Bae_Luck_2018_data
