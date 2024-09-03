@@ -55,9 +55,9 @@ ex_data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err, err)]
 err_dens <- density_asymmetry(ex_data[!is.na(err_rel_to_prev_targ)],
  circ_space = 180, weights_sd = 10, xvar = "abs_diff_in_ori",
   yvar = "err_rel_to_prev_targ", by = c("observer"))
-ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
-  geom_line() +
-  geom_ribbon(alpha = 0.1) +
+
+ggplot(err_dens, aes(x = dist, y = delta)) +
+  geom_line(stat = 'summary', fun = mean) +
   labs(y = "Asymmetry in error probability density, \%", x = "Absolute orientation difference, °")
 
 }
