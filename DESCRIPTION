@@ -24,6 +24,7 @@ Suggests:
     Hmisc,
     apastats,
     superb,
+    ggridges,
     reshape2
 Imports:
     gamlss,
@@ -38,5 +39,6 @@ Depends:
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
-VignetteBuilder: knitr, patchwork, ggplot2, MASS, gamlss, mgcv, ragg, Hmisc, apastats, superb, reshape2
+VignetteBuilder: knitr, patchwork, ggplot2, MASS, gamlss, mgcv, ragg, Hmisc, apastats, ggridges, superb, reshape2
 RdMacros: mathjaxr
+Remotes: achetverikov/apastats
