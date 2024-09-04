@@ -14,6 +14,7 @@ library(patchwork)
 library(circhelp)
 library(data.table)
 library(ggplot2)
+library(ggridges)
 
 if (requireNamespace("ragg", quietly = TRUE)) {
   knitr::opts_chunk$set(dev = "ragg_png")
@@ -36,7 +37,7 @@ default_theme <- function(default_font_size, default_line_size) {
   theme_light(base_size = default_font_size, base_family = default_font) +
     theme(
       axis.line = element_blank(),
-      axis.ticks = element_line(size = default_line_size / 2, colour = "gray"),
+      axis.ticks = element_line(linewidth = default_line_size / 2, colour = "gray"),
       panel.grid = element_blank(),
       panel.grid.minor = element_blank(),
       legend.title = element_text(size = rel(1)),
@@ -55,8 +56,8 @@ default_theme <- function(default_font_size, default_line_size) {
 theme_set(default_theme(default_font_size, default_line_size))
 update_geom_defaults("line", list(linewidth = default_line_size))
 update_geom_defaults("pointrange", list(size = default_line_size))
-update_geom_defaults("vline", list(size = default_line_size, color = "#AFABAB"))
-update_geom_defaults("hline", list(size = default_line_size, color = "#AFABAB"))
+update_geom_defaults("vline", list(linewidth = default_line_size / 2, color = "#AFABAB"))
+update_geom_defaults("hline", list(linewidth = default_line_size / 2, color = "#AFABAB"))
 
 default_colors <- c("#3498db", "#009f06", "#AA2255", "#FF7F00")
 
@@ -158,19 +159,41 @@ As you can see, when estimated using error corrected for cardinal bias, SD looks
 
 # Estimating the serial dependence
 
-In the second part of the vignette, I show how to estimate the serial dependence bias using the asymmetry in error probability density. This can be done using the `density_asymmetry()` function. This function computes a smoothed estimate of the asymmetry in error probability at each of _N_ (181 by default) steps across the dissimilarity range.  
+In the second part of the vignette, I show how to estimate the serial dependence bias using the asymmetry in error probability density (note that this feature is currently only available from the developmental version on Github). This can be done using the `density_asymmetry()` function. This function computes a smoothed estimate of the asymmetry in error probability at each of _N_ (181 by default) steps across the dissimilarity range. Here is an example at different dissimilarity steps from 0 to 90 degrees for one observer:
 
-```{r}
+```{r density_example_single_observer, fig.width=fig_width*2, fig.asp=0.7, out.width='66%'}
 data[, abs_diff_in_ori := abs(diff_in_ori)]
 data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err_corrected, err_corrected)]
 
+err_dens <- density_asymmetry(data[!is.na(err_rel_to_prev_targ) & is_outlier == F & observer == 1],
+  circ_space = 180, weights_sd = 10,
+  xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", return_full_density = T
+)
+
+ggplot(err_dens[dist %in% c(1, seq(0, 90, 10))], 
+       aes(x = x, y = y, color = dist, height = dist / 2000)) +
+  geom_ridgeline(aes(group = dist), fill = NA, stat = "identity") +
+  labs(x = "Bias towards the previous target, °", y = "Probability density", color = "Dissimilarity, °") +
+  scale_color_viridis_c(end = 0.75) +
+  geom_vline(linetype = 2, xintercept = 0) +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+  guides(color = guide_colourbar())
+```
+
+The x-axis shows the bias, which means that the errors are arranged in a way that positive bias corresponds to errors towards the previous target. For each dissimilarity step, the probabilities are estimated not only based on trials with exactly the same dissimilarity between the current and previous target, but also from all trials. The trials are weighted in a way that gives higher weight to trials with dissimilarities closer to the current value (technically, the function uses a Gaussian kernel with the standard deviation determined by `weights_sd`).
+
+Note that the density is rarely a symmetric bell-shaped Gaussian, which makes using the mean as an overall estimator of bias problematic. This is based on observations from a single observer - other observers might have different patterns. This is one of the reasons why we started using asymmetry in the density, i.e. the difference between the left and right parts of the curve relative to zero.
+
+We can then compute the asymmetry in the density (the main purpose of the function) by dropping the parameter `return_full_density = T`. We will also do it for all observers by specifying the parameter `by`:
+
+```{r}
 err_dens <- density_asymmetry(data[!is.na(err_rel_to_prev_targ) & is_outlier == F],
   circ_space = 180, weights_sd = 10,
   xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", by = c("observer")
 )
 ```
 
-One can then compute the statistics to test whether the bias is different from zero at different dissimilarity ranges. Note that these ranges will depend on the smoothing window (or, more precisely, `weights_sd` - the standard deviations of a smoothing kernel), but usually the exact  range, in which the serial dependence is present, is not the main question of the study. The same issue will be present with other approaches (e.g., the bin width used when binning the data will have the same effect).
+We can then compute the statistics to test whether the bias is different from zero at different dissimilarity ranges (not shown here). Note that these ranges will depend on the smoothing window (or, more precisely, `weights_sd` - the standard deviations of a smoothing kernel). However, usually the exact  range, in which the serial dependence is present, is not the main question of the study. The same issue will be present with other approaches (e.g., the bin width used when binning the data will have the same effect).
 
 As a comparison, one can use binned errors:
 ```{r}
@@ -182,25 +205,25 @@ mean_err[, abs_diff_in_ori_bin := as.numeric(as.character(abs_diff_in_ori_bin))]
 ```
 
 Putting them side by side:
-```{density, fig.width=fig_width*2, out.width='66%'}
+```{r density, fig.width=fig_width*2, out.width='66%'}
 p1 <- ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
   geom_line() +
   geom_ribbon(alpha = 0.1) +
   labs(y = "Asymmetry in error probability, %")
 
 p2 <- ggplot(
-    mean_err,
-    aes(x = abs_diff_in_ori_bin, y = center, ymin = center + lowerwidth, ymax = center + upperwidth)
-  ) +
-    geom_line() +
-    geom_pointrange() +
-    labs(y = "Mean error, deg.")
+  mean_err,
+  aes(x = abs_diff_in_ori_bin, y = center, ymin = center + lowerwidth, ymax = center + upperwidth)
+) +
+  geom_line() +
+  geom_pointrange() +
+  labs(y = "Mean error, °")
 
 (p1 + p2) &
   labs(x = "Absolute orientation difference, °") &
   geom_hline(yintercept = 0, linetype = 2) &
   scale_x_continuous(breaks = seq(0, 90, 30)) &
-  coord_cartesian(xlim = c(0, 90)) 
+  coord_cartesian(xlim = c(0, 90))
 ```
 
 As you can see, the overall pattern is similar, although the effect seems clearer when using asymmetry in probability. Note also that the high confidence interval (CI) for the very last bin appears for the mean error but not for the asymmetry measure, as the latter is more robust than the former (Pascucci et al. dataset has fewer data points in this bin compared to the others). This is also evident from the absence of a bump around 90 degrees that was present in the previous plots.
