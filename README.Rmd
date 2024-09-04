@@ -61,4 +61,3 @@ circ_corr(data[, 1], data[, 2])
 
 The only (somewhat) complicated function is `remove_cardinal_biases`, see the [help files](https://achetverikov.github.io/circhelp/reference/remove_cardinal_biases.html) and [the vignette](https://achetverikov.github.io/circhelp/articles/cardinal_biases.html) for an example use case.
 <img src="https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png" title="Example of cardinal biases processing" width="100%"/>
-

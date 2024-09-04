@@ -1137,7 +1137,9 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #' ex_data <- Pascucci_et_al_2019_data
 #' ex_data[, err := angle_diff_180(reported, orientation)] # response errors
 #' ex_data[, prev_ori := shift(orientation), by = observer] # orientation on previous trial
-#' ex_data[, diff_in_ori := angle_diff_180(prev_ori, orientation)] # shift in orientations between trials
+#'
+#' # determine the shift in orientations between trials
+#' ex_data[, diff_in_ori := angle_diff_180(prev_ori, orientation)]
 #' ex_data[, abs_diff_in_ori := abs(diff_in_ori)]
 #' ex_data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err, err)]
 #'

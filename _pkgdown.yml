@@ -1,3 +1,6 @@
+url: https://achetverikov.github.io/circhelp/index.html
+template:
+  bootstrap: 5
 reference:
 - title: Descriptive statistics
 - contents:
@@ -29,7 +32,7 @@ authors:
   sidebar:
     roles: [aut, ctb]
 figures:
-  dpi: 180
+  dpi: 220
   fig.ext: png
   fig.width: 10
-  fig.asp: 0.5
+  fig.asp: 0.75

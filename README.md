@@ -40,36 +40,31 @@ Most functions are self-explanatory.
 
 ``` r
 library(circhelp)
-#> Warning: package 'circhelp' was built under R version 4.3.3
 #> Loading required package: data.table
-#> Warning: package 'data.table' was built under R version 4.3.3
 #> Loading required package: ggplot2
-#> Warning: package 'ggplot2' was built under R version 4.3.3
 library(mgcv)
-#> Warning: package 'mgcv' was built under R version 4.3.2
 #> Loading required package: nlme
-#> Warning: package 'nlme' was built under R version 4.3.3
 #> This is mgcv 1.9-1. For overview type 'help("mgcv-package")'.
 # compute a set of descriptive statistics
 x <- rnorm(500)
 circ_descr(x)
 #> $mu
-#> [1] -0.01176069
+#> [1] 0.02023446
 #> 
 #> $sigma
-#> [1] 1.021138
+#> [1] 0.9415005
 #> 
 #> $skew_pewsey
-#> [1] 0.005065939
+#> [1] 0.01683586
 #> 
 #> $skew_fischer
-#> [1] 0.02877682
+#> [1] 0.0473933
 #> 
 #> $rho
-#> [1] 0.5937118
+#> [1] 0.6419714
 #> 
 #> $skew_rel_to_zero
-#> [1] 0.00267671
+#> [1] 0.02349117
 
 # compute difference in orientations
 a <- 5
@@ -84,7 +79,7 @@ angle_diff_360(a, b)
 # compute correlation between angles
 data <- rmvn(10000, c(0, 0), V = matrix(c(1, 0.5, 0.5, 1), ncol = 2))
 circ_corr(data[, 1], data[, 2])
-#> [1] 0.4360442
+#> [1] 0.4269736
 ```
 
 The only (somewhat) complicated function is `remove_cardinal_biases`,
