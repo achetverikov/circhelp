@@ -79,7 +79,7 @@ data[, diff_in_ori := angle_diff_180(prev_ori, orientation)] # shift in orientat
 data[, abs_diff_in_ori := abs(diff_in_ori)] # absolute shift, that is, dissimilarity between the current and the previous target
 ```
 
-The data is preprocessed to remove cardinal biases:
+The data is preprocessed to remove cardinal biases (see `vignette('cardinal_biases')`:
 
 ```{r remove_cardinal_biases}
 data[, c("err_corrected", "is_outlier") := remove_cardinal_biases(err, orientation)[, c("be_c", "is_outlier")], by = observer]
@@ -116,7 +116,7 @@ Note that the density is rarely a symmetric bell-shaped Gaussian, which makes us
 We can then compute the asymmetry in the density (the main purpose of the function) by dropping the parameter `return_full_density = T`. We will also do it for all observers by specifying the parameter `by`:
 
 ```{r}
-err_dens <- density_asymmetry(data[!is.na(err_rel_to_prev_targ) & is_outlier == F],
+err_dens <- density_asymmetry(data,
   circ_space = 180, weights_sd = 10,
   xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", by = c("observer")
 )
