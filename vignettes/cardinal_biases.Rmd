@@ -1,6 +1,7 @@
 ---
 title: "Correcting for cardinal biases to improve serial dependence estimates"
 output: rmarkdown::html_vignette
+date: "Publication Date: 01/03/2022<br>Last updated: `r format(Sys.time(), '%d/%m/%Y')`"
 vignette: >
   %\VignetteIndexEntry{Correcting for cardinal biases to improve serial dependence estimates}
   %\VignetteEncoding{UTF-8}
@@ -25,7 +26,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   warning = FALSE,
-  fig.width = fig_width, fig.height = fig_width, dpi = 320, res = 320,
+  fig.width = fig_width, fig.height = fig_width, 
+  dpi = 320, res = 320,
   out.width = "40%", out.height = "40%"
 )
 
@@ -100,7 +102,7 @@ ggplot(data[observer == 4, ], aes(x = angle_diff_180(orientation, 0), y = err)) 
 
 Cardinal biases (like any other biases) not only add noise to the data but can also mimic other biases, such as SD. For example, if an observer is presented with an 8° line followed by a 2° line, the estimates of the 2° line would be pushed towards 8° because of the cardinal bias, not solely because of SD. It's not necessarily a problem for a well-balanced design, but it's better to remove them to be on the safe side.
 
-remove_cardinal_biases removes the cardinal biases and other similar orientation-dependent idiosyncrasies by fitting a set of polynomials to the data and computing the residuals. In other words, it tries to predict how the errors change on average with changes in orientation and removes that dependence. Additionally, it tries to estimate which responses are outliers while accounting for changes in response variance across orientations (see more in [circhelp::remove_cardinal_biases()]). 
+remove_cardinal_biases removes the cardinal biases and other similar orientation-dependent idiosyncrasies by fitting a set of polynomials to the data and computing the residuals. In other words, it tries to predict how the errors change on average with changes in orientation and removes that dependence. Additionally, it tries to estimate which responses are outliers while accounting for changes in response variance across orientations (see more in `remove_cardinal_biases()`). 
 
 ```{r correct_biases_ex, fig.width = fig_width*3, out.width='100%'}
 ex_subj_data <- data[observer == 4, ]
@@ -112,15 +114,19 @@ To illustrate how it works, we can plot some output from this function. The firs
 Then, we can check how SD estimates are affected by the removal of cardinal biases. For the sake of completeness, I also show the result of removing the mean error only (which is close to nothing). 
 
 First, for each observer, I compute a corrected error and find the trials likely to be the outliers. `remove_cardinal_biases` returns a `data.table` object with multiple columns with the most commonly used ones being the bias-corrected error (`be_c`) and an outlier marker (`is_outlier`). I save them in the `data`:
+
 ```{r}
 data[, c("err_corrected", "is_outlier") := remove_cardinal_biases(err, orientation)[, c("be_c", "is_outlier")], by = observer]
 ```
+
 As a comparison, we can just use a correction for the overall mean error.
+
 ```{r}
 data[, err_mean_corrected := angle_diff_180(err, circ_mean_180(err)), by = observer]
 ```
 
 Then, I plot these errors along with the raw errors as a function of the previous item orientation (with the outliers removed) and plot them. 
+
 ```{r, fig.width = fig_width*3, out.width='100%'}
 datam <- melt(data[!is.na(diff_in_ori)], id.vars = c("diff_in_ori", "observer", "is_outlier"), measure.vars = c("err", "err_corrected", "err_mean_corrected"))
 datam[, variablef := factor(variable, levels = c("err", "err_mean_corrected", "err_corrected"), labels = c("Raw error", "Mean-corrected", "Mean and cardinal bias removed"))]
@@ -155,75 +161,4 @@ ggplot(datam[is_outlier == F], aes(
   scale_x_continuous(breaks = seq(0, 90, 30))
 ```
 
-As you can see, when estimated using error corrected for cardinal bias, SD looks "better" in the sense that around zero (where no bias is expected), the SD is closer to zero, and there is also less of a bump around 90° (this bump is probably a result of the large error variability / fewer data points in this dataset).  Correcting for cardinal biases also reduces the variability of the errors, making the SD effect more pronounced. But note also that the confidence intervals in these plots are not quite right as they do not account for between-subject and within-subject variability properly. A better approach is to bin the data or to smooth the data by subject and then compute the confidence intervals. These approaches are illustrated below.
-
-# Estimating the serial dependence
-
-In the second part of the vignette, I show how to estimate the serial dependence bias using the asymmetry in error probability density (note that this feature is currently only available from the developmental version on Github). This can be done using the `density_asymmetry()` function. This function computes a smoothed estimate of the asymmetry in error probability at each of _N_ (181 by default) steps across the dissimilarity range. Here is an example at different dissimilarity steps from 0 to 90 degrees for one observer:
-
-```{r density_example_single_observer, fig.width=fig_width*2, fig.asp=0.7, out.width='66%'}
-data[, abs_diff_in_ori := abs(diff_in_ori)]
-data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err_corrected, err_corrected)]
-
-err_dens <- density_asymmetry(data[!is.na(err_rel_to_prev_targ) & is_outlier == F & observer == 1],
-  circ_space = 180, weights_sd = 10,
-  xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", return_full_density = T
-)
-
-ggplot(err_dens[dist %in% c(1, seq(0, 90, 10))], 
-       aes(x = x, y = y, color = dist, height = dist / 2000)) +
-  geom_ridgeline(aes(group = dist), fill = NA, stat = "identity") +
-  labs(x = "Bias towards the previous target, °", y = "Probability density", color = "Dissimilarity, °") +
-  scale_color_viridis_c(end = 0.75) +
-  geom_vline(linetype = 2, xintercept = 0) +
-  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
-  guides(color = guide_colourbar())
-```
-
-The x-axis shows the bias, which means that the errors are arranged in a way that positive bias corresponds to errors towards the previous target. For each dissimilarity step, the probabilities are estimated not only based on trials with exactly the same dissimilarity between the current and previous target, but also from all trials. The trials are weighted in a way that gives higher weight to trials with dissimilarities closer to the current value (technically, the function uses a Gaussian kernel with the standard deviation determined by `weights_sd`).
-
-Note that the density is rarely a symmetric bell-shaped Gaussian, which makes using the mean as an overall estimator of bias problematic. This is based on observations from a single observer - other observers might have different patterns. This is one of the reasons why we started using asymmetry in the density, i.e. the difference between the left and right parts of the curve relative to zero.
-
-We can then compute the asymmetry in the density (the main purpose of the function) by dropping the parameter `return_full_density = T`. We will also do it for all observers by specifying the parameter `by`:
-
-```{r}
-err_dens <- density_asymmetry(data[!is.na(err_rel_to_prev_targ) & is_outlier == F],
-  circ_space = 180, weights_sd = 10,
-  xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", by = c("observer")
-)
-```
-
-We can then compute the statistics to test whether the bias is different from zero at different dissimilarity ranges (not shown here). Note that these ranges will depend on the smoothing window (or, more precisely, `weights_sd` - the standard deviations of a smoothing kernel). However, usually the exact  range, in which the serial dependence is present, is not the main question of the study. The same issue will be present with other approaches (e.g., the bin width used when binning the data will have the same effect).
-
-As a comparison, one can use binned errors:
-```{r}
-data[, abs_diff_in_ori_bin := apastats::adv_cut(abs_diff_in_ori, cuts = seq(0, 90, 10), include_oob = T, num_labels = F, labels_at_means = T)]
-
-mean_err <- apastats::get_superb_ci(data[!is.na(err_rel_to_prev_targ) & is_outlier == F], wid = "observer", within = "abs_diff_in_ori_bin", value_var = "err_rel_to_prev_targ")
-setDT(mean_err)
-mean_err[, abs_diff_in_ori_bin := as.numeric(as.character(abs_diff_in_ori_bin))]
-```
-
-Putting them side by side:
-```{r density, fig.width=fig_width*2, out.width='66%'}
-p1 <- ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
-  geom_line() +
-  geom_ribbon(alpha = 0.1) +
-  labs(y = "Asymmetry in error probability, %")
-
-p2 <- ggplot(
-  mean_err,
-  aes(x = abs_diff_in_ori_bin, y = center, ymin = center + lowerwidth, ymax = center + upperwidth)
-) +
-  geom_line() +
-  geom_pointrange() +
-  labs(y = "Mean error, °")
-
-(p1 + p2) &
-  labs(x = "Absolute orientation difference, °") &
-  geom_hline(yintercept = 0, linetype = 2) &
-  scale_x_continuous(breaks = seq(0, 90, 30)) &
-  coord_cartesian(xlim = c(0, 90))
-```
-
-As you can see, the overall pattern is similar, although the effect seems clearer when using asymmetry in probability. Note also that the high confidence interval (CI) for the very last bin appears for the mean error but not for the asymmetry measure, as the latter is more robust than the former (Pascucci et al. dataset has fewer data points in this bin compared to the others). This is also evident from the absence of a bump around 90 degrees that was present in the previous plots.
+As you can see, when estimated using error corrected for cardinal bias, SD looks "better" in the sense that around zero (where no bias is expected), the SD is closer to zero, and there is also less of a bump around 90° (this bump is probably a result of the large error variability / fewer data points in this dataset). Correcting for cardinal biases also reduces the variability of the errors, making the SD effect more pronounced. But note also that the confidence intervals in these plots are not quite right as they do not account for between-subject and within-subject variability properly. A better approach is to bin the data or to smooth the data by subject and then compute the confidence intervals. These approaches are illustrated in `vignette('serial_dependence_with_density_asymmetry')`.

@@ -34,5 +34,5 @@ authors:
 figures:
   dpi: 220
   fig.ext: png
-  fig.width: 10
-  fig.asp: 0.75
+  fig.width: 8
+  fig.asp: 0.5
