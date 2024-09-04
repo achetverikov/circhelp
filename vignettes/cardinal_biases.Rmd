@@ -27,6 +27,41 @@ knitr::opts_chunk$set(
   fig.width = fig_width, fig.height = fig_width, dpi = 320, res = 320,
   out.width = "40%", out.height = "40%"
 )
+
+default_font_size <- 14
+default_line_size <- 1
+default_font <- "sans"
+
+default_theme <- function(default_font_size, default_line_size) {
+  theme_light(base_size = default_font_size, base_family = default_font) +
+    theme(
+      axis.line = element_blank(),
+      axis.ticks = element_line(size = default_line_size / 2, colour = "gray"),
+      panel.grid = element_blank(),
+      panel.grid.minor = element_blank(),
+      legend.title = element_text(size = rel(1)),
+      strip.text = element_text(size = rel(1), color = "black", lineheight = rel(0.5)),
+      axis.text = element_text(size = default_font_size * 0.75),
+      axis.title = element_text(size = rel(1)),
+      panel.border = element_blank(),
+      strip.background = element_blank(),
+      legend.position = "right",
+      plot.title = element_text(size = rel(1), hjust = 0.5, lineheight = rel(1)),
+      text = element_text(size = default_font_size),
+      legend.text = element_text(size = rel(1))
+    )
+}
+
+theme_set(default_theme(default_font_size, default_line_size))
+update_geom_defaults("line", list(linewidth = default_line_size))
+update_geom_defaults("pointrange", list(size = default_line_size))
+update_geom_defaults("vline", list(size = default_line_size, color = "#AFABAB"))
+update_geom_defaults("hline", list(size = default_line_size, color = "#AFABAB"))
+
+default_colors <- c("#3498db", "#009f06", "#AA2255", "#FF7F00")
+
+options(ggplot2.discrete.colour = default_colors)
+options(ggplot2.discrete.fill = default_colors)
 ```
 
 This is a small vignette showing how correcting for cardinal biases might improve serial dependence (SD) estimates. I will use the data from Experiment 2 in Pascucci et al. (2019, PLOS Biology, https://dx.doi.org/10.1371/journal.pbio.3000144) available from https://doi.org/10.5281/zenodo.2544946. First, I load the data, the required packages, and compute important variables.
@@ -64,7 +99,7 @@ ggplot(data[observer == 4, ], aes(x = angle_diff_180(orientation, 0), y = err)) 
 
 Cardinal biases (like any other biases) not only add noise to the data but can also mimic other biases, such as SD. For example, if an observer is presented with an 8° line followed by a 2° line, the estimates of the 2° line would be pushed towards 8° because of the cardinal bias, not solely because of SD. It's not necessarily a problem for a well-balanced design, but it's better to remove them to be on the safe side.
 
-remove_cardinal_biases removes the cardinal biases and other similar orientation-dependent idiosyncrasies by fitting a set of polynomials to the data and computing the residuals. In other words, it tries to predict how the errors change on average with changes in orientation and removes that dependence. Additionally, it tries to estimate which responses are outliers while accounting for changes in response variance across orientations (see more in [circhelp::remove_cardinal_biases()]).
+remove_cardinal_biases removes the cardinal biases and other similar orientation-dependent idiosyncrasies by fitting a set of polynomials to the data and computing the residuals. In other words, it tries to predict how the errors change on average with changes in orientation and removes that dependence. Additionally, it tries to estimate which responses are outliers while accounting for changes in response variance across orientations (see more in [circhelp::remove_cardinal_biases()]). 
 
 ```{r correct_biases_ex, fig.width = fig_width*3, out.width='100%'}
 ex_subj_data <- data[observer == 4, ]
@@ -75,23 +110,26 @@ To illustrate how it works, we can plot some output from this function. The firs
 
 Then, we can check how SD estimates are affected by the removal of cardinal biases. For the sake of completeness, I also show the result of removing the mean error only (which is close to nothing). 
 
-First, for each observer, I compute a corrected error.
+First, for each observer, I compute a corrected error and find the trials likely to be the outliers. `remove_cardinal_biases` returns a `data.table` object with multiple columns with the most commonly used ones being the bias-corrected error (`be_c`) and an outlier marker (`is_outlier`). I save them in the `data`:
 ```{r}
-data[, err_corrected := remove_cardinal_biases(err, orientation)$be_c, by = observer]
+data[, c("err_corrected", "is_outlier") := remove_cardinal_biases(err, orientation)[, c("be_c", "is_outlier")], by = observer]
+```
+As a comparison, we can just use a correction for the overall mean error.
+```{r}
 data[, err_mean_corrected := angle_diff_180(err, circ_mean_180(err)), by = observer]
 ```
 
-Then, I plot these errors along with the raw errors as a function of the previous item orientation and plot them. 
+Then, I plot these errors along with the raw errors as a function of the previous item orientation (with the outliers removed) and plot them. 
 ```{r, fig.width = fig_width*3, out.width='100%'}
-datam <- melt(data[!is.na(diff_in_ori)], id.vars = c("diff_in_ori", "observer"), measure.vars = c("err", "err_corrected", "err_mean_corrected"))
+datam <- melt(data[!is.na(diff_in_ori)], id.vars = c("diff_in_ori", "observer", "is_outlier"), measure.vars = c("err", "err_corrected", "err_mean_corrected"))
 datam[, variablef := factor(variable, levels = c("err", "err_mean_corrected", "err_corrected"), labels = c("Raw error", "Mean-corrected", "Mean and cardinal bias removed"))]
 datam[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -value, value)]
 
-ggplot(pad_circ(datam, "diff_in_ori"), aes(x = diff_in_ori, y = value)) +
+ggplot(pad_circ(datam[is_outlier == F], "diff_in_ori"), aes(x = diff_in_ori, y = value)) +
   geom_line(aes(group = observer), stat = "smooth", size = 0.4, color = "black", alpha = 0.2, method = "loess") +
   geom_smooth(se = TRUE, method = "loess") +
   facet_grid(~variablef) +
-  coord_cartesian(xlim = c(-90, 90), ylim = c(-5, 5)) +
+  coord_cartesian(xlim = c(-90, 90), ylim = c(-3, 3)) +
   scale_x_continuous(breaks = seq(-90, 90, 90)) +
   labs(y = "Error, °", x = "Orientation difference, °")
 ```
@@ -99,7 +137,7 @@ ggplot(pad_circ(datam, "diff_in_ori"), aes(x = diff_in_ori, y = value)) +
 To make things clearer, I plot serial dependence as a function of absolute orientation differences. 
 
 ```{r, fig.width = fig_width*3, out.width='100%'}
-ggplot(datam, aes(
+ggplot(datam[is_outlier == F], aes(
   x = abs(diff_in_ori),
   y = err_rel_to_prev_targ,
   color = variablef
@@ -108,38 +146,61 @@ ggplot(datam, aes(
   geom_smooth(se = TRUE, method = "loess") +
   facet_grid(~variablef) +
   coord_cartesian(xlim = c(0, 90)) +
-  theme(legend.position = "top") +
-  labs(color = NULL, y = "Bias towards previous targets", x = "Absolute orientation difference, °") +
+  theme(legend.position = "none") +
+  labs(
+    color = NULL, y = "Bias towards previous targets",
+    x = "Absolute orientation difference, °"
+  ) +
   scale_x_continuous(breaks = seq(0, 90, 30))
 ```
 
-As you can see, when estimated using error corrected for cardinal bias, SD looks "better" in the sense that around zero (where no bias is expected), the SD is closer to zero, and there is also less of a bump around 90°. Correcting for cardinal biases also reduces the variability of the errors, making the SD effect more pronounced. 
-
+As you can see, when estimated using error corrected for cardinal bias, SD looks "better" in the sense that around zero (where no bias is expected), the SD is closer to zero, and there is also less of a bump around 90° (this bump is probably a result of the large error variability / fewer data points in this dataset).  Correcting for cardinal biases also reduces the variability of the errors, making the SD effect more pronounced. But note also that the confidence intervals in these plots are not quite right as they do not account for between-subject and within-subject variability properly. A better approach is to bin the data or to smooth the data by subject and then compute the confidence intervals. These approaches are illustrated below.
 
 # Estimating the serial dependence
 
-In the second part of the vignette, I show how to estimate the serial dependence bias itself using the asymmetry in error probability density. This can be done using the `density_asymmetry()` function. This function computes a smoothed estimate of the asymmetry in error probability at each of _N_ (181 by default) steps across the dissimilarity range.  
+In the second part of the vignette, I show how to estimate the serial dependence bias using the asymmetry in error probability density. This can be done using the `density_asymmetry()` function. This function computes a smoothed estimate of the asymmetry in error probability at each of _N_ (181 by default) steps across the dissimilarity range.  
 
-```{r density, fig.width=fig_width*2, out.width='66%'}
+```{r}
 data[, abs_diff_in_ori := abs(diff_in_ori)]
 data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err_corrected, err_corrected)]
 
-err_dens <- density_asymmetry(data[!is.na(err_rel_to_prev_targ)], circ_space = 180, weights_sd = 10, 
-                              xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", by = c("observer"))
+err_dens <- density_asymmetry(data[!is.na(err_rel_to_prev_targ) & is_outlier == F],
+  circ_space = 180, weights_sd = 10,
+  xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", by = c("observer")
+)
+```
 
-data[,abs_diff_in_ori_bin:=apastats::adv_cut(abs_diff_in_ori, cuts = seq(0,90,10), include_oob = T, num_labels = F, labels_at_means = T)]
+One can then compute the statistics to test whether the bias is different from zero at different dissimilarity ranges. Note that these ranges will depend on the smoothing window (or, more precisely, `weights_sd` - the standard deviations of a smoothing kernel), but usually the exact  range, in which the serial dependence is present, is not the main question of the study. The same issue will be present with other approaches (e.g., the bin width used when binning the data will have the same effect).
 
-mean_err <- apastats::get_superb_ci(data[!is.na(err_rel_to_prev_targ)], wid = 'observer', within = 'abs_diff_in_ori_bin', value_var = 'err_rel_to_prev_targ')
+As a comparison, one can use binned errors:
+```{r}
+data[, abs_diff_in_ori_bin := apastats::adv_cut(abs_diff_in_ori, cuts = seq(0, 90, 10), include_oob = T, num_labels = F, labels_at_means = T)]
+
+mean_err <- apastats::get_superb_ci(data[!is.na(err_rel_to_prev_targ) & is_outlier == F], wid = "observer", within = "abs_diff_in_ori_bin", value_var = "err_rel_to_prev_targ")
 setDT(mean_err)
-mean_err[,abs_diff_in_ori_bin:=as.numeric(abs_diff_in_ori_bin)]
+mean_err[, abs_diff_in_ori_bin := as.numeric(as.character(abs_diff_in_ori_bin))]
+```
 
-((ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
+Putting them side by side:
+```{density, fig.width=fig_width*2, out.width='66%'}
+p1 <- ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
   geom_line() +
   geom_ribbon(alpha = 0.1) +
-  labs(y = "Asymmetry in error probability density, %")) +
- (ggplot(mean_err, 
-         aes(x = abs_diff_in_ori_bin, y = center, ymin = center+lowerwidth, ymax = center+upperwidth)) +
-  geom_line()+
-  geom_pointrange() +
-  labs(y = "Mean error, deg."))) & labs(x = "Absolute orientation difference, °")
+  labs(y = "Asymmetry in error probability, %")
+
+p2 <- ggplot(
+    mean_err,
+    aes(x = abs_diff_in_ori_bin, y = center, ymin = center + lowerwidth, ymax = center + upperwidth)
+  ) +
+    geom_line() +
+    geom_pointrange() +
+    labs(y = "Mean error, deg.")
+
+(p1 + p2) &
+  labs(x = "Absolute orientation difference, °") &
+  geom_hline(yintercept = 0, linetype = 2) &
+  scale_x_continuous(breaks = seq(0, 90, 30)) &
+  coord_cartesian(xlim = c(0, 90)) 
 ```
+
+As you can see, the overall pattern is similar, although the effect seems clearer when using asymmetry in probability. Note also that the high confidence interval (CI) for the very last bin appears for the mean error but not for the asymmetry measure, as the latter is more robust than the former (Pascucci et al. dataset has fewer data points in this bin compared to the others). This is also evident from the absence of a bump around 90 degrees that was present in the previous plots.
