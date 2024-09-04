@@ -13,7 +13,8 @@ density_asymmetry(
   yvar = "bias_to_distr_corr",
   by = c(),
   n = 181,
-  average = T
+  average = T,
+  return_full_density = F
 )
 }
 \arguments{
@@ -33,7 +34,9 @@ density_asymmetry(
 
 \item{n}{the number of steps for the x-axis variable at which the density is computed}
 
-\item{average}{average the asymmetry for each x-value}
+\item{average}{average the asymmetry for each x-value (default: T)}
+
+\item{return_full_density}{returns the full data.table with density computed at each point (default: F)}
 }
 \value{
 data.table with several variables
@@ -55,11 +58,12 @@ ex_data[, abs_diff_in_ori := abs(diff_in_ori)]
 ex_data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err, err)]
 
 err_dens <- density_asymmetry(ex_data[!is.na(err_rel_to_prev_targ)],
- circ_space = 180, weights_sd = 10, xvar = "abs_diff_in_ori",
-  yvar = "err_rel_to_prev_targ", by = c("observer"))
+  circ_space = 180, weights_sd = 10, xvar = "abs_diff_in_ori",
+  yvar = "err_rel_to_prev_targ", by = c("observer")
+)
 
 ggplot(err_dens, aes(x = dist, y = delta)) +
-  geom_line(stat = 'summary', fun = mean) +
+  geom_line(stat = "summary", fun = mean) +
   labs(y = "Asymmetry in error probability density, \%", x = "Absolute orientation difference, °")
 
 }

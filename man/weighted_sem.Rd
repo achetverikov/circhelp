@@ -28,7 +28,7 @@ The expected error is within 5\% of the bootstrapped SEM (at larger sample sizes
 set.seed(1)
 n_obs <- 200
 w <- runif(n_obs)
-w <- w/sum(w)
+w <- w / sum(w)
 x <- rnorm(n_obs, sd = 5)
 weighted_sem(x, w)
 }
