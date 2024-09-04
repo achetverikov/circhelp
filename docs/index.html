@@ -84,22 +84,22 @@
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">500</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/circ_descr.html">circ_descr</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $mu</span></span>
-<span><span class="co">#&gt; [1] 0.01299998</span></span>
+<span><span class="co">#&gt; [1] 0.02023446</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $sigma</span></span>
-<span><span class="co">#&gt; [1] 0.9557152</span></span>
+<span><span class="co">#&gt; [1] 0.9415005</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $skew_pewsey</span></span>
-<span><span class="co">#&gt; [1] 0.02087324</span></span>
+<span><span class="co">#&gt; [1] 0.01683586</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $skew_fischer</span></span>
-<span><span class="co">#&gt; [1] 0.07378283</span></span>
+<span><span class="co">#&gt; [1] 0.0473933</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $rho</span></span>
-<span><span class="co">#&gt; [1] 0.633373</span></span>
+<span><span class="co">#&gt; [1] 0.6419714</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $skew_rel_to_zero</span></span>
-<span><span class="co">#&gt; [1] 0.02535319</span></span>
+<span><span class="co">#&gt; [1] 0.02349117</span></span>
 <span></span>
 <span><span class="co"># compute difference in orientations</span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fl">5</span></span>
@@ -114,7 +114,7 @@
 <span><span class="co"># compute correlation between angles</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/mgcv/man/rmvn.html" class="external-link">rmvn</a></span><span class="op">(</span><span class="fl">10000</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, V <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/circ_corr.html">circ_corr</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">data</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 0.4452874</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] 0.4269736</span></span></code></pre></div>
 <p>The only (somewhat) complicated function is <code>remove_cardinal_biases</code>, see the <a href="https://achetverikov.github.io/circhelp/reference/remove_cardinal_biases.html" class="external-link">help files</a> and <a href="https://achetverikov.github.io/circhelp/articles/cardinal_biases.html" class="external-link">the vignette</a> for an example use case. <img src="https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png" title="Example of cardinal biases processing" width="100%"></p>
 </div>
 </div>

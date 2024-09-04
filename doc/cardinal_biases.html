@@ -495,21 +495,24 @@ data will have the same effect).</p>
 <span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">setDT</span>(mean_err)</span>
 <span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>mean_err[, abs_diff_in_ori_bin <span class="sc">:=</span> <span class="fu">as.numeric</span>(<span class="fu">as.character</span>(abs_diff_in_ori_bin))]</span></code></pre></div>
 <p>Putting them side by side:</p>
-<pre class="density"><code>((ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
+<pre class="density"><code>p1 &lt;- ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
   geom_line() +
   geom_ribbon(alpha = 0.1) +
-  labs(y = &quot;Asymmetry in error probability, %&quot;)) +
-  (ggplot(
+  labs(y = &quot;Asymmetry in error probability, %&quot;)
+
+p2 &lt;- ggplot(
     mean_err,
     aes(x = abs_diff_in_ori_bin, y = center, ymin = center + lowerwidth, ymax = center + upperwidth)
   ) +
     geom_line() +
     geom_pointrange() +
-    labs(y = &quot;Mean error, deg.&quot;))) &amp;
+    labs(y = &quot;Mean error, deg.&quot;)
+
+(p1 + p2) &amp;
   labs(x = &quot;Absolute orientation difference, °&quot;) &amp;
   geom_hline(yintercept = 0, linetype = 2) &amp;
   scale_x_continuous(breaks = seq(0, 90, 30)) &amp;
-  coord_cartesian(xlim = c(0, 90))</code></pre>
+  coord_cartesian(xlim = c(0, 90)) </code></pre>
 <p>As you can see, the overall pattern is similar, although the effect
 seems clearer when using asymmetry in probability. Note also that the
 high confidence interval (CI) for the very last bin appears for the mean

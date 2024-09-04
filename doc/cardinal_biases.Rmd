@@ -183,17 +183,20 @@ mean_err[, abs_diff_in_ori_bin := as.numeric(as.character(abs_diff_in_ori_bin))]
 
 Putting them side by side:
 ```{density, fig.width=fig_width*2, out.width='66%'}
-((ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
+p1 <- ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
   geom_line() +
   geom_ribbon(alpha = 0.1) +
-  labs(y = "Asymmetry in error probability, %")) +
-  (ggplot(
+  labs(y = "Asymmetry in error probability, %")
+
+p2 <- ggplot(
     mean_err,
     aes(x = abs_diff_in_ori_bin, y = center, ymin = center + lowerwidth, ymax = center + upperwidth)
   ) +
     geom_line() +
     geom_pointrange() +
-    labs(y = "Mean error, deg."))) &
+    labs(y = "Mean error, deg.")
+
+(p1 + p2) &
   labs(x = "Absolute orientation difference, °") &
   geom_hline(yintercept = 0, linetype = 2) &
   scale_x_continuous(breaks = seq(0, 90, 30)) &
