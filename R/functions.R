@@ -483,9 +483,9 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   }
 
   if (debug) {
-    cat('N observation per group assuming cardinal bins: \n')
+    cat("N observation per group assuming cardinal bins: \n")
     cat(table(card_groups))
-    cat('N observation per group assuming oblique bins: \n')
+    cat("N observation per group assuming oblique bins: \n")
     cat(table(obl_groups))
   }
   for_fit <- data.table(
@@ -502,7 +502,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   for_fit[, dist_to_obl := angle_diff_90(x, 45)]
   gam_ctrl <- gamlss::gamlss.control(trace = FALSE)
 
-  if (debug){
+  if (debug) {
     cat("Computing bins to group the data...\n")
   }
   if (bias_type == "fit") {
@@ -644,7 +644,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       )
 
       if (debug) {
-        cat('Fitted GAMLSS model coefficients\n')
+        cat("Fitted GAMLSS model coefficients\n")
         cat(coef(fit))
       }
 
@@ -967,21 +967,20 @@ vm_circ_sd_deg_to_kappa <- function(sd_deg) {
 #' set.seed(1)
 #' n_obs <- 200
 #' w <- runif(n_obs)
-#' w <- w/sum(w)
+#' w <- w / sum(w)
 #' x <- rnorm(n_obs, sd = 5)
 #' weighted_sem(x, w)
-
 weighted_sem <- function(x, w, na.rm = FALSE) {
   if (na.rm) {
     w <- w[i <- !is.na(x)]
     x <- x[i]
   }
   n <- length(w)
-  w <- w/sum(w)
+  w <- w / sum(w)
   x_w_bar <- stats::weighted.mean(x, w, na.rm = na.rm)
   # case I
-  var_w_1 <- (sum(w*x^2) - x_w_bar^2)/(1-sum(w^2))
-  sem_w_1 <- sqrt(var_w_1*sum(w^2))
+  var_w_1 <- (sum(w * x^2) - x_w_bar^2) / (1 - sum(w^2))
+  sem_w_1 <- sqrt(var_w_1 * sum(w^2))
   # Kirchner also provides case II that assumes equal importance but different variances
   # var_w_2 <- (sum(w*x^2)-x_w_bar^2)*n/(n-1)
   # sem_w_2 <- sqrt(var_w_2/n)
@@ -1124,8 +1123,8 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #' @param yvar y-axis variable (normally, errors)
 #' @param by a vector of grouping variables names
 #' @param n the number of steps for the x-axis variable at which the density is computed
-#' @param average average the asymmetry for each x-value
-#'
+#' @param average average the asymmetry for each x-value (default: T)
+#' @param return_full_density returns the full data.table with density computed at each point (default: F)
 #' @return data.table with several variables
 #' @export
 #' @importFrom stats as.formula bw.SJ density weights
@@ -1144,50 +1143,61 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #' ex_data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err, err)]
 #'
 #' err_dens <- density_asymmetry(ex_data[!is.na(err_rel_to_prev_targ)],
-#'  circ_space = 180, weights_sd = 10, xvar = "abs_diff_in_ori",
-#'   yvar = "err_rel_to_prev_targ", by = c("observer"))
+#'   circ_space = 180, weights_sd = 10, xvar = "abs_diff_in_ori",
+#'   yvar = "err_rel_to_prev_targ", by = c("observer")
+#' )
 #'
 #' ggplot(err_dens, aes(x = dist, y = delta)) +
-#'   geom_line(stat = 'summary', fun = mean) +
+#'   geom_line(stat = "summary", fun = mean) +
 #'   labs(y = "Asymmetry in error probability density, %", x = "Absolute orientation difference, °")
 #'
-
-density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = 'abs_td_dist', yvar = 'bias_to_distr_corr', by = c(), n = 181, average = T){
+density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = "abs_td_dist", yvar = "bias_to_distr_corr", by = c(), n = 181, average = T, return_full_density = F) {
   x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- NULL # due to NSE notes in R CMD check
 
-  if (!(circ_space%in%c(180,360))){
-    stop('`circ_space` should be 180 or 360')
+  if (!(circ_space %in% c(180, 360))) {
+    stop("`circ_space` should be 180 or 360")
   }
 
-  max_diss <- circ_space/2
-  if (is.null(kernel_bw)){
-    kernel_bw <- bw.SJ(dt[,get(yvar)])
+  max_diss <- circ_space / 2
+  if (is.null(kernel_bw)) {
+    kernel_bw <- bw.SJ(dt[, get(yvar)])
   }
 
   res <- rbindlist(sapply(1:max_diss, \(i) {
+    dt[, weights := dnorm(get(xvar), mean = i, sd = weights_sd)]
 
-    dt[, weights:=dnorm(get(xvar), mean = i, sd = weights_sd)]
-
-    res <- dt[,density(get(yvar), from = -max_diss, to = max_diss, n = n, bw = kernel_bw,
-                       weights = weights/sum(weights))[c('x','y')], by = by]
-    res[,x_val:=abs(x)]
-    res[,x_sign:=sign(x)]
-    res <- dcast(res, as.formula(paste(paste(by, collapse = '+'),'+x_val~x_sign')), value.var ='y')
-    res[,delta:=`1`-`-1`]
-    res[,total := `1`+`-1`]
-    res[,ratio := `1`/`-1`]
-    res
-
+    res <- dt[, density(get(yvar),
+      from = -max_diss, to = max_diss, n = n, bw = kernel_bw,
+      weights = weights / sum(weights)
+    )[c("x", "y")], by = by]
+    res[, x_val := abs(x)]
+    res[, x_sign := sign(x)]
     res$dist <- i
+
+    if (return_full_density) {
+      return(res)
+    }
+
+    res <- dcast(res,
+      as.formula(paste(paste(by, collapse = "+"), "+dist+x_val~x_sign")),
+      value.var = "y"
+    )
+    res[, delta := `1` - `-1`]
+    res[, total := `1` + `-1`]
+    res[, ratio := `1` / `-1`]
+
     res
   }, simplify = F))
 
-  if (average){
-    res <- res[!is.na(delta),.(delta=sum(delta)), by = c('dist', by)]
+  if (return_full_density) {
+    return(res)
   }
 
-  attr(res,'kernel_bw') <- kernel_bw
+  if (average) {
+    res <- res[!is.na(delta), .(delta = sum(delta)), by = c("dist", by)]
+  }
+
+  attr(res, "kernel_bw") <- kernel_bw
 
   res
 }
-
