@@ -34,6 +34,7 @@
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="../articles/cardinal_biases.html">Correcting for cardinal biases to improve serial dependence estimates</a></li>
+    <li><a class="dropdown-item" href="../articles/serial_dependence_with_density_asymmetry.html">Estimating serial dependence with density_asymmetry()</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -58,6 +59,8 @@
 
       <h1>Correcting for cardinal biases to improve serial dependence estimates</h1>
             
+            <h4 data-toc-skip class="date">Publication Date:
+01/03/2022<br>Last updated: 04/09/2024</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/achetverikov/circhelp/blob/main/vignettes/cardinal_biases.Rmd" class="external-link"><code>vignettes/cardinal_biases.Rmd</code></a></small>
       <div class="d-none name"><code>cardinal_biases.Rmd</code></div>
@@ -121,7 +124,7 @@ predict how the errors change on average with changes in orientation and
 removes that dependence. Additionally, it tries to estimate which
 responses are outliers while accounting for changes in response variance
 across orientations (see more in
-[circhelp::remove_cardinal_biases()]).</p>
+<code><a href="../reference/remove_cardinal_biases.html">remove_cardinal_biases()</a></code>).</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ex_subj_data</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">[</span><span class="va">observer</span> <span class="op">==</span> <span class="fl">4</span>, <span class="op">]</span></span>
 <span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/remove_cardinal_biases.html">remove_cardinal_biases</a></span><span class="op">(</span><span class="va">ex_subj_data</span><span class="op">$</span><span class="va">err</span>, <span class="va">ex_subj_data</span><span class="op">$</span><span class="va">orientation</span>, plots <span class="op">=</span> <span class="st">"show"</span><span class="op">)</span></span></code></pre></div>
@@ -194,107 +197,8 @@ SD effect more pronounced. But note also that the confidence intervals
 in these plots are not quite right as they do not account for
 between-subject and within-subject variability properly. A better
 approach is to bin the data or to smooth the data by subject and then
-compute the confidence intervals. These approaches are illustrated
-below.</p>
-<div class="section level2">
-<h2 id="estimating-the-serial-dependence">Estimating the serial dependence<a class="anchor" aria-label="anchor" href="#estimating-the-serial-dependence"></a>
-</h2>
-<p>In the second part of the vignette, I show how to estimate the serial
-dependence bias using the asymmetry in error probability density (note
-that this feature is currently only available from the developmental
-version on Github). This can be done using the
-<code><a href="../reference/density_asymmetry.html">density_asymmetry()</a></code> function. This function computes a
-smoothed estimate of the asymmetry in error probability at each of
-<em>N</em> (181 by default) steps across the dissimilarity range. Here
-is an example at different dissimilarity steps from 0 to 90 degrees for
-one observer:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">data</span><span class="op">[</span>, <span class="va">abs_diff_in_ori</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">diff_in_ori</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="va">data</span><span class="op">[</span>, <span class="va">err_rel_to_prev_targ</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">diff_in_ori</span> <span class="op">&lt;</span> <span class="fl">0</span>, <span class="op">-</span><span class="va">err_corrected</span>, <span class="va">err_corrected</span><span class="op">)</span><span class="op">]</span></span>
-<span></span>
-<span><span class="va">err_dens</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/density_asymmetry.html">density_asymmetry</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">err_rel_to_prev_targ</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">is_outlier</span> <span class="op">==</span> <span class="cn">F</span> <span class="op">&amp;</span> <span class="va">observer</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span>,</span>
-<span>  circ_space <span class="op">=</span> <span class="fl">180</span>, weights_sd <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  xvar <span class="op">=</span> <span class="st">"abs_diff_in_ori"</span>, yvar <span class="op">=</span> <span class="st">"err_rel_to_prev_targ"</span>, return_full_density <span class="op">=</span> <span class="cn">T</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">err_dens</span><span class="op">[</span><span class="va">dist</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">90</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span><span class="op">]</span>, </span>
-<span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">x</span>, y <span class="op">=</span> <span class="va">y</span>, color <span class="op">=</span> <span class="va">dist</span>, height <span class="op">=</span> <span class="va">dist</span> <span class="op">/</span> <span class="fl">2000</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">geom_ridgeline</span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">dist</span><span class="op">)</span>, fill <span class="op">=</span> <span class="cn">NA</span>, stat <span class="op">=</span> <span class="st">"identity"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Bias towards the previous target, °"</span>, y <span class="op">=</span> <span class="st">"Probability density"</span>, color <span class="op">=</span> <span class="st">"Dissimilarity, °"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_viridis.html" class="external-link">scale_color_viridis_c</a></span><span class="op">(</span>end <span class="op">=</span> <span class="fl">0.75</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>linetype <span class="op">=</span> <span class="fl">2</span>, xintercept <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>, axis.ticks.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>color <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colourbar</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="cardinal_biases_files/figure-html/density_example_single_observer-1.png" width="66%" height="40%"></p>
-<p>The x-axis shows the bias, which means that the errors are arranged
-in a way that positive bias corresponds to errors towards the previous
-target. For each dissimilarity step, the probabilities are estimated not
-only based on trials with exactly the same dissimilarity between the
-current and previous target, but also from all trials. The trials are
-weighted in a way that gives higher weight to trials with
-dissimilarities closer to the current value (technically, the function
-uses a Gaussian kernel with the standard deviation determined by
-<code>weights_sd</code>).</p>
-<p>Note that the density is rarely a symmetric bell-shaped Gaussian,
-which makes using the mean as an overall estimator of bias problematic.
-This is based on observations from a single observer - other observers
-might have different patterns. This is one of the reasons why we started
-using asymmetry in the density, i.e. the difference between the left and
-right parts of the curve relative to zero.</p>
-<p>We can then compute the asymmetry in the density (the main purpose of
-the function) by dropping the parameter
-<code>return_full_density = T</code>. We will also do it for all
-observers by specifying the parameter <code>by</code>:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">err_dens</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/density_asymmetry.html">density_asymmetry</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">err_rel_to_prev_targ</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">is_outlier</span> <span class="op">==</span> <span class="cn">F</span><span class="op">]</span>,</span>
-<span>  circ_space <span class="op">=</span> <span class="fl">180</span>, weights_sd <span class="op">=</span> <span class="fl">10</span>,</span>
-<span>  xvar <span class="op">=</span> <span class="st">"abs_diff_in_ori"</span>, yvar <span class="op">=</span> <span class="st">"err_rel_to_prev_targ"</span>, by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"observer"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>We can then compute the statistics to test whether the bias is
-different from zero at different dissimilarity ranges (not shown here).
-Note that these ranges will depend on the smoothing window (or, more
-precisely, <code>weights_sd</code> - the standard deviations of a
-smoothing kernel). However, usually the exact range, in which the serial
-dependence is present, is not the main question of the study. The same
-issue will be present with other approaches (e.g., the bin width used
-when binning the data will have the same effect).</p>
-<p>As a comparison, one can use binned errors:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">data</span><span class="op">[</span>, <span class="va">abs_diff_in_ori_bin</span> <span class="op">:=</span> <span class="fu">apastats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/apastats/man/adv_cut.html" class="external-link">adv_cut</a></span><span class="op">(</span><span class="va">abs_diff_in_ori</span>, cuts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">90</span>, <span class="fl">10</span><span class="op">)</span>, include_oob <span class="op">=</span> <span class="cn">T</span>, num_labels <span class="op">=</span> <span class="cn">F</span>, labels_at_means <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">]</span></span>
-<span></span>
-<span><span class="va">mean_err</span> <span class="op">&lt;-</span> <span class="fu">apastats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/apastats/man/get_superb_ci.html" class="external-link">get_superb_ci</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">err_rel_to_prev_targ</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">is_outlier</span> <span class="op">==</span> <span class="cn">F</span><span class="op">]</span>, wid <span class="op">=</span> <span class="st">"observer"</span>, within <span class="op">=</span> <span class="st">"abs_diff_in_ori_bin"</span>, value_var <span class="op">=</span> <span class="st">"err_rel_to_prev_targ"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Loading required namespace: superb</span></span>
-<span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/setDT.html" class="external-link">setDT</a></span><span class="op">(</span><span class="va">mean_err</span><span class="op">)</span></span>
-<span><span class="va">mean_err</span><span class="op">[</span>, <span class="va">abs_diff_in_ori_bin</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">abs_diff_in_ori_bin</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
-<p>Putting them side by side:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">err_dens</span><span class="op">[</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/hmisc.html" class="external-link">mean_cl_normal</a></span><span class="op">(</span><span class="va">delta</span> <span class="op">*</span> <span class="fl">100</span><span class="op">)</span>, by <span class="op">=</span> <span class="fu">.</span><span class="op">(</span><span class="va">dist</span><span class="op">)</span><span class="op">]</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">dist</span>, y <span class="op">=</span> <span class="va">y</span>, ymin <span class="op">=</span> <span class="va">ymin</span>, ymax <span class="op">=</span> <span class="va">ymax</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span>alpha <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Asymmetry in error probability, %"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span></span>
-<span>  <span class="va">mean_err</span>,</span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">abs_diff_in_ori_bin</span>, y <span class="op">=</span> <span class="va">center</span>, ymin <span class="op">=</span> <span class="va">center</span> <span class="op">+</span> <span class="va">lowerwidth</span>, ymax <span class="op">=</span> <span class="va">center</span> <span class="op">+</span> <span class="va">upperwidth</span><span class="op">)</span></span>
-<span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html" class="external-link">geom_pointrange</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Mean error, °"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="op">(</span><span class="va">p1</span> <span class="op">+</span> <span class="va">p2</span><span class="op">)</span> <span class="op">&amp;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Absolute orientation difference, °"</span><span class="op">)</span> <span class="op">&amp;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">&amp;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">90</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span> <span class="op">&amp;</span></span>
-<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_cartesian.html" class="external-link">coord_cartesian</a></span><span class="op">(</span>xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">90</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="cardinal_biases_files/figure-html/density-1.png" width="66%" height="40%"></p>
-<p>As you can see, the overall pattern is similar, although the effect
-seems clearer when using asymmetry in probability. Note also that the
-high confidence interval (CI) for the very last bin appears for the mean
-error but not for the asymmetry measure, as the latter is more robust
-than the former (Pascucci et al. dataset has fewer data points in this
-bin compared to the others). This is also evident from the absence of a
-bump around 90 degrees that was present in the previous plots.</p>
-</div>
+compute the confidence intervals. These approaches are illustrated in
+<code><a href="../articles/serial_dependence_with_density_asymmetry.html">vignette('serial_dependence_with_density_asymmetry')</a></code>.</p>
   </main>
 </div>
 
