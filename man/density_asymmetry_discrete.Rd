@@ -2,7 +2,7 @@
 % Please edit documentation in R/functions.R
 \name{density_asymmetry_discrete}
 \alias{density_asymmetry_discrete}
-\title{Compute asymmetry in discrete weighted probability density}
+\title{Compute asymmetry in weighted probability density for discrete data}
 \usage{
 density_asymmetry_discrete(
   dt,

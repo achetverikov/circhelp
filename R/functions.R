@@ -1203,7 +1203,7 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
   res
 }
 
-#' Compute asymmetry in discrete weighted probability density
+#' Compute asymmetry in weighted probability density for discrete data
 #'
 #' This function calculates the asymmetry in the probability density of a given variable using kernel density estimation. Unlike `density_asymmetry`, it does not take an `xvar` and assumes that the asymmetry is calculated for the whole dataset or subsets defined by `by` (which could also include a discrete x variable if needed) .
 #'
