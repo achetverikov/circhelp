@@ -796,8 +796,7 @@ make_plots_of_biases <- function(data, poly_deg, sd_val) {
 #' @return a padded data.table
 #' @export
 #'
-#' @import data.table
-#'
+#' @importFrom data.table data.table
 #' @examples
 #'
 #' dt <- data.table(x = runif(1000, -90, 90), y = rnorm(1000))
@@ -1115,23 +1114,25 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 
 #' Compute asymmetry in weighted probability density
 #'
-#' @param dt data.table with the data
-#' @param circ_space circular space (180 or 360)
-#' @param weights_sd standard deviation of the Gaussian windiw to the use across xvar
-#' @param kernel_bw bandwidth for the kernel density estimator across yvar
-#' @param xvar x-axis variable (normally, dissimilarity)
-#' @param yvar y-axis variable (normally, errors)
-#' @param by a vector of grouping variables names
-#' @param n the number of steps for the x-axis variable at which the density is computed
-#' @param average average the asymmetry for each x-value (default: T)
-#' @param return_full_density returns the full data.table with density computed at each point (default: F)
-#' @return data.table with several variables
+#' This function calculates the asymmetry in the probability density of a given variable (usually errors) relative to another variable (usually dissimilarity) using kernel density estimation. The asymmetry is computed for each x-axis value, and the result can be averaged or returned for each value individually.
+#'
+#' @param dt data.table with the data.
+#' @param circ_space Circular space, which can be 180 or 360 (default: 180).
+#' @param weights_sd Standard deviation of the Gaussian window to use across `xvar` (default: 10).
+#' @param kernel_bw Bandwidth for the kernel density estimator across `yvar`. If NULL, it is computed using [stats::bw.SJ()] (default: NULL).
+#' @param xvar X-axis variable, such as dissimilarity between items (default: "abs_td_dist").
+#' @param yvar Y-axis variable, normally errors (default: "bias_to_distr_corr").
+#' @param by A vector of grouping variable names (default: an empty vector).
+#' @param n The number of steps for the x-axis variable at which the density is computed (default: 181).
+#' @param average If TRUE, the asymmetry is averaged for each x-value (default: TRUE).
+#' @param return_full_density If TRUE, returns the full data.table with density computed at each point (default: FALSE).
+#' @return A data.table with the grouping variables, `dist` - the values of X-axis variable at which the density is computed, and `delta` - the difference (asymmetry) in probability density for positive and negative values of `yvar`; or the full density data if `return_full_density` is TRUE.
 #' @export
 #' @importFrom stats as.formula bw.SJ density weights
+#' @import data.table
 #'
 #' @examples
 #'
-#' library(data.table)
 #' data(Pascucci_et_al_2019_data)
 #' ex_data <- Pascucci_et_al_2019_data
 #' ex_data[, err := angle_diff_180(reported, orientation)] # response errors
@@ -1195,6 +1196,85 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
 
   if (average) {
     res <- res[!is.na(delta), .(delta = sum(delta)), by = c("dist", by)]
+  }
+
+  attr(res, "kernel_bw") <- kernel_bw
+
+  res
+}
+
+#' Compute asymmetry in discrete weighted probability density
+#'
+#' This function calculates the asymmetry in the probability density of a given variable using kernel density estimation. Unlike `density_asymmetry`, it does not take an `xvar` and assumes that the asymmetry is calculated for the whole dataset or subsets defined by `by` (which could also include a discrete x variable if needed) .
+#'
+#' @param dt data.table with the data.
+#' @param yvar Y-axis variable, normally errors (default: "bias_to_distr_corr").
+#' @param circ_space Circular space, which can be 180 or 360 (default: 180).
+#' @param kernel_bw Bandwidth for the kernel density estimator across `yvar`. If NULL, it is computed using [stats::bw.SJ()] (default: NULL).
+#' @param by A vector of grouping variable names (default: an empty vector).
+#' @param n The number of steps for the density computation (default: 181).
+#' @param average If TRUE, the asymmetry is averaged (default: TRUE).
+#' @param return_full_density If TRUE, returns the full data.table with density computed at each point (default: FALSE).
+#' @return A data.table with the grouping variables and `delta` - the difference (asymmetry) in probability density for positive and negative values of `yvar`; or the full density data if `return_full_density` is TRUE.
+#' @export
+#' @importFrom stats as.formula bw.SJ density weights
+#' @import data.table
+#'
+#' @examples
+#'
+#' data(Pascucci_et_al_2019_data)
+#' ex_data <- Pascucci_et_al_2019_data
+#' ex_data[, err := angle_diff_180(reported, orientation)] # response errors
+#' ex_data[, prev_ori := shift(orientation), by = observer] # orientation on previous trial
+#'
+#' # determine the shift in orientations between trials
+#' ex_data[, diff_in_ori := angle_diff_180(prev_ori, orientation)]
+#' ex_data[, abs_diff_in_ori := abs(diff_in_ori)]
+#' ex_data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err, err)]
+#' ex_data[, similarity_discrete := ifelse(abs_diff_in_ori>45, 'Dissimilar', 'Similar')]
+#' err_dens_discrete <- density_asymmetry_discrete(ex_data[!is.na(err_rel_to_prev_targ)],
+#'   circ_space = 180, yvar = "err_rel_to_prev_targ", by = c("observer","similarity_discrete")
+#' )
+#'
+#' ggplot(err_dens_discrete, aes(x = similarity_discrete, y = delta))+
+#' geom_violin() + geom_point() +
+#'   labs(y = "Asymmetry in error probability density, %", x = "Previous target")
+#'
+
+
+density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_space = 180, kernel_bw = NULL, by = c(), n = 181, average = T, return_full_density = F) {
+  x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- NULL # due to NSE notes in R CMD check
+
+  if (!(circ_space %in% c(180, 360))) {
+    stop("`circ_space` should be 180 or 360")
+  }
+
+  max_diss <- circ_space / 2
+  if (is.null(kernel_bw)) {
+    kernel_bw <- bw.SJ(dt[, get(yvar)])
+  }
+
+  res <- dt[, density(get(yvar),
+                      from = -max_diss, to = max_diss, n = n, bw = kernel_bw,
+  )[c("x", "y")], by = by]
+  res[, x_val := abs(x)]
+  res[, x_sign := sign(x)]
+
+  if (return_full_density) {
+    return(res)
+  }
+
+  res <- dcast(res,
+               as.formula(paste(paste(by, collapse = "+"), "+x_val~x_sign")),
+               value.var = "y"
+  )
+  res[, delta := `1` - `-1`]
+  res[, total := `1` + `-1`]
+  res[, ratio := `1` / `-1`]
+
+
+  if (average) {
+    res <- res[!is.na(delta), .(delta = sum(delta)), by = by]
   }
 
   attr(res, "kernel_bw") <- kernel_bw

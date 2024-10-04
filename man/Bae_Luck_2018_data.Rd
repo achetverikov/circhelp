@@ -28,7 +28,7 @@ A dataset with the motion estimation results from Bae & Luck (2018) available fr
 }
 \references{
 {
-Bae, G.-Y., & Luck, S. J. (2018). Decoding motion direction using the topography of sustained ERPs and alpha oscillations. NeuroImage, 184(August 2018), 242–255. \doi{10.1016/J.NEUROIMAGE.2018.09.029}
+Bae, G.-Y., & Luck, S. J. (2018). Decoding motion direction using the topography of sustained ERPs and alpha oscillations. NeuroImage, 184(August 2018), 242-255. \doi{10.1016/J.NEUROIMAGE.2018.09.029}
 }
 }
 \keyword{datasets}

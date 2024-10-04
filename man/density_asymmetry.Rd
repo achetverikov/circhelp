@@ -18,35 +18,34 @@ density_asymmetry(
 )
 }
 \arguments{
-\item{dt}{data.table with the data}
+\item{dt}{data.table with the data.}
 
-\item{circ_space}{circular space (180 or 360)}
+\item{circ_space}{Circular space, which can be 180 or 360 (default: 180).}
 
-\item{weights_sd}{standard deviation of the Gaussian windiw to the use across xvar}
+\item{weights_sd}{Standard deviation of the Gaussian window to use across \code{xvar} (default: 10).}
 
-\item{kernel_bw}{bandwidth for the kernel density estimator across yvar}
+\item{kernel_bw}{Bandwidth for the kernel density estimator across \code{yvar}. If NULL, it is computed using \code{\link[stats:bandwidth]{stats::bw.SJ()}} (default: NULL).}
 
-\item{xvar}{x-axis variable (normally, dissimilarity)}
+\item{xvar}{X-axis variable, such as dissimilarity between items (default: "abs_td_dist").}
 
-\item{yvar}{y-axis variable (normally, errors)}
+\item{yvar}{Y-axis variable, normally errors (default: "bias_to_distr_corr").}
 
-\item{by}{a vector of grouping variables names}
+\item{by}{A vector of grouping variable names (default: an empty vector).}
 
-\item{n}{the number of steps for the x-axis variable at which the density is computed}
+\item{n}{The number of steps for the x-axis variable at which the density is computed (default: 181).}
 
-\item{average}{average the asymmetry for each x-value (default: T)}
+\item{average}{If TRUE, the asymmetry is averaged for each x-value (default: TRUE).}
 
-\item{return_full_density}{returns the full data.table with density computed at each point (default: F)}
+\item{return_full_density}{If TRUE, returns the full data.table with density computed at each point (default: FALSE).}
 }
 \value{
-data.table with several variables
+A data.table with the grouping variables, \code{dist} - the values of X-axis variable at which the density is computed, and \code{delta} - the difference (asymmetry) in probability density for positive and negative values of \code{yvar}; or the full density data if \code{return_full_density} is TRUE.
 }
 \description{
-Compute asymmetry in weighted probability density
+This function calculates the asymmetry in the probability density of a given variable (usually errors) relative to another variable (usually dissimilarity) using kernel density estimation. The asymmetry is computed for each x-axis value, and the result can be averaged or returned for each value individually.
 }
 \examples{
 
-library(data.table)
 data(Pascucci_et_al_2019_data)
 ex_data <- Pascucci_et_al_2019_data
 ex_data[, err := angle_diff_180(reported, orientation)] # response errors
