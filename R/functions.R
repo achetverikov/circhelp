@@ -396,7 +396,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #' @references {
 #' \itemize{
 #' \item Chetverikov, A., & Jehee, J. F. M. (2023). Motion direction is represented as a bimodal probability distribution in the human visual cortex. Nature Communications, 14(7634). \doi{10.1038/s41467-023-43251-w}
-#' \item van Bergen, R. S., Ma, W. J., Pratte, M. S., & Jehee, J. F. M. (2015). Sensory uncertainty decoded from visual cortex predicts behavior. Nature Neuroscience, 18(12), 1728–1730. \doi{10.1038/nn.4150}
+#' \item van Bergen, R. S., Ma, W. J., Pratte, M. S., & Jehee, J. F. M. (2015). Sensory uncertainty decoded from visual cortex predicts behavior. Nature Neuroscience, 18(12), 1728-1730. \doi{10.1038/nn.4150}
 #' }
 #' }
 #' @export
@@ -796,10 +796,10 @@ make_plots_of_biases <- function(data, poly_deg, sd_val) {
 #' @return a padded data.table
 #' @export
 #'
-#' @importFrom data.table data.table
+#' @import data.table
 #' @examples
 #'
-#' dt <- data.table(x = runif(1000, -90, 90), y = rnorm(1000))
+#' dt <- data.table::data.table(x = runif(1000, -90, 90), y = rnorm(1000))
 #' pad_circ(dt, "x", verbose = TRUE)
 #'
 pad_circ <- function(data, circ_var, circ_borders = c(-90, 90), circ_part = 1 / 6, verbose = FALSE) {

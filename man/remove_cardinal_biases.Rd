@@ -121,7 +121,7 @@ remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
 {
 \itemize{
 \item Chetverikov, A., & Jehee, J. F. M. (2023). Motion direction is represented as a bimodal probability distribution in the human visual cortex. Nature Communications, 14(7634). \doi{10.1038/s41467-023-43251-w}
-\item van Bergen, R. S., Ma, W. J., Pratte, M. S., & Jehee, J. F. M. (2015). Sensory uncertainty decoded from visual cortex predicts behavior. Nature Neuroscience, 18(12), 1728–1730. \doi{10.1038/nn.4150}
+\item van Bergen, R. S., Ma, W. J., Pratte, M. S., & Jehee, J. F. M. (2015). Sensory uncertainty decoded from visual cortex predicts behavior. Nature Neuroscience, 18(12), 1728-1730. \doi{10.1038/nn.4150}
 }
 }
 }
