@@ -1,6 +1,11 @@
 url: https://achetverikov.github.io/circhelp/index.html
 template:
   bootstrap: 5
+  math-rendering: mathjax
+navbar:
+  structure:
+    left:  [intro, reference, articles, tutorials, news]
+    right: [search, github, lightswitch]
 reference:
 - title: Descriptive statistics
 - contents:

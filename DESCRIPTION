@@ -42,3 +42,4 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr, patchwork, ggplot2, MASS, gamlss, mgcv, ragg, Hmisc, apastats, ggridges, superb, reshape2
 RdMacros: mathjaxr
 Remotes: achetverikov/apastats
+BuildManual: TRUE 
