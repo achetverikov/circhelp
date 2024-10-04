@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">circhelp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -60,7 +60,7 @@
       <h1>Correcting for cardinal biases to improve serial dependence estimates</h1>
             
             <h4 data-toc-skip class="date">Publication Date:
-01/03/2022<br>Last updated: 04/09/2024</h4>
+01/03/2022<br>Last updated: 04/10/2024</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/achetverikov/circhelp/blob/main/vignettes/cardinal_biases.Rmd" class="external-link"><code>vignettes/cardinal_biases.Rmd</code></a></small>
       <div class="d-none name"><code>cardinal_biases.Rmd</code></div>
@@ -78,7 +78,7 @@ the data, the required packages, and compute important variables.</p>
 <span><span class="co"># data &lt;- fread('https://zenodo.org/record/2544946/files/Experiment2_rawdata.csv?download=1')</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="va">Pascucci_et_al_2019_data</span></span>
 <span><span class="va">data</span><span class="op">[</span>, <span class="va">err</span> <span class="op">:=</span> <span class="fu"><a href="../reference/angle_diff_rad.html">angle_diff_180</a></span><span class="op">(</span><span class="va">reported</span>, <span class="va">orientation</span><span class="op">)</span><span class="op">]</span> <span class="co"># response errors</span></span>
-<span><span class="va">data</span><span class="op">[</span>, <span class="va">prev_ori</span> <span class="op">:=</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/shift.html" class="external-link">shift</a></span><span class="op">(</span><span class="va">orientation</span><span class="op">)</span>, by <span class="op">=</span> <span class="va">observer</span><span class="op">]</span> <span class="co"># orientation on previous trial</span></span>
+<span><span class="va">data</span><span class="op">[</span>, <span class="va">prev_ori</span> <span class="op">:=</span> <span class="fu">shift</span><span class="op">(</span><span class="va">orientation</span><span class="op">)</span>, by <span class="op">=</span> <span class="va">observer</span><span class="op">]</span> <span class="co"># orientation on previous trial</span></span>
 <span><span class="va">data</span><span class="op">[</span>, <span class="va">diff_in_ori</span> <span class="op">:=</span> <span class="fu"><a href="../reference/angle_diff_rad.html">angle_diff_180</a></span><span class="op">(</span><span class="va">prev_ori</span>, <span class="va">orientation</span><span class="op">)</span><span class="op">]</span> <span class="co"># shift in orientations between trials</span></span></code></pre></div>
 <p>The responses in this data show a typical SD pattern with a bias
 towards previous orientations. I use the <code>pad_circ</code> function
@@ -153,7 +153,7 @@ error.</p>
 the previous item orientation (with the outliers removed) and plot
 them.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">datam</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/melt.data.table.html" class="external-link">melt</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">diff_in_ori</span><span class="op">)</span><span class="op">]</span>, id.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"diff_in_ori"</span>, <span class="st">"observer"</span>, <span class="st">"is_outlier"</span><span class="op">)</span>, measure.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"err"</span>, <span class="st">"err_corrected"</span>, <span class="st">"err_mean_corrected"</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">datam</span> <span class="op">&lt;-</span> <span class="fu">melt</span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">diff_in_ori</span><span class="op">)</span><span class="op">]</span>, id.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"diff_in_ori"</span>, <span class="st">"observer"</span>, <span class="st">"is_outlier"</span><span class="op">)</span>, measure.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"err"</span>, <span class="st">"err_corrected"</span>, <span class="st">"err_mean_corrected"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">datam</span><span class="op">[</span>, <span class="va">variablef</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">variable</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"err"</span>, <span class="st">"err_mean_corrected"</span>, <span class="st">"err_corrected"</span><span class="op">)</span>, labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Raw error"</span>, <span class="st">"Mean-corrected"</span>, <span class="st">"Mean and cardinal bias removed"</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="va">datam</span><span class="op">[</span>, <span class="va">err_rel_to_prev_targ</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">diff_in_ori</span> <span class="op">&lt;</span> <span class="fl">0</span>, <span class="op">-</span><span class="va">value</span>, <span class="va">value</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
@@ -209,7 +209,7 @@ compute the confidence intervals. These approaches are illustrated in
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
     </footer>
