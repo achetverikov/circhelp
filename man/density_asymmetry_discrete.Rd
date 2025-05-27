@@ -12,7 +12,8 @@ density_asymmetry_discrete(
   by = c(),
   n = 181,
   average = T,
-  return_full_density = F
+  return_full_density = F,
+  normalize = T
 )
 }
 \arguments{
@@ -22,7 +23,7 @@ density_asymmetry_discrete(
 
 \item{circ_space}{Circular space, which can be 180 or 360 (default: 180).}
 
-\item{kernel_bw}{Bandwidth for the kernel density estimator across \code{yvar}. If NULL, it is computed using \code{\link[stats:bandwidth]{stats::bw.SJ()}} (default: NULL).}
+\item{kernel_bw}{Bandwidth for the kernel density estimator across \code{yvar}. If NULL, it is computed using \code{\link[stats:bandwidth]{stats::bw.SJ()}}. If "average", it is computed using \code{\link[stats:bandwidth]{stats::bw.SJ()}} for each group indicated by \code{by} and then averaged. Otherwise it is passed to \code{\link[stats:density]{stats::density()}} (default: NULL).}
 
 \item{by}{A vector of grouping variable names (default: an empty vector).}
 
@@ -31,6 +32,8 @@ density_asymmetry_discrete(
 \item{average}{If TRUE, the asymmetry is averaged (default: TRUE).}
 
 \item{return_full_density}{If TRUE, returns the full data.table with density computed at each point (default: FALSE).}
+
+\item{normalize}{if TRUE, normalizes the difference in probability density by the total sum of probability density (with zero point excluded). Delta then corresponds to the probability of observing a given sign. In use only when average is TRUE.}
 }
 \value{
 A data.table with the grouping variables and \code{delta} - the difference (asymmetry) in probability density for positive and negative values of \code{yvar}; or the full density data if \code{return_full_density} is TRUE.

@@ -1119,13 +1119,14 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #' @param dt data.table with the data.
 #' @param circ_space Circular space, which can be 180 or 360 (default: 180).
 #' @param weights_sd Standard deviation of the Gaussian window to use across `xvar` (default: 10).
-#' @param kernel_bw Bandwidth for the kernel density estimator across `yvar`. If NULL, it is computed using [stats::bw.SJ()] (default: NULL).
+#' @param kernel_bw Bandwidth for the kernel density estimator across `yvar`. If NULL, it is computed using [stats::bw.SJ()]. If "average", it is computed using [stats::bw.SJ()] for each group indicated by `by` and then averaged. Otherwise it is passed to [stats::density()] (default: NULL).
 #' @param xvar X-axis variable, such as dissimilarity between items (default: "abs_td_dist").
 #' @param yvar Y-axis variable, normally errors (default: "bias_to_distr_corr").
 #' @param by A vector of grouping variable names (default: an empty vector).
 #' @param n The number of steps for the x-axis variable at which the density is computed (default: 181).
 #' @param average If TRUE, the asymmetry is averaged for each x-value (default: TRUE).
 #' @param return_full_density If TRUE, returns the full data.table with density computed at each point (default: FALSE).
+#' @param normalize if TRUE, normalizes the difference in probability density by the total sum of probability density (with zero point excluded). Delta then corresponds to the probability of observing a given sign. In use only when average is TRUE.
 #' @return A data.table with the grouping variables, `dist` - the values of X-axis variable at which the density is computed, and `delta` - the difference (asymmetry) in probability density for positive and negative values of `yvar`; or the full density data if `return_full_density` is TRUE.
 #' @export
 #' @importFrom stats as.formula bw.SJ density weights
@@ -1152,7 +1153,7 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #'   geom_line(stat = "summary", fun = mean) +
 #'   labs(y = "Asymmetry in error probability density, %", x = "Absolute orientation difference, °")
 #'
-density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = "abs_td_dist", yvar = "bias_to_distr_corr", by = c(), n = 181, average = T, return_full_density = F) {
+density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = "abs_td_dist", yvar = "bias_to_distr_corr", by = c(), n = 181, average = T, return_full_density = F, normalize = T) {
   x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- NULL # due to NSE notes in R CMD check
 
   if (!(circ_space %in% c(180, 360))) {
@@ -1162,6 +1163,8 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
   max_diss <- circ_space / 2
   if (is.null(kernel_bw)) {
     kernel_bw <- bw.SJ(dt[, get(yvar)])
+  } else if (kernel_bw == 'average'){
+    kernel_bw <- dt[, bw.SJ(get(yvar)), by = by][, mean(V1)]
   }
 
   res <- rbindlist(sapply(1:max_diss, \(i) {
@@ -1195,7 +1198,12 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
   }
 
   if (average) {
-    res <- res[!is.na(delta), .(delta = sum(delta)), by = c("dist", by)]
+    if (normalize){
+      res <- res[!is.na(delta), .(delta = sum(delta)/sum(total)), by = c("dist", by)]
+    } else {
+      res <- res[!is.na(delta), .(delta = sum(delta)), by = c("dist", by)]
+    }
+
   }
 
   attr(res, "kernel_bw") <- kernel_bw
@@ -1210,11 +1218,12 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
 #' @param dt data.table with the data.
 #' @param yvar Y-axis variable, normally errors (default: "bias_to_distr_corr").
 #' @param circ_space Circular space, which can be 180 or 360 (default: 180).
-#' @param kernel_bw Bandwidth for the kernel density estimator across `yvar`. If NULL, it is computed using [stats::bw.SJ()] (default: NULL).
+#' @param kernel_bw Bandwidth for the kernel density estimator across `yvar`. If NULL, it is computed using [stats::bw.SJ()]. If "average", it is computed using [stats::bw.SJ()] for each group indicated by `by` and then averaged. Otherwise it is passed to [stats::density()] (default: NULL).
 #' @param by A vector of grouping variable names (default: an empty vector).
 #' @param n The number of steps for the density computation (default: 181).
 #' @param average If TRUE, the asymmetry is averaged (default: TRUE).
 #' @param return_full_density If TRUE, returns the full data.table with density computed at each point (default: FALSE).
+#' @param normalize if TRUE, normalizes the difference in probability density by the total sum of probability density (with zero point excluded). Delta then corresponds to the probability of observing a given sign. In use only when average is TRUE.
 #' @return A data.table with the grouping variables and `delta` - the difference (asymmetry) in probability density for positive and negative values of `yvar`; or the full density data if `return_full_density` is TRUE.
 #' @export
 #' @importFrom stats as.formula bw.SJ density weights
@@ -1242,7 +1251,7 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
 #'
 
 
-density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_space = 180, kernel_bw = NULL, by = c(), n = 181, average = T, return_full_density = F) {
+density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_space = 180, kernel_bw = NULL, by = c(), n = 181, average = T, return_full_density = F, normalize = T) {
   x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- NULL # due to NSE notes in R CMD check
 
   if (!(circ_space %in% c(180, 360))) {
@@ -1252,6 +1261,8 @@ density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_spa
   max_diss <- circ_space / 2
   if (is.null(kernel_bw)) {
     kernel_bw <- bw.SJ(dt[, get(yvar)])
+  }  else if (kernel_bw == 'average'){
+    kernel_bw <- dt[, bw.SJ(get(yvar)), by = by][, mean(V1)]
   }
 
   res <- dt[, density(get(yvar),
@@ -1272,9 +1283,14 @@ density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_spa
   res[, total := `1` + `-1`]
   res[, ratio := `1` / `-1`]
 
-
   if (average) {
-    res <- res[!is.na(delta), .(delta = sum(delta)), by = by]
+    if (normalize){
+      res <- res[!is.na(delta), .(delta = sum(delta)/sum(total)), by = by]
+    } else {
+      res <- res[!is.na(delta), .(delta = sum(delta)), by = by]
+    }
+
+
   }
 
   attr(res, "kernel_bw") <- kernel_bw
