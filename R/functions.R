@@ -1167,31 +1167,48 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
     kernel_bw <- dt[, .(bw_est = bw.SJ(get(yvar))), by = by][, mean(bw_est)]
   }
 
-  res <- rbindlist(sapply(1:max_diss, \(i) {
-    dt[, weights := dnorm(get(xvar), mean = i, sd = weights_sd)]
+  # Compute all weights at once using matrix operations
+  dist_grid <- 1:max_diss
+  x_data <- dt[, get(xvar)]
+  weight_matrix <- exp(-0.5 * outer(x_data, dist_grid, FUN = function(x, d) ((x - d) / weights_sd)^2)) / (sqrt(2 * pi) * weights_sd)
+  weight_matrix <- sweep(weight_matrix, 2, colSums(weight_matrix), FUN = "/")
 
-    res <- dt[, density(get(yvar),
-      from = -max_diss, to = max_diss, n = n, bw = kernel_bw,
-      weights = weights / sum(weights)
-    )[c("x", "y")], by = by]
-    res[, x_val := abs(x)]
-    res[, x_sign := sign(x)]
-    res$dist <- i
+  # Compute density for all i values at once, grouped by 'by' variables
+  x_grid <- seq(-max_diss, max_diss, length.out = n)
 
-    if (return_full_density) {
-      return(res)
-    }
+  res <- dt[, {
+    y_data <- get(yvar)
+    dist_matrix <- outer(x_grid, y_data, FUN = "-")
+    kernel_base <- exp(-0.5 * (dist_matrix / kernel_bw)^2) / (sqrt(2 * pi) * kernel_bw)
 
-    res <- dcast(res,
-      as.formula(paste(paste(by, collapse = "+"), "+dist+x_val~x_sign")),
-      value.var = "y"
+    # Get weights for this group
+    group_weights <- weight_matrix[.I, , drop = FALSE]
+
+    # Compute all density values for this group
+    all_density_vals <- kernel_base %*% group_weights
+
+    # Create result for this group
+    data.table(
+      x = x_grid,
+      y = as.vector(all_density_vals),
+      dist = rep(1:max_diss, each = n)
     )
-    res[, delta := `1` - `-1`]
-    res[, total := `1` + `-1`]
-    res[, ratio := `1` / `-1`]
+  }, by = by]
 
-    res
-  }, simplify = F))
+  res[, x_val := abs(x)]
+  res[, x_sign := sign(x)]
+
+  if (return_full_density) {
+    return(res)
+  }
+
+  res <- dcast(res,
+    as.formula(paste(paste(by, collapse = "+"), "+dist+x_val~x_sign")),
+    value.var = "y"
+  )
+  res[, delta := `1` - `-1`]
+  res[, total := `1` + `-1`]
+  res[, ratio := `1` / `-1`]
 
   if (return_full_density) {
     return(res)
@@ -1203,13 +1220,14 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
     } else {
       res <- res[!is.na(delta), .(delta = sum(delta)), by = c("dist", by)]
     }
-
   }
 
   attr(res, "kernel_bw") <- kernel_bw
 
   res
 }
+
+
 
 #' Compute asymmetry in weighted probability density for discrete data
 #'
@@ -1250,7 +1268,6 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
 #' geom_violin() + geom_point() +
 #'   labs(y = "Asymmetry in error probability density, %", x = "Previous target")
 #'
-
 
 density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_space = 180, kernel_bw = NULL, by = c(), n = 181, average = T, return_full_density = F, normalize = T) {
   x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- bw_est <- NULL # due to NSE notes in R CMD check
