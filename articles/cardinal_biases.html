@@ -66,7 +66,7 @@
       <h1>Correcting for cardinal biases to improve serial dependence estimates</h1>
             
             <h4 data-toc-skip class="date">Publication Date:
-01/03/2022<br>Last updated: 27/05/2025</h4>
+01/03/2022<br>Last updated: 11/08/2025</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/achetverikov/circhelp/blob/main/vignettes/cardinal_biases.Rmd" class="external-link"><code>vignettes/cardinal_biases.Rmd</code></a></small>
       <div class="d-none name"><code>cardinal_biases.Rmd</code></div>
@@ -172,7 +172,7 @@ them.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>y <span class="op">=</span> <span class="st">"Error, °"</span>, x <span class="op">=</span> <span class="st">"Orientation difference, °"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
-<p><img src="cardinal_biases_files/figure-html/unnamed-chunk-4-1.png" width="100%" height="40%"></p>
+<p><img src="cardinal_biases_files/figure-html/raw_vs_corrected-1.png" width="100%" height="40%"></p>
 <p>To make things clearer, I plot serial dependence as a function of
 absolute orientation differences.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
@@ -192,7 +192,7 @@ absolute orientation differences.</p>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">90</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; `geom_smooth()` using formula = 'y ~ x'</span></span></code></pre></div>
-<p><img src="cardinal_biases_files/figure-html/unnamed-chunk-5-1.png" width="100%" height="40%"></p>
+<p><img src="cardinal_biases_files/figure-html/serdep_collapsed-1.png" width="100%" height="40%"></p>
 <p>As you can see, when estimated using error corrected for cardinal
 bias, SD looks “better” in the sense that around zero (where no bias is
 expected), the SD is closer to zero, and there is also less of a bump
