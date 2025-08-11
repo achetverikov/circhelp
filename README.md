@@ -40,31 +40,29 @@ Most functions are self-explanatory.
 
 ``` r
 library(circhelp)
-#> Loading required package: data.table
-#> Loading required package: ggplot2
 library(mgcv)
 #> Loading required package: nlme
-#> This is mgcv 1.9-1. For overview type 'help("mgcv-package")'.
+#> This is mgcv 1.9-3. For overview type 'help("mgcv-package")'.
 # compute a set of descriptive statistics
 x <- rnorm(500)
 circ_descr(x)
 #> $mu
-#> [1] 0.02023446
+#> [1] 0.01289167
 #> 
 #> $sigma
-#> [1] 0.9415005
+#> [1] 0.9319964
 #> 
 #> $skew_pewsey
-#> [1] 0.01683586
+#> [1] -0.009480068
 #> 
 #> $skew_fischer
-#> [1] 0.0473933
+#> [1] -0.06900768
 #> 
 #> $rho
-#> [1] 0.6419714
+#> [1] 0.6477123
 #> 
 #> $skew_rel_to_zero
-#> [1] 0.02349117
+#> [1] -0.004524587
 
 # compute difference in orientations
 a <- 5
@@ -79,7 +77,7 @@ angle_diff_360(a, b)
 # compute correlation between angles
 data <- rmvn(10000, c(0, 0), V = matrix(c(1, 0.5, 0.5, 1), ncol = 2))
 circ_corr(data[, 1], data[, 2])
-#> [1] 0.4269736
+#> [1] 0.452809
 ```
 
 The only (somewhat) complicated function is `remove_cardinal_biases`,
@@ -88,4 +86,4 @@ files](https://achetverikov.github.io/circhelp/reference/remove_cardinal_biases.
 and [the
 vignette](https://achetverikov.github.io/circhelp/articles/cardinal_biases.html)
 for an example use case.
-<img src="https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png" title="Example of cardinal biases processing" width="100%"/>
+<img src="https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png" title="Example of cardinal biases processing" width="100%"  alt="Three side-by-side scatter plots showing response errors in a circular orientation task. Left panel: raw errors versus stimulus orientation, with two orientation bins in blue and green and curved trend lines showing systematic bias near cardinal orientations. Middle panel: same data after correcting for bias, with errors centered closer to zero. Right panel: estimated bias values for each orientation, with circles for regular points and triangles marking outliers."/>

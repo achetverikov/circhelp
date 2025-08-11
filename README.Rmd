@@ -60,4 +60,4 @@ circ_corr(data[, 1], data[, 2])
 ```
 
 The only (somewhat) complicated function is `remove_cardinal_biases`, see the [help files](https://achetverikov.github.io/circhelp/reference/remove_cardinal_biases.html) and [the vignette](https://achetverikov.github.io/circhelp/articles/cardinal_biases.html) for an example use case.
-<img src="https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png" title="Example of cardinal biases processing" width="100%"/>
+<img src="https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png" title="Example of cardinal biases processing" width="100%"  alt="Three side-by-side scatter plots showing response errors in a circular orientation task. Left panel: raw errors versus stimulus orientation, with two orientation bins in blue and green and curved trend lines showing systematic bias near cardinal orientations. Middle panel: same data after correcting for bias, with errors centered closer to zero. Right panel: estimated bias values for each orientation, with circles for regular points and triangles marking outliers."/>
