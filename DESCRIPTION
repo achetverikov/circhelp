@@ -27,15 +27,16 @@ Suggests:
     ggridges,
     reshape2
 Imports:
-    data.table,
-    gamlss,
-    MASS,
     mathjaxr,
-    patchwork
-Depends:
+    data.table,
     stats,
     ggplot2,
-    R (>= 2.10)
+    gamlss,
+    MASS,
+    patchwork,
+    rlang
+Depends:
+    R (>= 4.1.0)
 Config/testthat/edition: 3
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)

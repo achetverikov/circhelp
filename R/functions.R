@@ -555,10 +555,10 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   for_fit[, gr_var := bin_labels[min_bp_i]]
 
   if (plots == "show" & debug == TRUE) {
-    p_boundaries <- ggplot(for_fit, aes(x = x, y = err, color = gr_var)) +
+    p_boundaries <- ggplot(for_fit, aes(x = .data$x, y = .data$err, color = .data$gr_var)) +
       geom_point() +
-      geom_vline(xintercept = angle_diff_fun(break_points, 0)) +
-      geom_vline(color = "blue", xintercept = angle_diff_fun(bin_centers, 0))
+      ggplot2::geom_vline(xintercept = angle_diff_fun(break_points, 0)) +
+      ggplot2::geom_vline(color = "blue", xintercept = angle_diff_fun(bin_centers, 0))
     print(p_boundaries)
   }
   for_fit[, min_boundary_i := apply(sapply(break_points, \(bp) abs(angle_diff_fun(x, bp))), 1, which.min)]
@@ -654,9 +654,9 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       for_fit[gr_var == cg, bias := err * sign(pred)]
 
       if (debug) {
-        p_pred <- ggplot(for_fit[gr_var == cg], aes(x = dist_to_bin_centre, y = err)) +
+        p_pred <- ggplot(for_fit[gr_var == cg], aes(x = .data$dist_to_bin_centre, y = .data$err)) +
           geom_point() +
-          geom_line(aes(y = pred))
+          geom_line(aes(y = .data$pred))
         print(p_pred)
       }
       for_fit[gr_var == cg, c("coef_sigma_int", "coef_sigma_slope") := data.frame(t(coef(fit, what = "sigma")))]
@@ -738,7 +738,6 @@ remove_cardinal_biases_discrete <- function(err, x, space, init_outliers = NULL)
 #'
 #' @return does not return anything
 #'
-#' @import ggplot2
 #' @importFrom patchwork wrap_plots
 #' @keywords internal
 #'
@@ -756,24 +755,24 @@ make_plots_of_biases <- function(data, poly_deg, sd_val) {
   )
   alpha <- 100 / data[, .N] * length(unique(data$gr_var))
 
-  p1 <- ggplot(data = data[outlier == FALSE], aes(x = x_var, color = gr_var)) +
-    geom_point(data = data, aes(y = err, shape = outlier_f), alpha = alpha) +
-    geom_line(aes(y = pred), size = 1) +
-    geom_line(aes(y = pred + 3 * pred_sigma)) +
-    geom_line(aes(y = pred - 3 * pred_sigma)) +
+  p1 <- ggplot(data = data[outlier == FALSE], aes(x = .data$x_var, color = .data$gr_var)) +
+    geom_point(data = data, aes(y = .data$err, shape = .data$outlier_f), alpha = alpha) +
+    geom_line(aes(y = .data$pred), size = 1) +
+    geom_line(aes(y = .data$pred + 3 * .data$pred_sigma)) +
+    geom_line(aes(y = .data$pred - 3 * .data$pred_sigma)) +
     geom_hline(yintercept = c(-1, 1) * data[, 3 * sd_val], linetype = 2) +
     common_plot_pars +
     labs(y = "Error")
 
-  p1a <- ggplot(data = data[outlier == FALSE], aes(x = x_var, color = gr_var)) +
-    geom_point(data = data, aes(y = be_c, shape = outlier_f), alpha = alpha) +
+  p1a <- ggplot(data = data[outlier == FALSE], aes(x = .data$x_var, color = .data$gr_var)) +
+    geom_point(data = data, aes(y = .data$be_c, shape = .data$outlier_f), alpha = alpha) +
     geom_hline(yintercept = c(-1, 1) * data[, 3 * circ_sd_180(be_c)], linetype = 2) +
-    geom_line(data = data[outlier == FALSE], aes(y = 3 * pred_sigma)) +
-    geom_line(data = data[outlier == FALSE], aes(y = -3 * pred_sigma)) +
+    geom_line(data = data[outlier == FALSE], aes(y = 3 * .data$pred_sigma)) +
+    geom_line(data = data[outlier == FALSE], aes(y = -3 * .data$pred_sigma)) +
     common_plot_pars +
     labs(y = "Bias-corrected error")
 
-  p1b <- ggplot(data, aes(x = x_var, y = bias, color = gr_var, shape = outlier_f)) +
+  p1b <- ggplot(data, aes(x = .data$x_var, y = .data$bias, color = .data$gr_var, shape = .data$outlier_f)) +
     geom_point(alpha = alpha) +
     common_plot_pars +
     geom_hline(yintercept = c(-1, 1) * data[, 3 * sd_val], linetype = 2) +
@@ -1039,6 +1038,7 @@ predict.circ_loess <- function(object, newdata, ...) {
 #' @export
 #'
 #' @examples
+#' library(ggplot2)
 #' p <- ggplot(Pascucci_et_al_2019_data, aes(x = orientation, y = err)) +
 #'   geom_point(alpha = 0.05) +
 #'   labs(x = "Orientation, deg.", y = "Error, deg.")
@@ -1131,7 +1131,6 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #' @export
 #' @importFrom stats as.formula bw.SJ density weights
 #' @import data.table
-#'
 #' @examples
 #'
 #' data(Pascucci_et_al_2019_data)
@@ -1149,12 +1148,13 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #'   yvar = "err_rel_to_prev_targ", by = c("observer")
 #' )
 #'
+#' library(ggplot2)
 #' ggplot(err_dens, aes(x = dist, y = delta)) +
 #'   geom_line(stat = "summary", fun = mean) +
 #'   labs(y = "Asymmetry in error probability density, %", x = "Absolute orientation difference, °")
 #'
 density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = "abs_td_dist", yvar = "bias_to_distr_corr", by = c(), n = 181, average = T, return_full_density = F, normalize = T) {
-  x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- NULL # due to NSE notes in R CMD check
+  x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- bw_est <- . <- NULL # due to NSE notes in R CMD check
 
   if (!(circ_space %in% c(180, 360))) {
     stop("`circ_space` should be 180 or 360")
@@ -1164,7 +1164,7 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
   if (is.null(kernel_bw)) {
     kernel_bw <- bw.SJ(dt[, get(yvar)])
   } else if (kernel_bw == 'average'){
-    kernel_bw <- dt[, bw.SJ(get(yvar)), by = by][, mean(V1)]
+    kernel_bw <- dt[, .(bw_est = bw.SJ(get(yvar))), by = by][, mean(bw_est)]
   }
 
   res <- rbindlist(sapply(1:max_diss, \(i) {
@@ -1245,6 +1245,7 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
 #'   circ_space = 180, yvar = "err_rel_to_prev_targ", by = c("observer","similarity_discrete")
 #' )
 #'
+#' library(ggplot2)
 #' ggplot(err_dens_discrete, aes(x = similarity_discrete, y = delta))+
 #' geom_violin() + geom_point() +
 #'   labs(y = "Asymmetry in error probability density, %", x = "Previous target")
@@ -1252,7 +1253,7 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
 
 
 density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_space = 180, kernel_bw = NULL, by = c(), n = 181, average = T, return_full_density = F, normalize = T) {
-  x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- NULL # due to NSE notes in R CMD check
+  x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- bw_est <- NULL # due to NSE notes in R CMD check
 
   if (!(circ_space %in% c(180, 360))) {
     stop("`circ_space` should be 180 or 360")
@@ -1262,7 +1263,7 @@ density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_spa
   if (is.null(kernel_bw)) {
     kernel_bw <- bw.SJ(dt[, get(yvar)])
   }  else if (kernel_bw == 'average'){
-    kernel_bw <- dt[, bw.SJ(get(yvar)), by = by][, mean(V1)]
+    kernel_bw <- dt[, .(bw_est = bw.SJ(get(yvar))), by = by][, mean(bw_est)]
   }
 
   res <- dt[, density(get(yvar),
@@ -1289,8 +1290,6 @@ density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_spa
     } else {
       res <- res[!is.na(delta), .(delta = sum(delta)), by = by]
     }
-
-
   }
 
   attr(res, "kernel_bw") <- kernel_bw

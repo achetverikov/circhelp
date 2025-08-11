@@ -15,7 +15,6 @@ library(patchwork)
 library(circhelp)
 library(data.table)
 library(ggplot2)
-library(ggridges)
 
 if (requireNamespace("ragg", quietly = TRUE)) {
   knitr::opts_chunk$set(dev = "ragg_png")
@@ -127,7 +126,7 @@ data[, err_mean_corrected := angle_diff_180(err, circ_mean_180(err)), by = obser
 
 Then, I plot these errors along with the raw errors as a function of the previous item orientation (with the outliers removed) and plot them. 
 
-```{r, fig.width = fig_width*3, out.width='100%'}
+```{r raw_vs_corrected, fig.width = fig_width*3, out.width='100%'}
 datam <- melt(data[!is.na(diff_in_ori)], id.vars = c("diff_in_ori", "observer", "is_outlier"), measure.vars = c("err", "err_corrected", "err_mean_corrected"))
 datam[, variablef := factor(variable, levels = c("err", "err_mean_corrected", "err_corrected"), labels = c("Raw error", "Mean-corrected", "Mean and cardinal bias removed"))]
 datam[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -value, value)]
@@ -143,7 +142,7 @@ ggplot(pad_circ(datam[is_outlier == F], "diff_in_ori"), aes(x = diff_in_ori, y =
 
 To make things clearer, I plot serial dependence as a function of absolute orientation differences. 
 
-```{r, fig.width = fig_width*3, out.width='100%'}
+```{r serdep_collapsed, fig.width = fig_width*3, out.width='100%'}
 ggplot(datam[is_outlier == F], aes(
   x = abs(diff_in_ori),
   y = err_rel_to_prev_targ,

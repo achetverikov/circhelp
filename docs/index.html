@@ -6,11 +6,17 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Circular Analyses Helper Functions • circhelp</title>
-<script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.4.2/css/all.min.css" rel="stylesheet">
-<link href="deps/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><script src="deps/MathJax-3.2.2/tex-chtml.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Circular Analyses Helper Functions">
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Circular Analyses Helper Functions">
 <meta name="description" content="Light-weight functions for computing descriptive statistics in different circular spaces (e.g., 2pi, 180, or 360 degrees), to handle angle-dependent biases, pad circular data, and more. Specifically aimed for psychologists and neuroscientists analyzing circular data. Basic methods are based on Jammalamadaka and SenGupta (2001) &lt;doi:10.1142/4031&gt;, removal of cardinal biases is based on the approach introduced in van Bergen, Ma, Pratte, &amp; Jehee (2015) &lt;doi:10.1038/nn.4150&gt; and Chetverikov and Jehee (2023) &lt;doi:10.1038/s41467-023-43251-w&gt;.">
 <meta property="og:description" content="Light-weight functions for computing descriptive statistics in different circular spaces (e.g., 2pi, 180, or 360 degrees), to handle angle-dependent biases, pad circular data, and more. Specifically aimed for psychologists and neuroscientists analyzing circular data. Basic methods are based on Jammalamadaka and SenGupta (2001) &lt;doi:10.1142/4031&gt;, removal of cardinal biases is based on the approach introduced in van Bergen, Ma, Pratte, &amp; Jehee (2015) &lt;doi:10.1038/nn.4150&gt; and Chetverikov and Jehee (2023) &lt;doi:10.1038/s41467-023-43251-w&gt;.">
 </head>
@@ -116,7 +122,7 @@
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/mgcv/man/rmvn.html" class="external-link">rmvn</a></span><span class="op">(</span><span class="fl">10000</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, V <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0.5</span>, <span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/circ_corr.html">circ_corr</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, <span class="va">data</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.4269736</span></span></code></pre></div>
-<p>The only (somewhat) complicated function is <code>remove_cardinal_biases</code>, see the <a href="https://achetverikov.github.io/circhelp/reference/remove_cardinal_biases.html" class="external-link">help files</a> and <a href="https://achetverikov.github.io/circhelp/articles/cardinal_biases.html" class="external-link">the vignette</a> for an example use case. <img src="https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png" title="Example of cardinal biases processing" width="100%"></p>
+<p>The only (somewhat) complicated function is <code>remove_cardinal_biases</code>, see the <a href="https://achetverikov.github.io/circhelp/reference/remove_cardinal_biases.html" class="external-link">help files</a> and <a href="https://achetverikov.github.io/circhelp/articles/cardinal_biases.html" class="external-link">the vignette</a> for an example use case. <img src="https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png" title="Example of cardinal biases processing" width="100%" alt="Three side-by-side scatter plots showing response errors in a circular orientation task. Left panel: raw errors versus stimulus orientation, with two orientation bins in blue and green and curved trend lines showing systematic bias near cardinal orientations. Middle panel: same data after correcting for bias, with errors centered closer to zero. Right panel: estimated bias values for each orientation, with circles for regular points and triangles marking outliers."></p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -147,8 +153,8 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Andrey Chetverikov <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2767-6310" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
-<li>Eline Van Geert <br><small class="roles"> Contributor </small> <a href="https://orcid.org/0000-0002-7848-5998" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a> </li>
+<li>Andrey Chetverikov <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0003-2767-6310" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Eline Van Geert <br><small class="roles"> Contributor </small> <a href="https://orcid.org/0000-0002-7848-5998" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 
@@ -168,7 +174,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

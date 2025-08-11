@@ -20,6 +20,8 @@
 #' @importFrom stats uniroot
 #' @importFrom stats weighted.mean
 ## usethis namespace: end
+#' @importFrom ggplot2 aes geom_hline geom_line geom_point geom_smooth geom_violin geom_vline ggplot ggtitle guide_legend guides labs scale_x_continuous theme
+#' @importFrom rlang .data
 #' @import mathjaxr
 
 NULL

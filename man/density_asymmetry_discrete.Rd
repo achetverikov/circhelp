@@ -57,6 +57,7 @@ err_dens_discrete <- density_asymmetry_discrete(ex_data[!is.na(err_rel_to_prev_t
   circ_space = 180, yvar = "err_rel_to_prev_targ", by = c("observer","similarity_discrete")
 )
 
+library(ggplot2)
 ggplot(err_dens_discrete, aes(x = similarity_discrete, y = delta))+
 geom_violin() + geom_point() +
   labs(y = "Asymmetry in error probability density, \%", x = "Previous target")

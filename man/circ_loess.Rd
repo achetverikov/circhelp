@@ -55,6 +55,7 @@ Weights for the regression are computed as
 where \emph{d} is the angular difference between the point at which the estimate is computed and the angles in the data, and \mjseqn{d_{max}} is the maximum possible distance. If \code{span} is above 1, all points are included and \mjseqn{d_{max} = {circ\_space}/(4*span)}. Otherwise, a proportion \mjseqn{\alpha} of the points included based on their distance to the point at which the estimate is computed and \mjseqn{d_{max}} is the corresponding maximal distance.
 }
 \examples{
+library(ggplot2)
 p <- ggplot(Pascucci_et_al_2019_data, aes(x = orientation, y = err)) +
   geom_point(alpha = 0.05) +
   labs(x = "Orientation, deg.", y = "Error, deg.")

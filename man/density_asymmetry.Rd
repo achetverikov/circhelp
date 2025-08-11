@@ -64,6 +64,7 @@ err_dens <- density_asymmetry(ex_data[!is.na(err_rel_to_prev_targ)],
   yvar = "err_rel_to_prev_targ", by = c("observer")
 )
 
+library(ggplot2)
 ggplot(err_dens, aes(x = dist, y = delta)) +
   geom_line(stat = "summary", fun = mean) +
   labs(y = "Asymmetry in error probability density, \%", x = "Absolute orientation difference, °")
