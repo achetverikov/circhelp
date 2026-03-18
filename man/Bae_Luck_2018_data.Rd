@@ -18,13 +18,13 @@ A data frame with 20480 rows and 8 variables:
 }
 }
 \source{
-\url{https://osf.io/4m2kb/download}
+\url{https://osf.io/download/4m2kb}
 }
 \usage{
 Bae_Luck_2018_data
 }
 \description{
-A dataset with the motion estimation results from Bae & Luck (2018) available from https://osf.io/4m2kb/ (some variables are removed, see the link for the full dataset).
+A dataset with the motion estimation results from Bae & Luck (2018) available from https://osf.io/download/4m2kb (some variables are removed, see the link for the full dataset).
 }
 \references{
 {

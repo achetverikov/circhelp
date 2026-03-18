@@ -1,6 +1,6 @@
 ## code to prepare `Bae_Luck_2018_data` dataset goes here
 
-Bae_Luck_2018_data <- fread("https://osf.io/4m2kb/download")
+Bae_Luck_2018_data <- fread("https://osf.io/download/4m2kb")
 Bae_Luck_2018_data[, Duration := NULL]
 Bae_Luck_2018_data[, AngularError := NULL]
 Bae_Luck_2018_data[, TarBinID := NULL]
