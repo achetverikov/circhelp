@@ -11,6 +11,7 @@ reference:
 - contents:
   - starts_with("circ_mean_")
   - starts_with("circ_sd_")
+  - smoothed_circ_sd
   - starts_with("circ_descr")
   - starts_with("weighted")
 - title: Cardinal biases
