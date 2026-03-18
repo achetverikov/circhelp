@@ -1,4 +1,4 @@
-# circhelp 1.1.4
+# circhelp 1.2
 
 * Switched dependency from `apastats` to `apastats2`.
 * Updated vignette examples to use `apastats2::`.
