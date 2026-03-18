@@ -126,9 +126,9 @@ We can then compute the statistics to test whether the bias is different from ze
 
 As a comparison, one can use binned errors:
 ```{r}
-data[, abs_diff_in_ori_bin := apastats::adv_cut(abs_diff_in_ori, cuts = seq(0, 90, 10), include_oob = T, num_labels = F, labels_at_means = T)]
+data[, abs_diff_in_ori_bin := apastats2::adv_cut(abs_diff_in_ori, cuts = seq(0, 90, 10), include_oob = T, num_labels = F, labels_at_means = T)]
 
-mean_err <- apastats::get_superb_ci(data[!is.na(err_rel_to_prev_targ) & is_outlier == F], wid = "observer", within = "abs_diff_in_ori_bin", value_var = "err_rel_to_prev_targ")
+mean_err <- apastats2::get_superb_ci(data[!is.na(err_rel_to_prev_targ) & is_outlier == F], wid = "observer", within = "abs_diff_in_ori_bin", value_var = "err_rel_to_prev_targ")
 setDT(mean_err)
 mean_err[, abs_diff_in_ori_bin := as.numeric(as.character(abs_diff_in_ori_bin))]
 ```
