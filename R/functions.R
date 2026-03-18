@@ -1313,3 +1313,208 @@ density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_spa
 
   res
 }
+
+
+#' Compute smoothed estimate of circular standard deviation
+#'
+#' This function calculates smoothed estimates of circular standard deviation using weighted kernel density estimation. It works similarly to `density_asymmetry` by applying Gaussian weights across an x-axis variable to compute localized circular SD estimates.
+#'
+#' @param dt data.table with the data.
+#' @param circ_space Circular space, which can be 180 or 360 (default: 180).
+#' @param weights_sd Standard deviation of the Gaussian window to use across `xvar` (default: 10).
+#' @param xvar X-axis variable, such as dissimilarity between items (default: "abs_td_dist").
+#' @param yvar Y-axis variable, normally errors (default: "err").
+#' @param by A vector of grouping variable names (default: an empty vector).
+#' @param n_points The number of points along the x-axis at which to compute circular SD (default: 91).
+#'
+#' @return A data.table with the grouping variables, `dist` - the values of X-axis variable at which the circular SD is computed, and `circ_sd` - the smoothed circular standard deviation estimate at each point.
+#' @export
+#' @import data.table
+#' @examples
+#'
+#' data(Pascucci_et_al_2019_data)
+#' ex_data <- Pascucci_et_al_2019_data
+#' ex_data[, err := angle_diff_180(reported, orientation)] # response errors
+#' ex_data[, prev_ori := shift(orientation), by = observer] # orientation on previous trial
+#'
+#' # determine the shift in orientations between trials
+#' ex_data[, diff_in_ori := angle_diff_180(prev_ori, orientation)]
+#' ex_data[, abs_diff_in_ori := abs(diff_in_ori)]
+#'
+#' circ_sd_smooth <- smoothed_circ_sd(ex_data[!is.na(diff_in_ori)],
+#'   circ_space = 180, weights_sd = 10, xvar = "abs_diff_in_ori",
+#'   yvar = "err", by = c("observer")
+#' )
+#'
+#' library(ggplot2)
+#' ggplot(circ_sd_smooth, aes(x = dist, y = circ_sd)) +
+#'   geom_line(stat = "summary", fun = mean) +
+#'   labs(y = "Circular SD, °", x = "Absolute orientation difference, °")
+#'
+smoothed_circ_sd <- function(dt, circ_space = 180, weights_sd = 10, xvar = "abs_td_dist", yvar = "err", by = c(), n_points = 91) {
+  dist <- circ_sd <- . <- NULL # due to NSE notes in R CMD check
+
+  if (!(circ_space %in% c(180, 360))) {
+    stop("`circ_space` should be 180 or 360")
+  }
+
+  max_diss <- circ_space / 2
+  dist_grid <- seq(1, max_diss, length.out = n_points)
+
+  # Get data vectors
+  x_data <- dt[, get(xvar)]
+
+  # Compute all weights at once using matrix operations
+  weight_matrix <- exp(-0.5 * outer(x_data, dist_grid, FUN = function(x, d) ((x - d) / weights_sd)^2)) / (sqrt(2 * pi) * weights_sd)
+  weight_matrix <- sweep(weight_matrix, 2, colSums(weight_matrix), FUN = "/")
+
+  # Compute weighted circular SD for all distance values, grouped by 'by' variables
+  res <- dt[, {
+    y_data <- get(yvar)
+
+    # Compute weighted circular SD for each distance point
+    circ_sd_vals <- sapply(1:length(dist_grid), function(i) {
+      weights <- weight_matrix[.I, i]
+      # Use weighted circular SD with appropriate circular space conversion
+      weighted_circ_sd(y_data / (circ_space/2) * pi, weights, na.rm = TRUE) / pi * (circ_space/2)
+    })
+
+    data.table(
+      dist = dist_grid,
+      circ_sd = circ_sd_vals
+    )
+  }, by = by]
+
+  res
+}
+
+#' Compute 2D asymmetry in weighted probability density
+#'
+#' This function calculates the asymmetry in the probability density of a given variable (usually errors) relative to two other variables using kernel density estimation with optimized matrix calculations. The asymmetry is computed for each combination of x-axis and y-axis values in a 2D grid.
+#'
+#' @param dt data.table with the data.
+#' @param circ_space Circular space vector of length 2 or 3, specifying spaces for x, y, and z variables (default: c(180, 180, 180)).
+#' @param weights_sd Standard deviations of the 2D Gaussian window to use across `xvar` and `yvar` (default: c(10, 10)).
+#' @param kernel_bw Bandwidth for the kernel density estimator across `zvar`. If NULL, computed using [stats::bw.SJ()] (default: NULL).
+#' @param xvar X-axis variable, such as color difference (default: "abs_color_diff").
+#' @param yvar Y-axis variable, such as spatial difference (default: "abs_spat_diff").
+#' @param zvar Z-axis (dependent) variable, normally errors or biases (default: "color_bias_c").
+#' @param by A vector of grouping variable names (default: an empty vector).
+#' @param n The number of steps for each axis: c(x_steps, y_steps, z_steps) (default: c(90, 90, 181)).
+#' @param average If TRUE, the asymmetry is averaged for each x,y combination (default: TRUE).
+#' @param return_full_density If TRUE, returns the full data.table with density computed at each point (default: FALSE).
+#' @return A data.table with the grouping variables, x and y coordinates, and `delta` - the difference (asymmetry) in probability density for positive and negative values of `zvar`; or the full density data if `return_full_density` is TRUE.
+#' @export
+#' @importFrom stats as.formula bw.SJ density
+#' @import data.table
+#' @examples
+#' \dontrun{
+#' # Example with synthetic 2D data
+#' dt <- data.table(
+#'   abs_color_diff = runif(1000, 0, 90),
+#'   abs_spat_diff = runif(1000, 0, 90),
+#'   color_bias_c = rnorm(1000)
+#' )
+#'
+#' result <- density_asymmetry_2d(dt,
+#'   circ_space = c(180, 180, 180),
+#'   weights_sd = c(10, 10),
+#'   xvar = "abs_color_diff",
+#'   yvar = "abs_spat_diff",
+#'   zvar = "color_bias_c"
+#' )
+#' }
+# density_asymmetry_2d <- function(dt, circ_space = rep(180, 3), weights_sd = c(10, 10), kernel_bw = NULL, xvar = "abs_color_diff", yvar = "abs_spat_diff", zvar = "color_bias_c", by = c(), n = c(90, 90, 181), average = TRUE, return_full_density = FALSE) {
+#   x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- NULL # due to NSE notes in R CMD check
+#
+#   if (length(circ_space) < 2 | length(circ_space) > 3) {
+#     stop("`circ_space` should have 2 or 3 elements")
+#   }
+#   if (length(circ_space) == 2) {
+#     message("`circ_space` is given for two dimensions, assuming that the z variable is in the same space as the x variable")
+#     circ_space[3] <- circ_space[1]
+#   }
+#
+#   if (length(weights_sd) != 2) {
+#     stop("weights_sd should be a 2-element vector")
+#   }
+#
+#   max_diss <- circ_space / 2
+#
+#   if (is.null(kernel_bw)) {
+#     kernel_bw <- stats::bw.SJ(dt[, get(zvar)])
+#   }
+#
+#   # Create grids for x and y coordinates
+#   x_grid <- seq(1, max_diss[1], length.out = n[1])
+#   y_grid <- seq(1, max_diss[2], length.out = n[2])
+#   z_grid <- seq(-max_diss[3], max_diss[3], length.out = n[3])
+#
+#   # Get data vectors
+#   x_data <- dt[, get(xvar)]
+#   y_data <- dt[, get(yvar)]
+#
+#   # Create coordinate matrices for all grid combinations
+#   x_coords <- rep(x_grid, each = n[2])
+#   y_coords <- rep(y_grid, times = n[1])
+#   n_grid_points <- length(x_coords)
+#
+#   # Compute all weights using matrix operations
+#   # Distance matrices: rows = data points, columns = grid points
+#   x_dist_matrix <- outer(x_data, x_coords, FUN = function(x, g) ((x - g) / weights_sd[1])^2)
+#   y_dist_matrix <- outer(y_data, y_coords, FUN = function(y, g) ((y - g) / weights_sd[2])^2)
+#
+#   # Combined 2D Gaussian weights
+#   weight_matrix <- exp(-0.5 * (x_dist_matrix + y_dist_matrix)) / (2 * pi * prod(weights_sd))
+#   weight_matrix <- sweep(weight_matrix, 2, colSums(weight_matrix), FUN = "/")
+#
+#   # Compute density for all grid points at once, grouped by 'by' variables
+#   res <- dt[, {
+#     z_data <- get(zvar)
+#
+#     # Pre-compute kernel base for all z_grid points and z_data combinations
+#     z_dist_matrix <- outer(z_grid, z_data, FUN = "-")
+#     kernel_base <- exp(-0.5 * (z_dist_matrix / kernel_bw)^2) / (sqrt(2 * pi) * kernel_bw)
+#
+#     # Get weights for this group
+#     group_weights <- weight_matrix[.I, , drop = FALSE]
+#
+#     # Compute all density values for this group using matrix multiplication
+#     # kernel_base: n[3] x n_data, group_weights: n_data x n_grid_points
+#     # Result: n[3] x n_grid_points
+#     all_density_vals <- kernel_base %*% group_weights
+#
+#     # Create result for this group
+#     res <- data.table(
+#       x = rep(z_grid, times = n_grid_points),
+#       y = as.vector(all_density_vals))
+#     res[,
+#       c(xvar,yvar) := .(rep(x_coords, each = n[3]),rep(y_coords, each = n[3]))
+#     ]
+#     res
+#   }, by = by]
+#
+#   res[, x_val := abs(x)]
+#   res[, x_sign := sign(x)]
+#
+#   if (return_full_density) {
+#     return(res)
+#   }
+#
+#   # Reshape to compute asymmetry
+#   res <- dcast(res,
+#     as.formula(paste(paste(by, collapse = "+"), paste(c(xvar, yvar, "x_val"), collapse = "+"), "x_sign", sep = "~")),
+#     value.var = "y"
+#   )
+#   res[, delta := `1` - `-1`]
+#   res[, total := `1` + `-1`]
+#   res[, ratio := `1` / `-1`]
+#
+#   if (average) {
+#     res <- res[!is.na(delta), .(delta = sum(delta) / sum(total)), by = c(xvar, yvar, by)]
+#   }
+#
+#   attr(res, "kernel_bw") <- kernel_bw
+#
+#   res
+# }
