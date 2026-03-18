@@ -1,0 +1,169 @@
+# circhelp
+
+`circhelp` is a small helper package for circular data analyses in R,
+particularly useful for cognitive studies on orientation, motion
+direction, and other circular features. The package contains functions
+for descriptive statistics of circular data (computing means, SD, and
+skewness), angular differences, and correlation. It also includes a
+function to correct for cardinal biases in human estimates of circular
+features (e.g., orientation). The documentation is available in the
+package help files and at <https://achetverikov.github.io/circhelp/>.
+
+## Installation
+
+You can install the latest released version from CRAN with:
+
+``` r
+install.packages("circhelp")
+```
+
+The current developmental version from [GitHub](https://github.com/) can
+be installed with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("achetverikov/circhelp")
+```
+
+## Usage
+
+Most functions are self-explanatory.
+
+``` r
+library(circhelp)
+library(mgcv)
+#> Loading required package: nlme
+#> This is mgcv 1.9-3. For overview type 'help("mgcv-package")'.
+# compute a set of descriptive statistics
+x <- rnorm(500)
+circ_descr(x)
+#> $mu
+#> [1] 0.01289167
+#> 
+#> $sigma
+#> [1] 0.9319964
+#> 
+#> $skew_pewsey
+#> [1] -0.009480068
+#> 
+#> $skew_fischer
+#> [1] -0.06900768
+#> 
+#> $rho
+#> [1] 0.6477123
+#> 
+#> $skew_rel_to_zero
+#> [1] -0.004524587
+
+# compute difference in orientations
+a <- 5
+b <- 170
+angle_diff_180(a, b)
+#> [1] 15
+
+# compute difference in 360° space (e.g., motion directions)
+angle_diff_360(a, b)
+#> [1] -165
+
+# compute correlation between angles
+data <- rmvn(10000, c(0, 0), V = matrix(c(1, 0.5, 0.5, 1), ncol = 2))
+circ_corr(data[, 1], data[, 2])
+#> [1] 0.452809
+```
+
+The only (somewhat) complicated function is `remove_cardinal_biases`,
+see the [help
+files](https://achetverikov.github.io/circhelp/reference/remove_cardinal_biases.html)
+and [the
+vignette](https://achetverikov.github.io/circhelp/articles/cardinal_biases.html)
+for an example use case. ![Three side-by-side scatter plots showing
+response errors in a circular orientation task. Left panel: raw errors
+versus stimulus orientation, with two orientation bins in blue and green
+and curved trend lines showing systematic bias near cardinal
+orientations. Middle panel: same data after correcting for bias, with
+errors centered closer to zero. Right panel: estimated bias values for
+each orientation, with circles for regular points and triangles marking
+outliers.](https://achetverikov.github.io/circhelp/articles/cardinal_biases_files/figure-html/correct_biases_ex-1.png "Example of cardinal biases processing")
+
+# Package index
+
+## Descriptive statistics
+
+- [`circ_mean_rad()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_mean_rad.md)
+  [`circ_mean_180()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_mean_rad.md)
+  [`circ_mean_360()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_mean_rad.md)
+  : Circular mean
+- [`circ_sd_rad()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_sd_rad.md)
+  [`circ_sd_360()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_sd_rad.md)
+  [`circ_sd_180()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_sd_rad.md)
+  : Circular standard deviation
+- [`smoothed_circ_sd()`](https://achetverikov.github.io/circhelp/index.html/reference/smoothed_circ_sd.md)
+  : Compute smoothed estimate of circular standard deviation
+- [`circ_descr()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_descr.md)
+  : A set of descriptive statistics for circular data
+- [`weighted_circ_mean()`](https://achetverikov.github.io/circhelp/index.html/reference/weighted_circ_mean.md)
+  [`weighted_circ_mean2()`](https://achetverikov.github.io/circhelp/index.html/reference/weighted_circ_mean.md)
+  [`weighted_circ_sd()`](https://achetverikov.github.io/circhelp/index.html/reference/weighted_circ_mean.md)
+  [`weighted_circ_rho()`](https://achetverikov.github.io/circhelp/index.html/reference/weighted_circ_mean.md)
+  : Weighted circular parameters
+- [`weighted_sem()`](https://achetverikov.github.io/circhelp/index.html/reference/weighted_sem.md)
+  : Weighted standard error of the mean (SEM_w)
+
+## Cardinal biases
+
+- [`remove_cardinal_biases()`](https://achetverikov.github.io/circhelp/index.html/reference/remove_cardinal_biases.md)
+  : Remove cardinal biases
+- [`remove_cardinal_biases_discrete()`](https://achetverikov.github.io/circhelp/index.html/reference/remove_cardinal_biases_discrete.md)
+  : Remove cardinal biases for data with orientation (color, motion,
+  ...) set in discrete steps
+
+## Plotting
+
+- [`circ_loess()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_loess.md)
+  :
+
+  An implementation of circular-linear locally-weighted regression
+  (LOESS)
+
+## Miscellanous
+
+- [`angle_diff_rad()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md)
+  [`angle_diff_360()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md)
+  [`angle_diff_180()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md)
+  [`angle_diff_90()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md)
+  [`angle_diff_180_45()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md)
+  [`angle_diff_360_90()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md)
+  : Differences between angles in different circular spaces
+- [`vm_kappa_to_circ_sd()`](https://achetverikov.github.io/circhelp/index.html/reference/vm_kappa_to_circ_sd.md)
+  [`vm_kappa_to_circ_sd_deg()`](https://achetverikov.github.io/circhelp/index.html/reference/vm_kappa_to_circ_sd.md)
+  [`vm_circ_sd_to_kappa()`](https://achetverikov.github.io/circhelp/index.html/reference/vm_kappa_to_circ_sd.md)
+  [`vm_circ_sd_deg_to_kappa()`](https://achetverikov.github.io/circhelp/index.html/reference/vm_kappa_to_circ_sd.md)
+  : Conversion between the circular SD and kappa of von Mises
+- [`correct_angle_rad()`](https://achetverikov.github.io/circhelp/index.html/reference/correct_angle_rad.md)
+  : Get angle value in \[-pi, pi\] space
+- [`pad_circ()`](https://achetverikov.github.io/circhelp/index.html/reference/pad_circ.md)
+  : Pad circular data on both ends
+- [`circ_corr()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_corr.md)
+  : Circular correlation coefficient
+- [`circ_lin_corr()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_lin_corr.md)
+  : Circular-linear correlation
+- [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md)
+  : Compute asymmetry in weighted probability density
+- [`density_asymmetry_discrete()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry_discrete.md)
+  : Compute asymmetry in weighted probability density for discrete data
+
+## Datasets
+
+- [`Bae_Luck_2018_data`](https://achetverikov.github.io/circhelp/index.html/reference/Bae_Luck_2018_data.md)
+  : Data from a motion estimation task
+- [`Pascucci_et_al_2019_data`](https://achetverikov.github.io/circhelp/index.html/reference/Pascucci_et_al_2019_data.md)
+  : Data from an orientation estimation task
+
+# Articles
+
+### All vignettes
+
+- [Correcting for cardinal biases to improve serial dependence
+  estimates](https://achetverikov.github.io/circhelp/index.html/articles/cardinal_biases.md):
+- [Estimating serial dependence with
+  density_asymmetry()](https://achetverikov.github.io/circhelp/index.html/articles/serial_dependence_with_density_asymmetry.md):

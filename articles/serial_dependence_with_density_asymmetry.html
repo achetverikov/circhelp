@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">circhelp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.4</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,7 +68,7 @@
 Chetverikov</h4>
             
             <h4 data-toc-skip class="date">Publication Date:
-04/09/2024<br>Last updated: 11/08/2025</h4>
+04/09/2024<br>Last updated: 18/03/2026</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/achetverikov/circhelp/blob/main/vignettes/serial_dependence_with_density_asymmetry.Rmd" class="external-link"><code>vignettes/serial_dependence_with_density_asymmetry.Rmd</code></a></small>
       <div class="d-none name"><code>serial_dependence_with_density_asymmetry.Rmd</code></div>
@@ -119,7 +119,7 @@ different dissimilarity steps from 0 to 90 degrees for one observer:</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_vline</a></span><span class="op">(</span>linetype <span class="op">=</span> <span class="fl">2</span>, xintercept <span class="op">=</span> <span class="fl">0</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>, axis.ticks.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>color <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_colourbar.html" class="external-link">guide_colourbar</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="serial_dependence_with_density_asymmetry_files/figure-html/density_example_single_observer-1.png" width="66%" height="40%"></p>
+<p><img src="serial_dependence_with_density_asymmetry_files/figure-html/density_example_single_observer-1.png" class="r-plt" alt="" width="66%" height="40%"></p>
 <p>The x-axis shows the bias, which means that the errors are arranged
 in a way that positive bias corresponds to errors towards the previous
 target. For each dissimilarity step, the probabilities are estimated not
@@ -154,9 +154,9 @@ issue will be present with other approaches (e.g., the bin width used
 when binning the data will have the same effect).</p>
 <p>As a comparison, one can use binned errors:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">data</span><span class="op">[</span>, <span class="va">abs_diff_in_ori_bin</span> <span class="op">:=</span> <span class="fu">apastats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/apastats/man/adv_cut.html" class="external-link">adv_cut</a></span><span class="op">(</span><span class="va">abs_diff_in_ori</span>, cuts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">90</span>, <span class="fl">10</span><span class="op">)</span>, include_oob <span class="op">=</span> <span class="cn">T</span>, num_labels <span class="op">=</span> <span class="cn">F</span>, labels_at_means <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">]</span></span>
+<code class="sourceCode R"><span><span class="va">data</span><span class="op">[</span>, <span class="va">abs_diff_in_ori_bin</span> <span class="op">:=</span> <span class="fu">apastats2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/apastats2/man/adv_cut.html" class="external-link">adv_cut</a></span><span class="op">(</span><span class="va">abs_diff_in_ori</span>, cuts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">90</span>, <span class="fl">10</span><span class="op">)</span>, include_oob <span class="op">=</span> <span class="cn">T</span>, num_labels <span class="op">=</span> <span class="cn">F</span>, labels_at_means <span class="op">=</span> <span class="cn">T</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
-<span><span class="va">mean_err</span> <span class="op">&lt;-</span> <span class="fu">apastats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/apastats/man/get_superb_ci.html" class="external-link">get_superb_ci</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">err_rel_to_prev_targ</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">is_outlier</span> <span class="op">==</span> <span class="cn">F</span><span class="op">]</span>, wid <span class="op">=</span> <span class="st">"observer"</span>, within <span class="op">=</span> <span class="st">"abs_diff_in_ori_bin"</span>, value_var <span class="op">=</span> <span class="st">"err_rel_to_prev_targ"</span><span class="op">)</span></span>
+<span><span class="va">mean_err</span> <span class="op">&lt;-</span> <span class="fu">apastats2</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/apastats2/man/get_superb_ci.html" class="external-link">get_superb_ci</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">err_rel_to_prev_targ</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">is_outlier</span> <span class="op">==</span> <span class="cn">F</span><span class="op">]</span>, wid <span class="op">=</span> <span class="st">"observer"</span>, within <span class="op">=</span> <span class="st">"abs_diff_in_ori_bin"</span>, value_var <span class="op">=</span> <span class="st">"err_rel_to_prev_targ"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required namespace: superb</span></span>
 <span><span class="fu">setDT</span><span class="op">(</span><span class="va">mean_err</span><span class="op">)</span></span>
 <span><span class="va">mean_err</span><span class="op">[</span>, <span class="va">abs_diff_in_ori_bin</span> <span class="op">:=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">abs_diff_in_ori_bin</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
@@ -180,7 +180,7 @@ when binning the data will have the same effect).</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_hline</a></span><span class="op">(</span>yintercept <span class="op">=</span> <span class="fl">0</span>, linetype <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_continuous</a></span><span class="op">(</span>breaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">90</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span> <span class="op">&amp;</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_cartesian.html" class="external-link">coord_cartesian</a></span><span class="op">(</span>xlim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">90</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="serial_dependence_with_density_asymmetry_files/figure-html/density-1.png" width="66%" height="40%"></p>
+<p><img src="serial_dependence_with_density_asymmetry_files/figure-html/density-1.png" class="r-plt" alt="" width="66%" height="40%"></p>
 <p>As you can see, the overall pattern is similar, although the effect
 seems clearer when using asymmetry in probability. Note also that the
 high confidence interval (CI) for the very last bin appears for the mean
@@ -198,7 +198,7 @@ bin compared to the others).</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>
