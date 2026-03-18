@@ -126,12 +126,23 @@ We can then compute the statistics to test whether the bias is different from ze
 
 As a comparison, one can use binned errors:
 ```{r}
-data[, abs_diff_in_ori_bin := apastats2::adv_cut(abs_diff_in_ori, cuts = seq(0, 90, 10), include_oob = T, num_labels = F, labels_at_means = T)]
-
-mean_err <- apastats2::get_superb_ci(data[!is.na(err_rel_to_prev_targ) & is_outlier == F], wid = "observer", within = "abs_diff_in_ori_bin", value_var = "err_rel_to_prev_targ")
-setDT(mean_err)
+mean_err <- copy(data[!is.na(err_rel_to_prev_targ) & is_outlier == FALSE & !is.na(abs_diff_in_ori)])
+mean_err[, abs_diff_in_ori_bin := cut(abs_diff_in_ori,
+  breaks = seq(0, 90, 10), include.lowest = TRUE, right = FALSE,
+  labels = seq(5, 85, 10)
+)]
+mean_err <- mean_err[, .(
+  center = mean(err_rel_to_prev_targ),
+  sd = sd(err_rel_to_prev_targ),
+  n = .N
+), by = .(abs_diff_in_ori_bin)]
 mean_err[, abs_diff_in_ori_bin := as.numeric(as.character(abs_diff_in_ori_bin))]
+mean_err[, se := sd / sqrt(n)]
+mean_err[, ci95 := qt(0.975, pmax(n - 1, 1)) * se]
+mean_err[, `:=`(ymin = center - ci95, ymax = center + ci95)]
 ```
+
+This is a simple pooled mean + CI summary for illustration. For proper within-subject inference, use [`apastats2::get_superb_ci`](https://github.com/achetverikov/apastats) + [`superb`](https://dcousin3.github.io/superb/) methods.
 
 Putting them side by side:
 
@@ -143,7 +154,7 @@ p1 <- ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist
 
 p2 <- ggplot(
   mean_err,
-  aes(x = abs_diff_in_ori_bin, y = center, ymin = center + lowerwidth, ymax = center + upperwidth)
+  aes(x = abs_diff_in_ori_bin, y = center, ymin = ymin, ymax = ymax)
 ) +
   geom_line() +
   geom_pointrange() +
