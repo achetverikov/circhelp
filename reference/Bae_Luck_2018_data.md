@@ -1,8 +1,8 @@
 # Data from a motion estimation task
 
 A dataset with the motion estimation results from Bae & Luck (2018)
-available from https://osf.io/4m2kb/ (some variables are removed, see
-the link for the full dataset).
+available from https://osf.io/download/4m2kb (some variables are
+removed, see the link for the full dataset).
 
 ## Usage
 
@@ -48,7 +48,7 @@ A data frame with 20480 rows and 8 variables:
 
 ## Source
 
-<https://osf.io/4m2kb/download>
+<https://osf.io/download/4m2kb>
 
 ## References
 

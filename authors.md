@@ -11,7 +11,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/achetverikov/circhelp/blob/v1.2/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/achetverikov/circhelp/blob/main/DESCRIPTION)
 
 Chetverikov A (2026). *circhelp: Circular Analyses Helper Functions*. R
 package version 1.2,

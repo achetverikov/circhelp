@@ -2,8 +2,13 @@
 
 ## circhelp 1.2
 
-- Switched dependency from `apastats` to `apastats2`.
-- Updated vignette examples to use `apastats2::`.
+- Added
+  [`density_asymmetry_discrete()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry_discrete.md).
+- Added
+  [`smoothed_circ_sd()`](https://achetverikov.github.io/circhelp/index.html/reference/smoothed_circ_sd.md).
+- Improved
+  [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md)
+  speed and options.
 
 ## circhelp 1.1.3
 
