@@ -17,8 +17,9 @@
 # Output files from R CMD check
 /*.Rcheck/
 
-# RStudio files
+# RStudio & Positron files
 .Rproj.user/
+.vscode/
 
 # produced vignettes
 vignettes/*.html
