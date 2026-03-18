@@ -579,20 +579,22 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
         stop("Reassignment range too large compared to bin sizes")
       }
       for_fit[, row_i := 1:.N]
-      resid_at_boundaries <- for_fit[outlier == FALSE,
-        get_boundary_preds(gr_var, copy(for_fit[outlier == FALSE]), space, reassign_range, gam_ctrl, ifelse(rep_n > 2, poly_deg, 1), angle_diff_fun),
-        by = .(gr_var)
-      ]
+      non_outlier_fit <- for_fit[outlier == FALSE]
+      reassignment_groups <- unique(non_outlier_fit$gr_var)
+      resid_at_boundaries <- rbindlist(lapply(reassignment_groups, function(cur_group) {
+        get_boundary_preds(cur_group, non_outlier_fit, space, reassign_range, gam_ctrl, ifelse(rep_n > 2, poly_deg, 1), angle_diff_fun)
+      }))
       resid_at_boundaries[, likelihood := dnorm(err, pred, pred_sigma, log = FALSE)]
       resid_at_boundaries[, new_weight := ifelse(at_the_boundary == FALSE, 1, likelihood / sum(likelihood)), by = .(err, x_var)]
       cur_weights <- resid_at_boundaries[at_the_boundary == TRUE, ]$new_weight
       stable_weights <- 0
       for (rep_n in 1:10) {
         weight_dt <- resid_at_boundaries[, .(row_i, gr_var, new_weight)]
-        resid_at_boundaries <- resid_at_boundaries[,
-          get_boundary_preds(gr_var, copy(for_fit[outlier == FALSE]), space, reassign_range, gam_ctrl, ifelse(rep_n > 2, poly_deg, 1), angle_diff_fun, weights = weight_dt),
-          by = .(gr_var)
-        ]
+        non_outlier_fit <- for_fit[outlier == FALSE]
+        reassignment_groups <- unique(non_outlier_fit$gr_var)
+        resid_at_boundaries <- rbindlist(lapply(reassignment_groups, function(cur_group) {
+          get_boundary_preds(cur_group, non_outlier_fit, space, reassign_range, gam_ctrl, ifelse(rep_n > 2, poly_deg, 1), angle_diff_fun, weights = weight_dt)
+        }))
         resid_at_boundaries[, likelihood := dnorm(err, pred, pred_sigma, log = FALSE)]
         resid_at_boundaries[, new_weight := ifelse(at_the_boundary == FALSE, 1, likelihood / sum(likelihood)), by = .(err, x_var)]
 
@@ -845,17 +847,18 @@ get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, pol
   boundary1 <- cur_df$bin_boundary_left[[1]]
   boundary2 <- cur_df$bin_boundary_right[[1]]
 
-  data[, dist_to_bin_centre := angle_diff_fun(x_var, curr_bin_center)]
+  dist_to_bin_centre_all <- angle_diff_fun(data$x_var, curr_bin_center)
+  in_boundary_range <- data$outlier == FALSE &
+    abs(dist_to_bin_centre_all) < (curr_bin_range / 2 + reassign_range + 1e-12)
   data_incl_boundaries <- data[
-    outlier == FALSE &
-      abs(dist_to_bin_centre) < (curr_bin_range / 2 + reassign_range + 1e-12),
+    in_boundary_range,
     .(
       row_i, err, x_var, dc_var, gr_var,
-      dist_to_bin_centre,
       at_the_boundary,
       center_x
     )
   ]
+  data_incl_boundaries[, dist_to_bin_centre := dist_to_bin_centre_all[in_boundary_range]]
   data_incl_boundaries[, dist_to_boundary := (abs(dist_to_bin_centre) - curr_bin_range / 2)]
   data_incl_boundaries[, dist_to_boundary_norm := (dist_to_boundary + reassign_range) / (2 * reassign_range)]
 
@@ -878,7 +881,7 @@ get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, pol
   data_incl_boundaries[, pred_sigma := predict(fit, what = "sigma", type = "response")]
 
   data_incl_boundaries[, resid_at_boundaries := err - pred]
-  data_incl_boundaries[, .(row_i, at_the_boundary, x_var, dc_var, dist_to_bin_centre, err, pred, resid_at_boundaries, dist_to_boundary, dist_to_boundary_norm, weight, pred_sigma)]
+  data_incl_boundaries[, .(row_i, gr_var = group, at_the_boundary, x_var, dc_var, dist_to_bin_centre, err, pred, resid_at_boundaries, dist_to_boundary, dist_to_boundary_norm, weight, pred_sigma)]
 }
 
 
