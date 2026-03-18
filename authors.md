@@ -14,13 +14,13 @@ Source:
 [`DESCRIPTION`](https://github.com/achetverikov/circhelp/blob/main/DESCRIPTION)
 
 Chetverikov A (2026). *circhelp: Circular Analyses Helper Functions*. R
-package version 1.1.4,
+package version 1.2,
 <https://achetverikov.github.io/circhelp/index.html>.
 
     @Manual{,
       title = {circhelp: Circular Analyses Helper Functions},
       author = {Andrey Chetverikov},
       year = {2026},
-      note = {R package version 1.1.4},
+      note = {R package version 1.2},
       url = {https://achetverikov.github.io/circhelp/index.html},
     }
