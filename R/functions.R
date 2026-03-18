@@ -870,18 +870,68 @@ get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, pol
   }
 
 
-  fit <- gamlss::gamlss(err ~ dist_to_bin_centre,
-    ~ abs(dist_to_bin_centre),
-    data = data_incl_boundaries,
-    weights = weight,
-    control = gam_ctrl
+  fit_fast <- fit_weighted_locscale_normal(
+    y = data_incl_boundaries$err,
+    x = data_incl_boundaries$dist_to_bin_centre,
+    w = data_incl_boundaries$weight
   )
-
-  data_incl_boundaries[, pred := predict(fit, type = "response")]
-  data_incl_boundaries[, pred_sigma := predict(fit, what = "sigma", type = "response")]
+  if (fit_fast$ok) {
+    data_incl_boundaries[, pred := fit_fast$pred]
+    data_incl_boundaries[, pred_sigma := fit_fast$pred_sigma]
+  } else {
+    fit <- gamlss::gamlss(err ~ dist_to_bin_centre,
+      ~ abs(dist_to_bin_centre),
+      data = data_incl_boundaries,
+      weights = weight,
+      control = gam_ctrl
+    )
+    data_incl_boundaries[, pred := predict(fit, type = "response")]
+    data_incl_boundaries[, pred_sigma := predict(fit, what = "sigma", type = "response")]
+  }
 
   data_incl_boundaries[, resid_at_boundaries := err - pred]
   data_incl_boundaries[, .(row_i, gr_var = group, at_the_boundary, x_var, dc_var, dist_to_bin_centre, err, pred, resid_at_boundaries, dist_to_boundary, dist_to_boundary_norm, weight, pred_sigma)]
+}
+
+fit_weighted_locscale_normal <- function(y, x, w) {
+  w <- as.numeric(w)
+  if (!all(is.finite(y)) || !all(is.finite(x)) || !all(is.finite(w))) {
+    return(list(ok = FALSE))
+  }
+  w <- pmax(w, 1e-12)
+  x_abs <- abs(x)
+  x_mat <- cbind(1, x)
+  fit_mu_start <- try(lm.wfit(x = x_mat, y = y, w = w), silent = TRUE)
+  if (inherits(fit_mu_start, "try-error") || any(!is.finite(fit_mu_start$coefficients))) {
+    beta_start <- c(stats::weighted.mean(y, w), 0)
+  } else {
+    beta_start <- fit_mu_start$coefficients
+  }
+  mu_start <- as.numeric(x_mat %*% beta_start)
+  sigma0 <- sqrt(stats::weighted.mean((y - mu_start)^2, w))
+  if (!is.finite(sigma0) || sigma0 <= 0) {
+    sigma0 <- stats::sd(y)
+  }
+  if (!is.finite(sigma0) || sigma0 <= 0) {
+    sigma0 <- 1
+  }
+  par0 <- c(beta_start[1], beta_start[2], log(sigma0), 0)
+  nll <- function(par) {
+    mu <- par[1] + par[2] * x
+    sigma <- exp(par[3] + par[4] * x_abs)
+    z <- (y - mu) / sigma
+    sum(w * (log(sigma) + 0.5 * z * z))
+  }
+  fit <- try(stats::nlminb(start = par0, objective = nll, control = list(iter.max = 100, eval.max = 200)), silent = TRUE)
+  if (inherits(fit, "try-error") || !is.list(fit) || fit$convergence != 0 || any(!is.finite(fit$par))) {
+    return(list(ok = FALSE))
+  }
+  mu_hat <- fit$par[1] + fit$par[2] * x
+  sigma_hat <- exp(fit$par[3] + fit$par[4] * x_abs)
+  if (any(!is.finite(mu_hat)) || any(!is.finite(sigma_hat)) || any(sigma_hat <= 0)) {
+    return(list(ok = FALSE))
+  }
+  list(ok = TRUE, pred = mu_hat, pred_sigma = sigma_hat)
 }
 
 
