@@ -435,7 +435,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #' )
 #'
 remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plots = "hide", poly_deg = 4, var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, break_points = NULL, init_outliers = NULL, debug = FALSE, do_plots = NULL) {
-  outlier <- dist_to_card <- dist_to_obl <- logLik <- x_var <- min_bp_i <- center_x <- dc_var <- gr_var <- gr_i <- min_boundary_i <- min_boundary_dist <- bin_range <- bin_boundary_left <- bin_boundary_right <- at_the_boundary <- row_i <- likelihood <- dnorm <- pred <- pred_sigma <- new_weight <- i.gr_var <- dist_to_bin_centre <- coef <- predict <- bias <- pred_lin <- be_c <- which_bin <- center_y <- outlier_f <- coef_sigma_int <- . <- coef_sigma_slope <- NULL # due to NSE notes in R CMD check
+  outlier <- dist_to_card <- dist_to_obl <- logLik <- x_var <- min_bp_i <- center_x <- dc_var <- gr_var <- gr_i <- min_boundary_i <- min_boundary_dist <- bin_range <- bin_boundary_left <- bin_boundary_right <- at_the_boundary <- row_i <- likelihood <- dnorm <- pred <- pred_sigma <- new_weight <- i.gr_var <- dist_to_bin_centre <- coef <- predict <- bias <- pred_lin <- be_c <- which_bin <- outlier_f <- coef_sigma_int <- . <- coef_sigma_slope <- NULL # due to NSE notes in R CMD check
 
   if (!(bias_type %in% c("fit", "card", "obl", "custom"))) {
     stop("`bias_type` should be 'fit','card', 'obl', or 'custom'")
@@ -546,11 +546,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   dist_to_centers_mat <- sapply(bin_centers, \(cc) angle_diff_fun(x, cc))
 
   for_fit[, x_var := x]
-  get_bin_i <- function(x, bin_centers, bin_width) {
-    within_bin <- sapply(1:length(bin_centers), \(i) abs(angle_diff_fun(x, bin_centers[i])) <= (bin_width[i] / 2))
-    max.col(within_bin, "first")
-  }
-  for_fit[, min_bp_i := get_bin_i(x, bin_centers, bin_width)]
+  for_fit[, min_bp_i := max.col(-abs(dist_to_centers_mat), "first")]
   for_fit[, row_i := 1:.N]
   for_fit[, center_x := bin_centers[min_bp_i]]
   for_fit[, gr_i := min_bp_i]
@@ -564,7 +560,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       ggplot2::geom_vline(color = "blue", xintercept = angle_diff_fun(bin_centers, 0))
     print(p_boundaries)
   }
-  for_fit[, min_boundary_i := apply(sapply(break_points, \(bp) abs(angle_diff_fun(x, bp))), 1, which.min)]
+  for_fit[, min_boundary_i := max.col(-abs(sapply(break_points, \(bp) angle_diff_fun(x, bp))), "first")]
 
   for_fit[, min_boundary_dist := angle_diff_fun(x, break_points[min_boundary_i])]
   for_fit[, bin_range := bin_width[min_bp_i]]
@@ -581,7 +577,8 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       if (any(for_fit[, unique(bin_range)] < (2 * reassign_range))) {
         stop("Reassignment range too large compared to bin sizes")
       }
-      non_outlier_fit <- for_fit[outlier == FALSE]
+      non_outlier_idx <- which(!for_fit$outlier)
+      non_outlier_fit <- for_fit[non_outlier_idx]
       reassignment_group_i <- sort(unique(non_outlier_fit$gr_i))
       resid_at_boundaries <- rbindlist(lapply(reassignment_group_i, function(cur_group_i) {
         get_boundary_preds(
@@ -602,7 +599,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       stable_weights <- 0
       for (rep_n in 1:10) {
         weight_dt <- resid_at_boundaries[, .(row_i, gr_var, new_weight)]
-        non_outlier_fit <- for_fit[outlier == FALSE]
+        non_outlier_fit <- for_fit[non_outlier_idx]
         reassignment_group_i <- sort(unique(non_outlier_fit$gr_i))
         resid_at_boundaries <- rbindlist(lapply(reassignment_group_i, function(cur_group_i) {
           get_boundary_preds(
@@ -655,12 +652,16 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       }
     }
     for_fit[, dist_to_bin_centre := angle_diff_fun(x_var, center_x)]
-    for_fit[, x_var := center_x + angle_diff_fun(x_var, center_x)]
-    for_fit[, dc_var := angle_diff_fun(x, center_x)]
+    if (!reassign_at_boundaries) {
+      for_fit[, x_var := center_x + angle_diff_fun(x_var, center_x)]
+      for_fit[, dc_var := angle_diff_fun(x, center_x)]
+    }
     if (debug) cat("Computing final fits...")
 
-    likelihoods <- c()
-    for (cg in unique(for_fit$gr_var)) {
+    unique_gr_var <- unique(for_fit$gr_var)
+    likelihoods <- numeric(length(unique_gr_var))
+    for (j in seq_along(unique_gr_var)) {
+      cg <- unique_gr_var[[j]]
       cur_df <- for_fit[gr_var == cg, .(err, x_var, dist_to_bin_centre, dc_var, outlier, dist_to_card)]
       fit <- gamlss::gamlss(err ~ pb(dist_to_bin_centre),
         ~ abs(dist_to_bin_centre),
@@ -686,7 +687,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
         print(p_pred)
       }
       for_fit[gr_var == cg, c("coef_sigma_int", "coef_sigma_slope") := data.frame(t(coef(fit, what = "sigma")))]
-      likelihoods <- c(likelihoods, logLik(fit))
+      likelihoods[[j]] <- logLik(fit)
     }
   } else {
     for_fit[, pred := predict(MASS::rlm(err ~ poly(x_var, poly_deg), .SD[outlier == FALSE]), newdata = .SD[, .(x_var)]), by = .(card_groups)]
@@ -696,9 +697,6 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
 
   for_fit[, be_c := err - pred]
   for_fit[, which_bin := as.numeric(gr_var)]
-  for_fit[, center_y := predict(MASS::rlm(err ~ x_var),
-    newdata = data.frame(x_var = center_x)
-  ), by = .(gr_var)]
 
   if (var_sigma) {
     for_fit[, outlier := abs(be_c) > 3 * pred_sigma]
