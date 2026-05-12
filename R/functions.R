@@ -586,7 +586,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       non_outlier_idx <- which(!for_fit$outlier)
       non_outlier_fit <- for_fit[non_outlier_idx]
       reassignment_group_i <- sort(unique(non_outlier_fit$gr_i))
-      resid_at_boundaries <- rbindlist(lapply(reassignment_group_i, function(cur_group_i) {
+      boundary_data_list <- lapply(reassignment_group_i, function(cur_group_i) {
         get_boundary_preds(
           group_i = cur_group_i,
           group_label = bin_labels[cur_group_i],
@@ -594,8 +594,15 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
           dist_to_centers_mat = dist_to_centers_mat,
           space = space,
           reassign_range = reassign_range,
-          poly_deg = 1,
+          extract_only = TRUE,
           angle_diff_fun = angle_diff_fun
+        )
+      })
+      resid_at_boundaries <- rbindlist(lapply(seq_along(reassignment_group_i), function(k) {
+        get_boundary_preds(
+          group_label = bin_labels[reassignment_group_i[[k]]],
+          boundary_data = boundary_data_list[[k]],
+          poly_deg = 1
         )
       }))
       resid_at_boundaries[, likelihood := dnorm(err, pred, pred_sigma, log = FALSE)]
@@ -604,18 +611,11 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       stable_weights <- 0
       for (rep_n in 1:10) {
         weight_dt <- resid_at_boundaries[, .(row_i, gr_var, new_weight)]
-        non_outlier_fit <- for_fit[non_outlier_idx]
-        reassignment_group_i <- sort(unique(non_outlier_fit$gr_i))
-        resid_at_boundaries <- rbindlist(lapply(reassignment_group_i, function(cur_group_i) {
+        resid_at_boundaries <- rbindlist(lapply(seq_along(reassignment_group_i), function(k) {
           get_boundary_preds(
-            group_i = cur_group_i,
-            group_label = bin_labels[cur_group_i],
-            data = non_outlier_fit,
-            dist_to_centers_mat = dist_to_centers_mat,
-            space = space,
-            reassign_range = reassign_range,
+            group_label = bin_labels[reassignment_group_i[[k]]],
+            boundary_data = boundary_data_list[[k]],
             poly_deg = ifelse(rep_n > 2, poly_deg, 1),
-            angle_diff_fun = angle_diff_fun,
             weights = weight_dt
           )
         }))
@@ -876,38 +876,33 @@ pad_circ <- function(data, circ_var, circ_borders = c(-90, 90), circ_part = 1 / 
 #' @keywords internal
 #'
 
-get_boundary_preds <- function(group_i, group_label, data, dist_to_centers_mat, space, reassign_range, poly_deg, angle_diff_fun, weights = NULL) {
+get_boundary_preds <- function(group_i, group_label, data, dist_to_centers_mat, space, reassign_range, poly_deg, angle_diff_fun, weights = NULL, extract_only = FALSE, boundary_data = NULL) {
   gr_var <- outlier <- err <- x_var <- dc_var <- center_x <- dist_to_card <- bin_boundary_left <- bin_boundary_right <- bin_range <- dist_to_bin_centre <- row_i <- at_the_boundary <- dist_to_boundary <- dist_to_boundary_norm <- new_weight <- weight <- pred <- . <- predict <- pred_sigma <- resid_at_boundaries <- NULL # due to NSE notes in R CMD check
-  cur_df <- data[gr_var == group_label & outlier == FALSE,
-    .(bin_range, center_x, bin_boundary_left, bin_boundary_right)][1L]
 
-  curr_bin_range <- cur_df$bin_range[[1]]
-  curr_bin_center <- cur_df$center_x[[1]]
-  boundary1 <- cur_df$bin_boundary_left[[1]]
-  boundary2 <- cur_df$bin_boundary_right[[1]]
+  if (is.null(boundary_data)) {
+    cur_df <- data[gr_var == group_label,
+      .(bin_range, center_x, bin_boundary_left, bin_boundary_right)][1L]
+    curr_bin_range <- cur_df$bin_range[[1]]
 
-  dist_to_bin_centre_all <- dist_to_centers_mat[data$row_i, group_i]
-  in_boundary_range <- data$outlier == FALSE &
-    abs(dist_to_bin_centre_all) < (curr_bin_range / 2 + reassign_range + 1e-12)
-  data_incl_boundaries <- data[
-    in_boundary_range,
-    .(
-      row_i, err, x_var, dc_var, gr_var,
-      at_the_boundary,
-      center_x
-    )
-  ]
-  data_incl_boundaries[, dist_to_bin_centre := dist_to_bin_centre_all[in_boundary_range]]
-  data_incl_boundaries[, dist_to_boundary := (abs(dist_to_bin_centre) - curr_bin_range / 2)]
-  data_incl_boundaries[, dist_to_boundary_norm := (dist_to_boundary + reassign_range) / (2 * reassign_range)]
+    dist_to_bin_centre_all <- dist_to_centers_mat[data$row_i, group_i]
+    in_boundary_range <- abs(dist_to_bin_centre_all) < (curr_bin_range / 2 + reassign_range + 1e-12)
+    boundary_data <- data[
+      in_boundary_range,
+      .(row_i, err, x_var, dc_var, gr_var, at_the_boundary, center_x)
+    ]
+    boundary_data[, dist_to_bin_centre := dist_to_bin_centre_all[in_boundary_range]]
+    boundary_data[, dist_to_boundary := (abs(dist_to_bin_centre) - curr_bin_range / 2)]
+    boundary_data[, dist_to_boundary_norm := (dist_to_boundary + reassign_range) / (2 * reassign_range)]
+    if (extract_only) return(boundary_data)
+  }
 
-  if (!missing(weights)) {
+  data_incl_boundaries <- copy(boundary_data)
+  if (!missing(weights) && !is.null(weights)) {
     data_incl_boundaries[, gr_var := group_label]
     data_incl_boundaries[weights, `:=`(weight = new_weight), on = .(row_i, gr_var)]
   } else {
     data_incl_boundaries[, weight := ifelse(at_the_boundary == FALSE, 1, ifelse(gr_var == group_label, 0.75, 0.25))]
   }
-
 
   fit_fast <- fit_weighted_locscale_normal(
     y = data_incl_boundaries$err,
