@@ -668,13 +668,13 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       cg <- unique_gr_var[[j]]
       cur_df <- for_fit[gr_var == cg, .(err, x_var, dist_to_bin_centre, dc_var, outlier, dist_to_card)]
       w_fit  <- 1 - as.numeric(cur_df$outlier)
-      sm_obj <- .make_pspline(cur_df$dist_to_bin_centre)
+      basis  <- .pb_basis(cur_df$dist_to_bin_centre)
       fit <- fit_weighted_locscale_normal(
         y         = cur_df$err,
         x         = cur_df$dist_to_bin_centre,
         w         = w_fit,
-        x_basis   = sm_obj$X,
-        S_penalty = sm_obj$S
+        x_basis   = basis$X,
+        S_penalty = crossprod(basis$D)
       )
       if (!fit$ok) stop("Final loc-scale fit failed.")
 
@@ -878,9 +878,8 @@ pad_circ <- function(data, circ_var, circ_borders = c(-90, 90), circ_part = 1 / 
 
 get_boundary_preds <- function(group_i, group_label, data, dist_to_centers_mat, space, reassign_range, poly_deg, angle_diff_fun, weights = NULL) {
   gr_var <- outlier <- err <- x_var <- dc_var <- center_x <- dist_to_card <- bin_boundary_left <- bin_boundary_right <- bin_range <- dist_to_bin_centre <- row_i <- at_the_boundary <- dist_to_boundary <- dist_to_boundary_norm <- new_weight <- weight <- pred <- . <- predict <- pred_sigma <- resid_at_boundaries <- NULL # due to NSE notes in R CMD check
-  cur_df <- data[gr_var == group_label & outlier == FALSE, .(err, x_var, dc_var,
-    dist_to_bin_centre = angle_diff_fun(x_var, center_x), weight = NULL, adc = abs(dist_to_card), center_x, bin_boundary_left, bin_boundary_right, bin_range
-  )]
+  cur_df <- data[gr_var == group_label & outlier == FALSE,
+    .(bin_range, center_x, bin_boundary_left, bin_boundary_right)][1L]
 
   curr_bin_range <- cur_df$bin_range[[1]]
   curr_bin_center <- cur_df$center_x[[1]]
@@ -925,60 +924,66 @@ get_boundary_preds <- function(group_i, group_label, data, dist_to_centers_mat, 
   data_incl_boundaries[, .(row_i, gr_var = group_label, at_the_boundary, x_var, dc_var, dist_to_bin_centre, err, pred, resid_at_boundaries, dist_to_boundary, dist_to_boundary_norm, weight, pred_sigma)]
 }
 
-# Build a P-spline basis + penalty matching gamlss::pb() defaults.
-# Returns list(X = n×K B-spline matrix, S = K×K second-difference penalty).
-.make_pspline <- function(x, ndx = NULL, deg = 3L, ord = 2L) {
-  n_dist <- length(unique(x))
-  if (is.null(ndx)) ndx <- if (length(x) < 100L) 10L else 20L
-  ndx <- min(ndx, n_dist)           # can't have more knot intervals than distinct x
-  xl  <- min(x); xr <- max(x)
-  rng <- xr - xl
-  xl  <- xl - 0.01 * rng;  xr <- xr + 0.01 * rng
-  dx  <- (xr - xl) / ndx
-  knots <- seq(xl - deg * dx, xr + deg * dx, by = dx)
-  B <- splines::splineDesign(knots, x, ord = deg + 1L, outer.ok = TRUE)
-  K <- ncol(B)
-  D <- diff(diag(K), differences = ord)
-  S <- crossprod(D)                  # K×K second-difference penalty
-  list(X = B, S = S)
+# Truncated-power P-spline basis matching gamlss::pb() defaults exactly.
+# Returns list(X = n×K basis matrix, D = (K-2)×K difference matrix).
+.pb_basis <- function(x) {
+  x        <- as.vector(x)
+  n_unique <- length(unique(x))
+  inter    <- min(if (length(x) < 99L) 10L else 20L, n_unique)
+  degree   <- 3L; order <- 2L
+  xl <- min(x); xr <- max(x)
+  xmin <- xl - 0.01 * (xr - xl); xmax <- xr + 0.01 * (xr - xl)
+  dx   <- (xmax - xmin) / inter
+  knots <- seq(xmin - degree * dx, xmax + degree * dx, by = dx)
+  tpower <- function(x, t, p) (x - t)^p * (x > t)
+  P      <- outer(x, knots, tpower, degree)
+  D_full <- diff(diag(ncol(P)), diff = degree + 1L) / (gamma(degree + 1L) * dx^degree)
+  X      <- (-1)^(degree + 1L) * P %*% t(D_full)
+  D      <- diff(diag(ncol(X)), diff = order)
+  list(X = X, D = D)
 }
 
-# GCV-based lambda selection for penalized WLS via eigendecomposition (cf. gamlss:::gamlss.pb).
+# ML EM lambda selection for penalized WLS via eigendecomposition.
+# Precomputes QR(B) + eigen(R^{-T} S R^{-1}) once, then each EM iteration
+# is O(p) element-wise ops — no SVD inside the loop.
 # y_w: sqrt(w_mu)*y  (n-vector, pre-weighted response)
-# B:   sqrt(w_mu)*X  (n×p, pre-weighted design matrix)
+# B:   sqrt(w_mu)*X  (n×p, pre-weighted design matrix, already subset to pos rows)
 # S_full: p×p penalty matrix
-# Returns list(lambda, edf, beta)
-# REML criterion for lambda selection (Wood 2017; avoids underfitting via log-det penalty).
-# Minimise: WRSS(λ) + Σ log(1+λ·lkᵢ) − rank(S)·log(λ)
-# Unlike GCV this strongly penalises λ→0, preventing over-flexible splines.
-.gcv_pspline <- function(y_w, B, S_full, lambda_range = c(-15, 15)) {
-  n    <- nrow(B)
+# Returns list(lambda, edf, beta)  — same interface as the former .gcv_pspline.
+.lambda_em_pspline <- function(y_w, B, S_full,
+                                lambda = 10, max_iter = 50L, tol = 1e-7,
+                                penalty_order = 2L) {
   p    <- ncol(B)
-  qr_B <- qr(B)
-  Q    <- qr.Q(qr_B)                            # n×p thin Q
-  R    <- qr.R(qr_B)                            # p×p upper triangular
+  n_eff <- nrow(B)
+  qr_B <- qr(B, tol = .Machine$double.eps^0.8)
+  Q    <- qr.Q(qr_B)
+  R    <- qr.R(qr_B)
   Rinv <- backsolve(R, diag(p))
-  K    <- crossprod(Rinv, S_full %*% Rinv)      # t(Rinv) %*% S_full %*% Rinv
-  K    <- (K + t(K)) / 2                        # enforce symmetry
+  K    <- crossprod(Rinv, S_full %*% Rinv)
+  K    <- (K + t(K)) / 2
   eig  <- eigen(K, symmetric = TRUE)
   U    <- eig$vectors
-  lk   <- pmax(eig$values, 0)                   # eigenvalues of K (clamped to >=0)
-  rk   <- sum(lk > .Machine$double.eps^0.5)     # rank of S_full
-  z_w  <- as.numeric(crossprod(Q, y_w))         # Q'y_w, p-vector
-  qq   <- as.numeric(crossprod(U, z_w))         # U'Q'y_w
+  lk   <- pmax(eig$values, 0)
+  z_w  <- as.numeric(crossprod(Q, y_w))
+  qq   <- as.numeric(crossprod(U, z_w))
   y_y  <- sum(y_w^2)
-  reml_fn <- function(log_lam) {
-    lam  <- exp(log_lam)
-    d    <- 1 + lam * lk
-    wrss <- max(y_y - 2 * sum(qq^2 / d) + sum(qq^2 / d^2), 0)
-    wrss + sum(log(d)) - rk * log_lam           # -2·REML (up to constant)
+
+  for (iter in seq_len(max_iter)) {
+    d    <- 1 + lambda * lk
+    edf  <- sum(1 / d)
+    wrss <- max(y_y - sum(qq^2 * (2 / d - 1 / d^2)), 0)
+    sig2 <- wrss / (n_eff - edf)
+    tau2 <- sum(lk * qq^2 / d^2) / max(edf - penalty_order, 1e-6)
+    if (tau2 < 1e-7) tau2 <- 1e-7
+    lambda_old <- lambda
+    lambda     <- max(1e-7, min(sig2 / tau2, 1e7))
+    if (abs(lambda - lambda_old) < tol) break
   }
-  opt  <- stats::optimize(reml_fn, interval = lambda_range)
-  lam  <- exp(opt$minimum)
-  d    <- 1 + lam * lk
-  beta <- backsolve(R, as.numeric(U %*% (qq / d)))
+
+  d    <- 1 + lambda * lk
   edf  <- sum(1 / d)
-  list(lambda = lam, edf = edf, beta = beta)
+  beta <- backsolve(R, as.numeric(U %*% (qq / d)))
+  list(lambda = lambda, edf = edf, beta = beta)
 }
 
 fit_weighted_locscale_normal <- function(y, x, w, poly_deg = 1L, x_basis = NULL, x_sigma = NULL, S_penalty = NULL, lambda_fixed = NULL) {
@@ -1001,7 +1006,7 @@ fit_weighted_locscale_normal <- function(y, x, w, poly_deg = 1L, x_basis = NULL,
     mu_const    <- stats::weighted.mean(y, w)
     sigma_const <- sqrt(stats::weighted.mean((y - mu_const)^2, w))
     if (!is.finite(sigma_const) || sigma_const <= 0) sigma_const <- 1
-    loglik <- sum(stats::dnorm(y, mu_const, sigma_const, log = TRUE))
+    loglik <- sum(stats::dnorm(y[pos], mu_const, sigma_const, log = TRUE))
     return(list(ok = TRUE, pred = rep(mu_const, length(y)), pred_sigma = rep(sigma_const, length(y)),
                 coef_sigma = c(log(sigma_const), 0), loglik = loglik))
   }
@@ -1028,89 +1033,77 @@ fit_weighted_locscale_normal <- function(y, x, w, poly_deg = 1L, x_basis = NULL,
       S_full <- matrix(0, p, p)
       S_full[2:p, 2:p] <- S_penalty
     }
-    gamma <- c(log(sigma0), 0)
-    beta  <- beta_start
-    ok    <- FALSE
-    for (iter in seq_len(5L)) {
+    gamma   <- c(log(sigma0), 0)
+    beta    <- beta_start
+    X_sigma <- cbind(1, x_abs)
+    ok      <- FALSE
+    dev_old <- Inf
+    for (iter in seq_len(20L)) {
       sigma_vec <- exp(gamma[1] + gamma[2] * x_abs)
       w_mu  <- w / sigma_vec^2
-      # Use only positive-weight rows in GCV so n reflects actual effective sample size.
-      B_gcv <- X[pos, , drop = FALSE] * sqrt(w_mu[pos])
-      y_gcv <- y[pos] * sqrt(w_mu[pos])
-      gcv_res <- tryCatch(.gcv_pspline(y_gcv, B_gcv, S_full), error = function(e) NULL)
-      if (is.null(gcv_res) || !all(is.finite(gcv_res$beta))) break
-      beta   <- gcv_res$beta
-      mu     <- as.numeric(X %*% beta)
-      resid  <- y - mu
-      sigma_nll <- function(par) {
-        sig <- exp(par[1] + par[2] * x_abs)
-        if (any(sig <= 0)) return(.Machine$double.xmax)
-        sum(w * (log(sig) + 0.5 * (resid / sig)^2))
+      # Use only positive-weight rows so n_eff reflects actual sample size.
+      B_em  <- X[pos, , drop = FALSE] * sqrt(w_mu[pos])
+      y_em  <- y[pos] * sqrt(w_mu[pos])
+      em_res <- tryCatch(.lambda_em_pspline(y_em, B_em, S_full), error = function(e) NULL)
+      if (is.null(em_res) || !all(is.finite(em_res$beta))) break
+      beta  <- em_res$beta
+      mu    <- as.numeric(X %*% beta)
+      resid <- y - mu
+      # IRLS sigma update (working variable approach)
+      resid2_scaled <- (resid / sigma_vec)^2
+      z_sigma       <- log(sigma_vec) + (resid2_scaled - 1) / 2
+      lm_sigma      <- stats::lm.wfit(x = X_sigma, y = z_sigma, w = w * 2)
+      gamma_new     <- as.numeric(lm_sigma$coefficients)
+      if (anyNA(gamma_new)) gamma_new[is.na(gamma_new)] <- gamma[is.na(gamma_new)]
+      gamma_new     <- pmin(pmax(gamma_new, -30), 30)
+      sigma_new     <- exp(gamma_new[1] + gamma_new[2] * x_abs)
+      dev <- -2 * sum(w * stats::dnorm(y, mu, sigma_new, log = TRUE))
+      if (is.finite(dev_old) && abs(dev_old - dev) / (abs(dev_old) + 0.1) < 1e-5) {
+        gamma <- gamma_new; ok <- TRUE; break
       }
-      opt_g <- try(stats::nlminb(gamma, sigma_nll, control = list(iter.max = 100)), silent = TRUE)
-      if (!inherits(opt_g, "try-error") && all(is.finite(opt_g$par))) {
-        gamma <- opt_g$par
-        ok    <- TRUE
-      }
+      gamma <- gamma_new; dev_old <- dev; ok <- TRUE
     }
     if (!ok || !all(is.finite(beta)) || !all(is.finite(gamma))) return(list(ok = FALSE))
     best_par <- c(beta, gamma)
   } else {
-    # Standard joint NLL optimisation (no penalty, or fixed lambda penalty).
-    use_penalty <- !is.null(S_penalty)
-    nll <- function(par) {
-      mu    <- as.numeric(X %*% par[seq_len(p)])
-      sigma <- exp(par[p + 1L] + par[p + 2L] * x_abs)
-      z     <- (y - mu) / sigma
-      obj   <- sum(w * (log(sigma) + 0.5 * z * z))
-      if (use_penalty) {
-        beta_spl <- par[2L:p]
-        obj <- obj + lambda_fixed * as.numeric(crossprod(beta_spl, S_penalty %*% beta_spl))
+    # Parametric RS: lm.wfit mu + IRLS sigma (linear / poly, no spline penalty).
+    gamma   <- c(log(sigma0), 0)
+    beta    <- beta_start
+    X_sigma <- cbind(1, x_abs)
+    dev_old <- Inf
+    for (iter in seq_len(20L)) {
+      sigma_vec <- exp(gamma[1] + gamma[2] * x_abs)
+      w_mu  <- w / sigma_vec^2
+      lm_mu <- stats::lm.wfit(x = X, y = y, w = w_mu)
+      b_new <- as.numeric(lm_mu$coefficients)
+      if (anyNA(b_new)) b_new[is.na(b_new)] <- beta[is.na(b_new)]
+      beta  <- b_new
+      mu    <- as.numeric(X %*% beta)
+      resid <- y - mu
+      resid2_scaled <- (resid / sigma_vec)^2
+      z_sigma <- log(sigma_vec) + (resid2_scaled - 1) / 2
+      lm_s    <- stats::lm.wfit(x = X_sigma, y = z_sigma, w = w * 2)
+      g_new   <- as.numeric(lm_s$coefficients)
+      if (anyNA(g_new)) g_new[is.na(g_new)] <- gamma[is.na(g_new)]
+      g_new   <- pmin(pmax(g_new, -30), 30)
+      sigma_new <- exp(g_new[1] + g_new[2] * x_abs)
+      dev <- -2 * sum(w * stats::dnorm(y, mu, sigma_new, log = TRUE))
+      if (is.finite(dev_old) && abs(dev_old - dev) / (abs(dev_old) + 0.1) < 1e-5) {
+        gamma <- g_new; break
       }
-      obj
+      gamma <- g_new; dev_old <- dev
     }
-
-    mu0        <- stats::weighted.mean(y, w)
-    start_grid <- list(
-      c(beta_start,           log(sigma0), 0),
-      c(mu0, rep(0, p - 1L), log(sigma0), 0),
-      c(mu0, rep(0, p - 1L), log(sigma0), 0.01)
-    )
-    if (p == 2L) start_grid <- c(start_grid, list(c(beta_start[1], 0, log(sigma0), 0)))
-
-    best_par <- NULL
-    best_obj <- Inf
-    for (par0 in start_grid) {
-      fit_try <- try(stats::nlminb(start = par0, objective = nll,
-                                   control = list(iter.max = 300, eval.max = 600)), silent = TRUE)
-      if (!inherits(fit_try, "try-error") && is.list(fit_try) && all(is.finite(fit_try$par))) {
-        obj <- nll(fit_try$par)
-        if (is.finite(obj) && obj < best_obj) {
-          best_obj <- obj
-          best_par <- fit_try$par
-        }
-      }
-    }
-    if (is.null(best_par)) {
-      fit_try <- try(stats::optim(par = start_grid[[1]], fn = nll, method = "BFGS",
-                                  control = list(maxit = 500, reltol = 1e-8)), silent = TRUE)
-      if (!inherits(fit_try, "try-error") && is.list(fit_try) && all(is.finite(fit_try$par))) {
-        obj <- nll(fit_try$par)
-        if (is.finite(obj)) best_par <- fit_try$par
-      }
-    }
-    if (is.null(best_par)) return(list(ok = FALSE))
+    if (!all(is.finite(beta)) || !all(is.finite(gamma))) return(list(ok = FALSE))
   }
 
-  mu_hat    <- as.numeric(X %*% best_par[seq_len(p)])
-  sigma_hat <- exp(best_par[p + 1L] + best_par[p + 2L] * x_abs)
+  mu_hat    <- as.numeric(X %*% beta)
+  sigma_hat <- exp(gamma[1] + gamma[2] * x_abs)
   if (any(!is.finite(mu_hat)) || any(!is.finite(sigma_hat)) || any(sigma_hat <= 0)) {
     return(list(ok = FALSE))
   }
-  resid  <- y - mu_hat
-  loglik <- sum(stats::dnorm(resid, 0, sigma_hat, log = TRUE))
+  loglik <- sum(stats::dnorm(y[pos] - mu_hat[pos], 0, sigma_hat[pos], log = TRUE))
   list(ok = TRUE, pred = mu_hat, pred_sigma = sigma_hat,
-       coef_sigma = best_par[(p + 1L):(p + 2L)], loglik = loglik)
+       coef_sigma = gamma, loglik = loglik)
 }
 
 

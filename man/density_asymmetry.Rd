@@ -25,7 +25,7 @@ density_asymmetry(
 
 \item{weights_sd}{Standard deviation of the Gaussian window to use across \code{xvar} (default: 10).}
 
-\item{kernel_bw}{Bandwidth for the kernel density estimator across \code{yvar}. If NULL, it is computed using \code{\link[stats:bandwidth]{stats::bw.SJ()}}. If "average", it is computed using \code{\link[stats:bandwidth]{stats::bw.SJ()}} for each group indicated by \code{by} and then averaged. Otherwise it is passed to \code{\link[stats:density]{stats::density()}} (default: NULL).}
+\item{kernel_bw}{Bandwidth for the kernel density estimator across \code{yvar}. If NULL, it is computed using \code{\link[stats:bw.SJ]{stats::bw.SJ()}}. If "average", it is computed using \code{\link[stats:bw.SJ]{stats::bw.SJ()}} for each group indicated by \code{by} and then averaged. Otherwise it is passed to \code{\link[stats:density]{stats::density()}} (default: NULL).}
 
 \item{xvar}{X-axis variable, such as dissimilarity between items (default: "abs_td_dist").}
 
