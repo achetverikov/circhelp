@@ -23,15 +23,14 @@ Suggests:
     Hmisc,
     superb,
     ggridges,
-    reshape2
+    reshape2,
+    mgcv
 Imports:
     mathjaxr,
     data.table,
     stats,
+    splines,
     ggplot2,
-    gamlss2,
-    gamlss.dist,
-    mgcv,
     MASS,
     patchwork,
     rlang
@@ -40,6 +39,6 @@ Depends:
 Config/testthat/edition: 3
 RoxygenNote: 7.3.3
 Roxygen: list(markdown = TRUE)
-VignetteBuilder: knitr, patchwork, ggplot2, MASS, gamlss2, mgcv, ragg, Hmisc, ggridges, superb, reshape2
+VignetteBuilder: knitr, patchwork, ggplot2, MASS, ragg, Hmisc, ggridges, superb, reshape2
 RdMacros: mathjaxr
 BuildManual: TRUE 
