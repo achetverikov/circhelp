@@ -80,6 +80,7 @@ A data.table with the grouping variables and `delta` - the difference
 ## Examples
 
 ``` r
+
 data(Pascucci_et_al_2019_data)
 ex_data <- Pascucci_et_al_2019_data
 ex_data[, err := angle_diff_180(reported, orientation)] # response errors

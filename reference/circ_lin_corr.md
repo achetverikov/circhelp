@@ -46,6 +46,7 @@ Statistics. WORLD SCIENTIFIC.
 ## Examples
 
 ``` r
+
 x <- rnorm(50)
 a <- as.vector(circular::rvonmises(50, 0, 5))
 #> Warning: an object is coerced to the class 'circular' using default value for the following components:

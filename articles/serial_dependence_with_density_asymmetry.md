@@ -13,6 +13,7 @@ from <https://doi.org/10.5281/zenodo.2544946>. First, I load the data,
 the required packages, and compute important variables.
 
 ``` r
+
 data <- Pascucci_et_al_2019_data
 data[, err := angle_diff_180(reported, orientation)] # response errors
 data[, prev_ori := shift(orientation), by = observer] # orientation on previous trial
@@ -24,6 +25,7 @@ The data is preprocessed to remove cardinal biases (see
 [`vignette('cardinal_biases')`](https://achetverikov.github.io/circhelp/index.html/articles/cardinal_biases.md):
 
 ``` r
+
 data[, c("err_corrected", "is_outlier") := remove_cardinal_biases(err, orientation)[, c("be_c", "is_outlier")], by = observer]
 
 data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err_corrected, err_corrected)] # bias towards the previous target
@@ -40,6 +42,7 @@ plotted at different dissimilarity steps from 0 to 90 degrees for one
 observer:
 
 ``` r
+
 
 err_dens <- density_asymmetry(data[observer == 1],
   circ_space = 180, weights_sd = 10,
@@ -80,6 +83,7 @@ the function) by dropping the parameter `return_full_density = T`. We
 will also do it for all observers by specifying the parameter `by`:
 
 ``` r
+
 err_dens <- density_asymmetry(data,
   circ_space = 180, weights_sd = 10,
   xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", by = c("observer")
@@ -98,6 +102,7 @@ have the same effect).
 As a comparison, one can use binned errors:
 
 ``` r
+
 mean_err <- copy(data[!is.na(err_rel_to_prev_targ) & is_outlier == FALSE & !is.na(abs_diff_in_ori)])
 mean_err[, abs_diff_in_ori_bin := cut(abs_diff_in_ori,
   breaks = seq(0, 90, 10), include.lowest = TRUE, right = FALSE,
@@ -122,6 +127,7 @@ within-subject inference, use
 Putting them side by side:
 
 ``` r
+
 p1 <- ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
   geom_line() +
   geom_ribbon(alpha = 0.1) +

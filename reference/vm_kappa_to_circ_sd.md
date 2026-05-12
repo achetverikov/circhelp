@@ -47,6 +47,7 @@ respectively).
 ## Examples
 
 ``` r
+
 vm_kappa <- 5
 vm_sd <- vm_kappa_to_circ_sd(vm_kappa)
 

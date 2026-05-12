@@ -49,6 +49,7 @@ non-circular methods.
 ## Examples
 
 ``` r
+
 dt <- data.table::data.table(x = runif(1000, -90, 90), y = rnorm(1000))
 pad_circ(dt, "x", verbose = TRUE)
 #> Rows in original DT: 1000, padded on the left: 172, padded on the right: 180

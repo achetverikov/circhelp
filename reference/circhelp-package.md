@@ -27,6 +27,11 @@ Useful links:
 **Maintainer**: Andrey Chetverikov <andrey.chetverikov@uib.no>
 ([ORCID](https://orcid.org/0000-0003-2767-6310))
 
+Authors:
+
+- Andrey Chetverikov <andrey.chetverikov@uib.no>
+  ([ORCID](https://orcid.org/0000-0003-2767-6310))
+
 Other contributors:
 
 - Eline Van Geert <eline.vangeert@kuleuven.be>

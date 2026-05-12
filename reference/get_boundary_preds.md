@@ -7,26 +7,37 @@ A helper function for
 
 ``` r
 get_boundary_preds(
-  group,
+  group_i,
+  group_label,
   data,
+  dist_to_centers_mat,
   space,
   reassign_range,
-  gam_ctrl,
   poly_deg,
   angle_diff_fun,
-  weights = NULL
+  weights = NULL,
+  extract_only = FALSE,
+  boundary_data = NULL
 )
 ```
 
 ## Arguments
 
-- group:
+- group_i:
 
-  group (bin) id
+  integer group (bin) id
+
+- group_label:
+
+  group (bin) label
 
 - data:
 
   dataset
+
+- dist_to_centers_mat:
+
+  precomputed distances to bin centers
 
 - space:
 
@@ -37,10 +48,6 @@ get_boundary_preds(
 
   see
   [`remove_cardinal_biases()`](https://achetverikov.github.io/circhelp/index.html/reference/remove_cardinal_biases.md)
-
-- gam_ctrl:
-
-  control object for gam models
 
 - poly_deg:
 

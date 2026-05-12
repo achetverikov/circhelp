@@ -8,6 +8,7 @@ Experiment 2 in Pascucci et al. (2019, PLOS Biology,
 required packages, and compute important variables.
 
 ``` r
+
 # load the data
 # data <- fread('https://zenodo.org/record/2544946/files/Experiment2_rawdata.csv?download=1')
 data <- Pascucci_et_al_2019_data
@@ -27,6 +28,7 @@ for this kind of analysis. The thin lines show individual observers, and
 the thick blue line shows the average.
 
 ``` r
+
 ggplot(pad_circ(data, "diff_in_ori"), aes(x = diff_in_ori, y = err)) +
   geom_line(aes(group = observer), stat = "smooth", size = 0.4, color = "black", alpha = 0.2, method = "loess") +
   geom_smooth(se = T, method = "loess") +
@@ -45,6 +47,7 @@ show cardinal biases, that is, a repulsion effect with responses
 where this pattern is clearly seen.
 
 ``` r
+
 ggplot(data[observer == 4, ], aes(x = angle_diff_180(orientation, 0), y = err)) +
   geom_point() +
   coord_cartesian(xlim = c(-90, 90)) +
@@ -71,6 +74,7 @@ across orientations (see more in
 [`remove_cardinal_biases()`](https://achetverikov.github.io/circhelp/index.html/reference/remove_cardinal_biases.md)).
 
 ``` r
+
 ex_subj_data <- data[observer == 4, ]
 res <- remove_cardinal_biases(ex_subj_data$err, ex_subj_data$orientation, plots = "show")
 ```
@@ -94,6 +98,7 @@ ones being the bias-corrected error (`be_c`) and an outlier marker
 (`is_outlier`). I save them in the `data`:
 
 ``` r
+
 data[, c("err_corrected", "is_outlier") := remove_cardinal_biases(err, orientation)[, c("be_c", "is_outlier")], by = observer]
 ```
 
@@ -101,6 +106,7 @@ As a comparison, we can just use a correction for the overall mean
 error.
 
 ``` r
+
 data[, err_mean_corrected := angle_diff_180(err, circ_mean_180(err)), by = observer]
 ```
 
@@ -108,6 +114,7 @@ Then, I plot these errors along with the raw errors as a function of the
 previous item orientation (with the outliers removed) and plot them.
 
 ``` r
+
 datam <- melt(data[!is.na(diff_in_ori)], id.vars = c("diff_in_ori", "observer", "is_outlier"), measure.vars = c("err", "err_corrected", "err_mean_corrected"))
 datam[, variablef := factor(variable, levels = c("err", "err_mean_corrected", "err_corrected"), labels = c("Raw error", "Mean-corrected", "Mean and cardinal bias removed"))]
 datam[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -value, value)]
@@ -129,6 +136,7 @@ To make things clearer, I plot serial dependence as a function of
 absolute orientation differences.
 
 ``` r
+
 ggplot(datam[is_outlier == F], aes(
   x = abs(diff_in_ori),
   y = err_rel_to_prev_targ,

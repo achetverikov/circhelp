@@ -14,6 +14,7 @@ package help files and at <https://achetverikov.github.io/circhelp/>.
 You can install the latest released version from CRAN with:
 
 ``` r
+
 install.packages("circhelp")
 ```
 
@@ -21,6 +22,7 @@ The current developmental version from [GitHub](https://github.com/) can
 be installed with:
 
 ``` r
+
 # install.packages("devtools")
 devtools::install_github("achetverikov/circhelp")
 ```
@@ -30,6 +32,7 @@ devtools::install_github("achetverikov/circhelp")
 Most functions are self-explanatory.
 
 ``` r
+
 library(circhelp)
 library(mgcv)
 #> Loading required package: nlme

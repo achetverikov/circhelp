@@ -50,7 +50,7 @@ weighted mean of values in the vector
 x <- rnorm(1000, 0, 0.5)
 w <- runif(1000, 0, 1)
 weighted.mean(x, w)
-#> [1] -0.0002040864
+#> [1] -0.0007545474
 weighted_circ_mean(x, w)
-#> [1] 0.001082165
+#> [1] 6.034346e-05
 ```
