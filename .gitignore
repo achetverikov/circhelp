@@ -41,5 +41,6 @@ vignettes/*.pdf
 inst/doc
 Meta
 /Meta/
-docs
+/docs/
 /profiling/
+/.devcontainer/

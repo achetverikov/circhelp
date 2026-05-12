@@ -500,16 +500,16 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   }
   for_fit[, dist_to_card := angle_diff_90(x2, 0)]
   for_fit[, dist_to_obl := angle_diff_90(x, 45)]
-  gam_ctrl <- gamlss::gamlss.control(trace = FALSE)
+  gam_ctrl <- gamlss2::gamlss2_control(trace = FALSE)
 
   if (debug) {
     cat("Computing bins to group the data...\n")
   }
   if (bias_type == "fit") {
     if (var_sigma) {
-      sigma_formula <- "~abs(dist_to_card)" # assumes that uncertainty changes linearly as a function of distance to cardinals regardless of the bias direction
-      ll1 <- sum(for_fit[outlier == FALSE, logLik(gamlss::gamlss(err ~ poly(dist_to_card, var_sigma_poly_deg), sigma_formula, .SD, control = gam_ctrl)), by = .(card_groups)]$V1)
-      ll2 <- sum(for_fit[outlier == FALSE, logLik(gamlss::gamlss(err ~ poly(dist_to_obl, var_sigma_poly_deg), sigma_formula, .SD, control = gam_ctrl)), by = .(obl_groups)]$V1)
+      # sigma modelled as abs(dist_to_card) regardless of bias direction
+      ll1 <- sum(for_fit[outlier == FALSE, logLik(gamlss2::gamlss2(err ~ poly(dist_to_card, var_sigma_poly_deg) | abs(dist_to_card), data = as.data.frame(.SD), family = gamlss.dist::NO, control = gam_ctrl)), by = .(card_groups)]$V1)
+      ll2 <- sum(for_fit[outlier == FALSE, logLik(gamlss2::gamlss2(err ~ poly(dist_to_obl, var_sigma_poly_deg) | abs(dist_to_card), data = as.data.frame(.SD), family = gamlss.dist::NO, control = gam_ctrl)), by = .(obl_groups)]$V1)
     } else {
       ll1 <- sum(for_fit[outlier == FALSE, logLik(MASS::rlm(err ~ poly(x2, poly_deg))), by = .(card_groups)]$V1)
       ll2 <- sum(for_fit[outlier == FALSE, logLik(MASS::rlm(err ~ poly(x, poly_deg))), by = .(obl_groups)]$V1)
@@ -663,9 +663,9 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
     for (j in seq_along(unique_gr_var)) {
       cg <- unique_gr_var[[j]]
       cur_df <- for_fit[gr_var == cg, .(err, x_var, dist_to_bin_centre, dc_var, outlier, dist_to_card)]
-      fit <- gamlss::gamlss(err ~ pb(dist_to_bin_centre),
-        ~ abs(dist_to_bin_centre),
-        data = cur_df,
+      fit <- gamlss2::gamlss2(err ~ s(dist_to_bin_centre, bs = "ps") | abs(dist_to_bin_centre),
+        data = as.data.frame(cur_df),
+        family = gamlss.dist::NO,
         weights = 1 - as.numeric(cur_df$outlier),
         control = gam_ctrl
       )
@@ -675,8 +675,9 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
         cat(coef(fit))
       }
 
-      for_fit[gr_var == cg, pred := predict(fit, type = "response")]
-      for_fit[gr_var == cg, pred_sigma := predict(fit, what = "sigma", type = "response")]
+      .preds <- predict(fit, type = "parameter")
+      for_fit[gr_var == cg, pred := .preds$mu]
+      for_fit[gr_var == cg, pred_sigma := .preds$sigma]
 
       for_fit[gr_var == cg, bias := err * sign(pred)]
 
@@ -686,7 +687,8 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
           geom_line(aes(y = .data$pred))
         print(p_pred)
       }
-      for_fit[gr_var == cg, c("coef_sigma_int", "coef_sigma_slope") := data.frame(t(coef(fit, what = "sigma")))]
+      .sc <- as.numeric(coef(fit, what = "sigma"))
+      for_fit[gr_var == cg, c("coef_sigma_int", "coef_sigma_slope") := list(.sc[1], .sc[2])]
       likelihoods[[j]] <- logLik(fit)
     }
   } else {
@@ -702,6 +704,16 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
     for_fit[, outlier := abs(be_c) > 3 * pred_sigma]
   } else {
     for_fit[, outlier := abs(be_c) > (3 * circ_sd_fun(be_c))]
+  }
+
+  large_err_thresh <- as.numeric(space) / 4
+  n_large <- sum(abs(for_fit$err) > large_err_thresh & !for_fit$outlier)
+  if (n_large / nrow(for_fit) > 0.05) {
+    pct <- round(100 * n_large / nrow(for_fit))
+    warning(sprintf(
+      "%d observation(s) (%d%%) have errors with absolute values > %.4g but are not counted as outliers. These are likely random/guessing responses. Consider dropping this subject or supplying `init_outliers` (e.g. init_outliers = abs(err) > %.4g).",
+      n_large, pct, large_err_thresh, large_err_thresh
+    ), call. = FALSE)
   }
 
   if (plots %in% c("show", "return")) {
