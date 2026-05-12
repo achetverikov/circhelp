@@ -368,8 +368,15 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #' If the `bias_type` is set to `fit`, the function computes the cardinal biases in the following way:
 #' \enumerate{
 #' \item Create two sets of bins, splitting the stimuli vector into bins centered at cardinal and at oblique directions.
-#' \item For each set of bins, fit a nth-degree polynomial for the responses in each bin, optionally allowing the distribution of responses to vary in width as a function of distance to the nearest cardinal (regardless of whether the bins are centered at the cardinal or at the oblique, the width of the response distribution usually increases as the distance to cardinals increase).
+#' \item For each set of bins, fit a penalised spline (P-spline — a regression spline with a roughness
+#' penalty that controls smoothness) for the mean response in each bin. Optionally (see `var_sigma`),
+#' the response variability (SD) is modelled jointly via a log-linear model, allowing the response distribution to vary in 
+#' width as a function of distance to the nearest cardinal (regardless of whether the bins are centered
+#' at the cardinal or at the oblique, the width of the response distribution usually increases as the
+#' distance to cardinals increases).
 #' \item Choose the best-fitting model between the one using cardinal and the one using oblique bins.
+#' \item Optionally (see `reassign_at_boundaries`), reassign observations near bin boundaries to the
+#' bin whose fitted model best describes them, iterating until convergence.
 #' \item Compute the residuals of the best-fitting model - that's your bias-corrected error - and the biases (see below).
 #' }
 #' The bias is computed by flipping the sign of errors when the average predicted error is negative, so, that, for example, if on average the responses are shifted clockwise relative to the true values, the trial-by-trial error would count as bias when it is also shifted clockwise.
@@ -400,7 +407,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #' }
 #' }
 #' @export
-#' @import data.table gamlss
+#' @import data.table
 #' @importFrom MASS rlm
 #' @examples
 #'
@@ -435,7 +442,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #' )
 #'
 remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plots = "hide", poly_deg = 4, var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, break_points = NULL, init_outliers = NULL, debug = FALSE, do_plots = NULL) {
-  outlier <- dist_to_card <- dist_to_obl <- logLik <- x_var <- min_bp_i <- center_x <- dc_var <- gr_var <- min_boundary_i <- min_boundary_dist <- bin_range <- bin_boundary_left <- bin_boundary_right <- at_the_boundary <- row_i <- likelihood <- dnorm <- pred <- pred_sigma <- new_weight <- i.gr_var <- dist_to_bin_centre <- coef <- predict <- bias <- pred_lin <- be_c <- which_bin <- center_y <- outlier_f <- coef_sigma_int <- . <- coef_sigma_slope <- NULL # due to NSE notes in R CMD check
+  outlier <- dist_to_card <- dist_to_obl <- logLik <- x_var <- min_bp_i <- center_x <- dc_var <- gr_var <- gr_i <- min_boundary_i <- min_boundary_dist <- bin_range <- bin_boundary_left <- bin_boundary_right <- at_the_boundary <- row_i <- likelihood <- dnorm <- pred <- pred_sigma <- new_weight <- i.gr_var <- dist_to_bin_centre <- coef <- predict <- bias <- pred_lin <- be_c <- which_bin <- outlier_f <- coef_sigma_int <- . <- coef_sigma_slope <- NULL # due to NSE notes in R CMD check
 
   if (!(bias_type %in% c("fit", "card", "obl", "custom"))) {
     stop("`bias_type` should be 'fit','card', 'obl', or 'custom'")
@@ -500,16 +507,22 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   }
   for_fit[, dist_to_card := angle_diff_90(x2, 0)]
   for_fit[, dist_to_obl := angle_diff_90(x, 45)]
-  gam_ctrl <- gamlss::gamlss.control(trace = FALSE)
 
   if (debug) {
     cat("Computing bins to group the data...\n")
   }
   if (bias_type == "fit") {
     if (var_sigma) {
-      sigma_formula <- "~abs(dist_to_card)" # assumes that uncertainty changes linearly as a function of distance to cardinals regardless of the bias direction
-      ll1 <- sum(for_fit[outlier == FALSE, logLik(gamlss::gamlss(err ~ poly(dist_to_card, var_sigma_poly_deg), sigma_formula, .SD, control = gam_ctrl)), by = .(card_groups)]$V1)
-      ll2 <- sum(for_fit[outlier == FALSE, logLik(gamlss::gamlss(err ~ poly(dist_to_obl, var_sigma_poly_deg), sigma_formula, .SD, control = gam_ctrl)), by = .(obl_groups)]$V1)
+      # sigma modelled as abs(dist_to_card) regardless of bias direction
+      ll1 <- sum(for_fit[outlier == FALSE, {
+        fit <- fit_weighted_locscale_normal(err, dist_to_card, rep(1L, .N), poly_deg = var_sigma_poly_deg)
+        list(V1 = if (fit$ok) fit$loglik else -Inf)
+      }, by = .(card_groups)]$V1)
+      ll2 <- sum(for_fit[outlier == FALSE, {
+        X2 <- cbind(1, poly(dist_to_obl, var_sigma_poly_deg, raw = FALSE))
+        fit <- fit_weighted_locscale_normal(err, dist_to_card, rep(1L, .N), x_basis = X2)
+        list(V1 = if (fit$ok) fit$loglik else -Inf)
+      }, by = .(obl_groups)]$V1)
     } else {
       ll1 <- sum(for_fit[outlier == FALSE, logLik(MASS::rlm(err ~ poly(x2, poly_deg))), by = .(card_groups)]$V1)
       ll2 <- sum(for_fit[outlier == FALSE, logLik(MASS::rlm(err ~ poly(x, poly_deg))), by = .(obl_groups)]$V1)
@@ -543,14 +556,13 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
     sprintf("[%.2f, %.2f]", bin_boundaries[i - 1], bin_boundaries[i])
   })
   bin_labels <- factor(bin_labels, levels = bin_labels)
+  dist_to_centers_mat <- sapply(bin_centers, \(cc) angle_diff_fun(x, cc))
 
   for_fit[, x_var := x]
-  get_bin_i <- function(x, bin_centers, bin_width) {
-    within_bin <- sapply(1:length(bin_centers), \(i) abs(angle_diff_fun(x, bin_centers[i])) <= (bin_width[i] / 2))
-    max.col(within_bin, "first")
-  }
-  for_fit[, min_bp_i := get_bin_i(x, bin_centers, bin_width)]
+  for_fit[, min_bp_i := max.col(-abs(dist_to_centers_mat), "first")]
+  for_fit[, row_i := 1:.N]
   for_fit[, center_x := bin_centers[min_bp_i]]
+  for_fit[, gr_i := min_bp_i]
   for_fit[, dc_var := angle_diff_fun(x, center_x)]
   for_fit[, gr_var := bin_labels[min_bp_i]]
 
@@ -561,7 +573,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       ggplot2::geom_vline(color = "blue", xintercept = angle_diff_fun(bin_centers, 0))
     print(p_boundaries)
   }
-  for_fit[, min_boundary_i := apply(sapply(break_points, \(bp) abs(angle_diff_fun(x, bp))), 1, which.min)]
+  for_fit[, min_boundary_i := max.col(-abs(sapply(break_points, \(bp) angle_diff_fun(x, bp))), "first")]
 
   for_fit[, min_boundary_dist := angle_diff_fun(x, break_points[min_boundary_i])]
   for_fit[, bin_range := bin_width[min_bp_i]]
@@ -578,21 +590,42 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       if (any(for_fit[, unique(bin_range)] < (2 * reassign_range))) {
         stop("Reassignment range too large compared to bin sizes")
       }
-      for_fit[, row_i := 1:.N]
-      resid_at_boundaries <- for_fit[outlier == FALSE,
-        get_boundary_preds(gr_var, copy(for_fit[outlier == FALSE]), space, reassign_range, gam_ctrl, ifelse(rep_n > 2, poly_deg, 1), angle_diff_fun),
-        by = .(gr_var)
-      ]
+      non_outlier_idx <- which(!for_fit$outlier)
+      non_outlier_fit <- for_fit[non_outlier_idx]
+      reassignment_group_i <- sort(unique(non_outlier_fit$gr_i))
+      boundary_data_list <- lapply(reassignment_group_i, function(cur_group_i) {
+        get_boundary_preds(
+          group_i = cur_group_i,
+          group_label = bin_labels[cur_group_i],
+          data = non_outlier_fit,
+          dist_to_centers_mat = dist_to_centers_mat,
+          space = space,
+          reassign_range = reassign_range,
+          extract_only = TRUE,
+          angle_diff_fun = angle_diff_fun
+        )
+      })
+      resid_at_boundaries <- rbindlist(lapply(seq_along(reassignment_group_i), function(k) {
+        get_boundary_preds(
+          group_label = bin_labels[reassignment_group_i[[k]]],
+          boundary_data = boundary_data_list[[k]],
+          poly_deg = 1
+        )
+      }))
       resid_at_boundaries[, likelihood := dnorm(err, pred, pred_sigma, log = FALSE)]
       resid_at_boundaries[, new_weight := ifelse(at_the_boundary == FALSE, 1, likelihood / sum(likelihood)), by = .(err, x_var)]
       cur_weights <- resid_at_boundaries[at_the_boundary == TRUE, ]$new_weight
       stable_weights <- 0
       for (rep_n in 1:10) {
         weight_dt <- resid_at_boundaries[, .(row_i, gr_var, new_weight)]
-        resid_at_boundaries <- resid_at_boundaries[,
-          get_boundary_preds(gr_var, copy(for_fit[outlier == FALSE]), space, reassign_range, gam_ctrl, ifelse(rep_n > 2, poly_deg, 1), angle_diff_fun, weights = weight_dt),
-          by = .(gr_var)
-        ]
+        resid_at_boundaries <- rbindlist(lapply(seq_along(reassignment_group_i), function(k) {
+          get_boundary_preds(
+            group_label = bin_labels[reassignment_group_i[[k]]],
+            boundary_data = boundary_data_list[[k]],
+            poly_deg = ifelse(rep_n > 2, poly_deg, 1),
+            weights = weight_dt
+          )
+        }))
         resid_at_boundaries[, likelihood := dnorm(err, pred, pred_sigma, log = FALSE)]
         resid_at_boundaries[, new_weight := ifelse(at_the_boundary == FALSE, 1, likelihood / sum(likelihood)), by = .(err, x_var)]
 
@@ -606,6 +639,7 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
           cat(sprintf("Reassignment step: %i; change in weights: %.5f", rep_n, weights_change))
         }
         for_fit[resid_at_boundaries_c, `:=`(gr_var = i.gr_var), on = .(row_i)]
+        for_fit[, gr_i := as.integer(gr_var)]
         for_fit[, center_x := bin_centers[as.numeric(gr_var)]]
         for_fit[, x_var := center_x + angle_diff_fun(x_var, center_x)]
         for_fit[, dc_var := angle_diff_fun(x, center_x)]
@@ -629,27 +663,34 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       }
     }
     for_fit[, dist_to_bin_centre := angle_diff_fun(x_var, center_x)]
-    for_fit[, x_var := center_x + angle_diff_fun(x_var, center_x)]
-    for_fit[, dc_var := angle_diff_fun(x, center_x)]
+    if (!reassign_at_boundaries) {
+      for_fit[, x_var := center_x + angle_diff_fun(x_var, center_x)]
+      for_fit[, dc_var := angle_diff_fun(x, center_x)]
+    }
     if (debug) cat("Computing final fits...")
 
-    likelihoods <- c()
-    for (cg in unique(for_fit$gr_var)) {
+    unique_gr_var <- unique(for_fit$gr_var)
+    likelihoods <- numeric(length(unique_gr_var))
+    for (j in seq_along(unique_gr_var)) {
+      cg <- unique_gr_var[[j]]
       cur_df <- for_fit[gr_var == cg, .(err, x_var, dist_to_bin_centre, dc_var, outlier, dist_to_card)]
-      fit <- gamlss::gamlss(err ~ pb(dist_to_bin_centre),
-        ~ abs(dist_to_bin_centre),
-        data = cur_df,
-        weights = 1 - as.numeric(cur_df$outlier),
-        control = gam_ctrl
+      w_fit  <- 1 - as.numeric(cur_df$outlier)
+      basis  <- .pb_basis(cur_df$dist_to_bin_centre)
+      fit <- fit_weighted_locscale_normal(
+        y         = cur_df$err,
+        x         = cur_df$dist_to_bin_centre,
+        w         = w_fit,
+        x_basis   = basis$X,
+        S_penalty = crossprod(basis$D)
       )
+      if (!fit$ok) stop("Final loc-scale fit failed.")
 
       if (debug) {
-        cat("Fitted GAMLSS model coefficients\n")
-        cat(coef(fit))
+        cat(sprintf("Fit coef_sigma: %.4f + %.4f * |x|\n", fit$coef_sigma[1], fit$coef_sigma[2]))
       }
 
-      for_fit[gr_var == cg, pred := predict(fit, type = "response")]
-      for_fit[gr_var == cg, pred_sigma := predict(fit, what = "sigma", type = "response")]
+      for_fit[gr_var == cg, pred := fit$pred]
+      for_fit[gr_var == cg, pred_sigma := fit$pred_sigma]
 
       for_fit[gr_var == cg, bias := err * sign(pred)]
 
@@ -659,8 +700,8 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
           geom_line(aes(y = .data$pred))
         print(p_pred)
       }
-      for_fit[gr_var == cg, c("coef_sigma_int", "coef_sigma_slope") := data.frame(t(coef(fit, what = "sigma")))]
-      likelihoods <- c(likelihoods, logLik(fit))
+      for_fit[gr_var == cg, c("coef_sigma_int", "coef_sigma_slope") := list(fit$coef_sigma[1], fit$coef_sigma[2])]
+      likelihoods[[j]] <- fit$loglik
     }
   } else {
     for_fit[, pred := predict(MASS::rlm(err ~ poly(x_var, poly_deg), .SD[outlier == FALSE]), newdata = .SD[, .(x_var)]), by = .(card_groups)]
@@ -670,14 +711,21 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
 
   for_fit[, be_c := err - pred]
   for_fit[, which_bin := as.numeric(gr_var)]
-  for_fit[, center_y := predict(MASS::rlm(err ~ x_var),
-    newdata = data.frame(x_var = center_x)
-  ), by = .(gr_var)]
 
   if (var_sigma) {
     for_fit[, outlier := abs(be_c) > 3 * pred_sigma]
   } else {
     for_fit[, outlier := abs(be_c) > (3 * circ_sd_fun(be_c))]
+  }
+
+  large_err_thresh <- as.numeric(space) / 4
+  n_large <- sum(abs(for_fit$err) > large_err_thresh & !for_fit$outlier)
+  if (n_large / nrow(for_fit) > 0.05) {
+    pct <- round(100 * n_large / nrow(for_fit))
+    warning(sprintf(
+      "%d observation(s) (%d%%) have errors with absolute values > %.4g but are not counted as outliers. These are likely random/guessing responses. Consider dropping this subject or supplying `init_outliers` (e.g. init_outliers = abs(err) > %.4g).",
+      n_large, pct, large_err_thresh, large_err_thresh
+    ), call. = FALSE)
   }
 
   if (plots %in% c("show", "return")) {
@@ -820,11 +868,12 @@ pad_circ <- function(data, circ_var, circ_borders = c(-90, 90), circ_part = 1 / 
 #'
 #' A helper function for [remove_cardinal_biases()].
 #'
-#' @param group group (bin) id
+#' @param group_i integer group (bin) id
+#' @param group_label group (bin) label
 #' @param data dataset
+#' @param dist_to_centers_mat precomputed distances to bin centers
 #' @param space see [remove_cardinal_biases()]
 #' @param reassign_range see [remove_cardinal_biases()]
-#' @param gam_ctrl control object for gam models
 #' @param poly_deg see [remove_cardinal_biases()]
 #' @param angle_diff_fun a function to compute difference between angles
 #'
@@ -834,51 +883,229 @@ pad_circ <- function(data, circ_var, circ_borders = c(-90, 90), circ_part = 1 / 
 #' @keywords internal
 #'
 
-get_boundary_preds <- function(group, data, space, reassign_range, gam_ctrl, poly_deg, angle_diff_fun, weights = NULL) {
+get_boundary_preds <- function(group_i, group_label, data, dist_to_centers_mat, space, reassign_range, poly_deg, angle_diff_fun, weights = NULL, extract_only = FALSE, boundary_data = NULL) {
   gr_var <- outlier <- err <- x_var <- dc_var <- center_x <- dist_to_card <- bin_boundary_left <- bin_boundary_right <- bin_range <- dist_to_bin_centre <- row_i <- at_the_boundary <- dist_to_boundary <- dist_to_boundary_norm <- new_weight <- weight <- pred <- . <- predict <- pred_sigma <- resid_at_boundaries <- NULL # due to NSE notes in R CMD check
-  cur_df <- data[gr_var == group & outlier == FALSE, .(err, x_var, dc_var,
-    dist_to_bin_centre = angle_diff_fun(x_var, center_x), weight = NULL, adc = abs(dist_to_card), center_x, bin_boundary_left, bin_boundary_right, bin_range
-  )]
 
-  curr_bin_range <- cur_df$bin_range[[1]]
-  curr_bin_center <- cur_df$center_x[[1]]
-  boundary1 <- cur_df$bin_boundary_left[[1]]
-  boundary2 <- cur_df$bin_boundary_right[[1]]
+  if (is.null(boundary_data)) {
+    cur_df <- data[gr_var == group_label,
+      .(bin_range, center_x, bin_boundary_left, bin_boundary_right)][1L]
+    curr_bin_range <- cur_df$bin_range[[1]]
 
-  data[, dist_to_bin_centre := angle_diff_fun(x_var, curr_bin_center)]
-  data_incl_boundaries <- data[
-    outlier == FALSE &
-      abs(dist_to_bin_centre) < (curr_bin_range / 2 + reassign_range + 1e-12),
-    .(
-      row_i, err, x_var, dc_var, gr_var,
-      dist_to_bin_centre,
-      at_the_boundary,
-      center_x
-    )
-  ]
-  data_incl_boundaries[, dist_to_boundary := (abs(dist_to_bin_centre) - curr_bin_range / 2)]
-  data_incl_boundaries[, dist_to_boundary_norm := (dist_to_boundary + reassign_range) / (2 * reassign_range)]
-
-  if (!missing(weights)) {
-    data_incl_boundaries[, gr_var := group]
-    data_incl_boundaries[weights, `:=`(weight = new_weight), on = .(row_i, gr_var)]
-  } else {
-    data_incl_boundaries[, weight := ifelse(at_the_boundary == FALSE, 1, ifelse(gr_var == group, 0.75, 0.25))]
+    dist_to_bin_centre_all <- dist_to_centers_mat[data$row_i, group_i]
+    in_boundary_range <- abs(dist_to_bin_centre_all) < (curr_bin_range / 2 + reassign_range + 1e-12)
+    boundary_data <- data[
+      in_boundary_range,
+      .(row_i, err, x_var, dc_var, gr_var, at_the_boundary, center_x)
+    ]
+    boundary_data[, dist_to_bin_centre := dist_to_bin_centre_all[in_boundary_range]]
+    boundary_data[, dist_to_boundary := (abs(dist_to_bin_centre) - curr_bin_range / 2)]
+    boundary_data[, dist_to_boundary_norm := (dist_to_boundary + reassign_range) / (2 * reassign_range)]
+    if (extract_only) return(boundary_data)
   }
 
+  data_incl_boundaries <- copy(boundary_data)
+  if (!missing(weights) && !is.null(weights)) {
+    data_incl_boundaries[, gr_var := group_label]
+    data_incl_boundaries[weights, `:=`(weight = new_weight), on = .(row_i, gr_var)]
+  } else {
+    data_incl_boundaries[, weight := ifelse(at_the_boundary == FALSE, 1, ifelse(gr_var == group_label, 0.75, 0.25))]
+  }
 
-  fit <- gamlss::gamlss(err ~ dist_to_bin_centre,
-    ~ abs(dist_to_bin_centre),
-    data = data_incl_boundaries,
-    weights = weight,
-    control = gam_ctrl
+  fit_fast <- fit_weighted_locscale_normal(
+    y = data_incl_boundaries$err,
+    x = data_incl_boundaries$dist_to_bin_centre,
+    w = data_incl_boundaries$weight
   )
-
-  data_incl_boundaries[, pred := predict(fit, type = "response")]
-  data_incl_boundaries[, pred_sigma := predict(fit, what = "sigma", type = "response")]
+  if (!fit_fast$ok) {
+    stop("Boundary loc-scale fit failed in fit_weighted_locscale_normal().")
+  }
+  data_incl_boundaries[, pred := fit_fast$pred]
+  data_incl_boundaries[, pred_sigma := fit_fast$pred_sigma]
 
   data_incl_boundaries[, resid_at_boundaries := err - pred]
-  data_incl_boundaries[, .(row_i, at_the_boundary, x_var, dc_var, dist_to_bin_centre, err, pred, resid_at_boundaries, dist_to_boundary, dist_to_boundary_norm, weight, pred_sigma)]
+  data_incl_boundaries[, .(row_i, gr_var = group_label, at_the_boundary, x_var, dc_var, dist_to_bin_centre, err, pred, resid_at_boundaries, dist_to_boundary, dist_to_boundary_norm, weight, pred_sigma)]
+}
+
+# Truncated-power P-spline basis matching gamlss::pb() defaults exactly.
+# Returns list(X = n×K basis matrix, D = (K-2)×K difference matrix).
+.pb_basis <- function(x) {
+  x        <- as.vector(x)
+  n_unique <- length(unique(x))
+  inter    <- min(if (length(x) < 99L) 10L else 20L, n_unique)
+  degree   <- 3L; order <- 2L
+  xl <- min(x); xr <- max(x)
+  xmin <- xl - 0.01 * (xr - xl); xmax <- xr + 0.01 * (xr - xl)
+  dx   <- (xmax - xmin) / inter
+  knots <- seq(xmin - degree * dx, xmax + degree * dx, by = dx)
+  tpower <- function(x, t, p) (x - t)^p * (x > t)
+  P      <- outer(x, knots, tpower, degree)
+  D_full <- diff(diag(ncol(P)), diff = degree + 1L) / (gamma(degree + 1L) * dx^degree)
+  X      <- (-1)^(degree + 1L) * P %*% t(D_full)
+  D      <- diff(diag(ncol(X)), diff = order)
+  list(X = X, D = D)
+}
+
+# ML EM lambda selection for penalized WLS via eigendecomposition.
+# Precomputes QR(B) + eigen(R^{-T} S R^{-1}) once, then each EM iteration
+# is O(p) element-wise ops — no SVD inside the loop.
+# y_w: sqrt(w_mu)*y  (n-vector, pre-weighted response)
+# B:   sqrt(w_mu)*X  (n×p, pre-weighted design matrix, already subset to pos rows)
+# S_full: p×p penalty matrix
+# Returns list(lambda, edf, beta)  — same interface as the former .gcv_pspline.
+.lambda_em_pspline <- function(y_w, B, S_full,
+                                lambda = 10, max_iter = 50L, tol = 1e-7,
+                                penalty_order = 2L) {
+  p    <- ncol(B)
+  n_eff <- nrow(B)
+  qr_B <- qr(B, tol = .Machine$double.eps^0.8)
+  Q    <- qr.Q(qr_B)
+  R    <- qr.R(qr_B)
+  Rinv <- backsolve(R, diag(p))
+  K    <- crossprod(Rinv, S_full %*% Rinv)
+  K    <- (K + t(K)) / 2
+  eig  <- eigen(K, symmetric = TRUE)
+  U    <- eig$vectors
+  lk   <- pmax(eig$values, 0)
+  z_w  <- as.numeric(crossprod(Q, y_w))
+  qq   <- as.numeric(crossprod(U, z_w))
+  y_y  <- sum(y_w^2)
+
+  for (iter in seq_len(max_iter)) {
+    d    <- 1 + lambda * lk
+    edf  <- sum(1 / d)
+    wrss <- max(y_y - sum(qq^2 * (2 / d - 1 / d^2)), 0)
+    sig2 <- wrss / (n_eff - edf)
+    tau2 <- sum(lk * qq^2 / d^2) / max(edf - penalty_order, 1e-6)
+    if (tau2 < 1e-7) tau2 <- 1e-7
+    lambda_old <- lambda
+    lambda     <- max(1e-7, min(sig2 / tau2, 1e7))
+    if (abs(lambda - lambda_old) < tol) break
+  }
+
+  d    <- 1 + lambda * lk
+  edf  <- sum(1 / d)
+  beta <- backsolve(R, as.numeric(U %*% (qq / d)))
+  list(lambda = lambda, edf = edf, beta = beta)
+}
+
+fit_weighted_locscale_normal <- function(y, x, w, poly_deg = 1L, x_basis = NULL, x_sigma = NULL, S_penalty = NULL, lambda_fixed = NULL) {
+  w <- as.numeric(w)
+  if (!all(is.finite(y)) || !all(is.finite(x)) || !all(is.finite(w))) {
+    return(list(ok = FALSE))
+  }
+  pos   <- w > 0                              # TRUE for observations with positive weight
+  w     <- pmax(w, 1e-12)
+  x_abs <- abs(if (is.null(x_sigma)) x else x_sigma)
+
+  if (is.null(x_basis)) {
+    X <- if (poly_deg == 1L) cbind(1, x) else cbind(1, poly(x, poly_deg, raw = FALSE))
+  } else {
+    X <- x_basis
+  }
+  p <- ncol(X)
+
+  if (length(y) < (p + 2L) || length(unique(x)) < 2L) {
+    mu_const    <- stats::weighted.mean(y, w)
+    sigma_const <- sqrt(stats::weighted.mean((y - mu_const)^2, w))
+    if (!is.finite(sigma_const) || sigma_const <= 0) sigma_const <- 1
+    loglik <- sum(stats::dnorm(y[pos], mu_const, sigma_const, log = TRUE))
+    return(list(ok = TRUE, pred = rep(mu_const, length(y)), pred_sigma = rep(sigma_const, length(y)),
+                coef_sigma = c(log(sigma_const), 0), loglik = loglik))
+  }
+
+  fit_mu_start <- try(lm.wfit(x = X, y = y, w = w), silent = TRUE)
+  if (inherits(fit_mu_start, "try-error") || any(!is.finite(fit_mu_start$coefficients))) {
+    beta_start <- c(stats::weighted.mean(y, w), rep(0, p - 1L))
+  } else {
+    beta_start <- fit_mu_start$coefficients
+  }
+  mu_start <- as.numeric(X %*% beta_start)
+  sigma0 <- sqrt(stats::weighted.mean((y - mu_start)^2, w))
+  if (!is.finite(sigma0) || sigma0 <= 0) sigma0 <- stats::sd(y)
+  if (!is.finite(sigma0) || sigma0 <= 0) sigma0 <- 1
+
+  # RS algorithm: when S_penalty is given and lambda is not fixed,
+  # alternate between GCV-penalized WLS for mu and 2-param NLL for sigma.
+  if (!is.null(S_penalty) && is.null(lambda_fixed)) {
+    # S_penalty can be p×p (covers all columns, e.g. from .make_pspline)
+    # or (p-1)×(p-1) (covers cols 2:p when col 1 is an explicit intercept).
+    if (nrow(S_penalty) == p) {
+      S_full <- S_penalty
+    } else {
+      S_full <- matrix(0, p, p)
+      S_full[2:p, 2:p] <- S_penalty
+    }
+    gamma   <- c(log(sigma0), 0)
+    beta    <- beta_start
+    X_sigma <- cbind(1, x_abs)
+    ok      <- FALSE
+    dev_old <- Inf
+    for (iter in seq_len(20L)) {
+      sigma_vec <- exp(gamma[1] + gamma[2] * x_abs)
+      w_mu  <- w / sigma_vec^2
+      # Use only positive-weight rows so n_eff reflects actual sample size.
+      B_em  <- X[pos, , drop = FALSE] * sqrt(w_mu[pos])
+      y_em  <- y[pos] * sqrt(w_mu[pos])
+      em_res <- tryCatch(.lambda_em_pspline(y_em, B_em, S_full), error = function(e) NULL)
+      if (is.null(em_res) || !all(is.finite(em_res$beta))) break
+      beta  <- em_res$beta
+      mu    <- as.numeric(X %*% beta)
+      resid <- y - mu
+      # IRLS sigma update (working variable approach)
+      resid2_scaled <- (resid / sigma_vec)^2
+      z_sigma       <- log(sigma_vec) + (resid2_scaled - 1) / 2
+      lm_sigma      <- stats::lm.wfit(x = X_sigma, y = z_sigma, w = w * 2)
+      gamma_new     <- as.numeric(lm_sigma$coefficients)
+      if (anyNA(gamma_new)) gamma_new[is.na(gamma_new)] <- gamma[is.na(gamma_new)]
+      gamma_new     <- pmin(pmax(gamma_new, -30), 30)
+      sigma_new     <- exp(gamma_new[1] + gamma_new[2] * x_abs)
+      dev <- -2 * sum(w * stats::dnorm(y, mu, sigma_new, log = TRUE))
+      if (is.finite(dev_old) && abs(dev_old - dev) / (abs(dev_old) + 0.1) < 1e-5) {
+        gamma <- gamma_new; ok <- TRUE; break
+      }
+      gamma <- gamma_new; dev_old <- dev; ok <- TRUE
+    }
+    if (!ok || !all(is.finite(beta)) || !all(is.finite(gamma))) return(list(ok = FALSE))
+    best_par <- c(beta, gamma)
+  } else {
+    # Parametric RS: lm.wfit mu + IRLS sigma (linear / poly, no spline penalty).
+    gamma   <- c(log(sigma0), 0)
+    beta    <- beta_start
+    X_sigma <- cbind(1, x_abs)
+    dev_old <- Inf
+    for (iter in seq_len(20L)) {
+      sigma_vec <- exp(gamma[1] + gamma[2] * x_abs)
+      w_mu  <- w / sigma_vec^2
+      lm_mu <- stats::lm.wfit(x = X, y = y, w = w_mu)
+      b_new <- as.numeric(lm_mu$coefficients)
+      if (anyNA(b_new)) b_new[is.na(b_new)] <- beta[is.na(b_new)]
+      beta  <- b_new
+      mu    <- as.numeric(X %*% beta)
+      resid <- y - mu
+      resid2_scaled <- (resid / sigma_vec)^2
+      z_sigma <- log(sigma_vec) + (resid2_scaled - 1) / 2
+      lm_s    <- stats::lm.wfit(x = X_sigma, y = z_sigma, w = w * 2)
+      g_new   <- as.numeric(lm_s$coefficients)
+      if (anyNA(g_new)) g_new[is.na(g_new)] <- gamma[is.na(g_new)]
+      g_new   <- pmin(pmax(g_new, -30), 30)
+      sigma_new <- exp(g_new[1] + g_new[2] * x_abs)
+      dev <- -2 * sum(w * stats::dnorm(y, mu, sigma_new, log = TRUE))
+      if (is.finite(dev_old) && abs(dev_old - dev) / (abs(dev_old) + 0.1) < 1e-5) {
+        gamma <- g_new; break
+      }
+      gamma <- g_new; dev_old <- dev
+    }
+    if (!all(is.finite(beta)) || !all(is.finite(gamma))) return(list(ok = FALSE))
+  }
+
+  mu_hat    <- as.numeric(X %*% beta)
+  sigma_hat <- exp(gamma[1] + gamma[2] * x_abs)
+  if (any(!is.finite(mu_hat)) || any(!is.finite(sigma_hat)) || any(sigma_hat <= 0)) {
+    return(list(ok = FALSE))
+  }
+  loglik <- sum(stats::dnorm(y[pos] - mu_hat[pos], 0, sigma_hat[pos], log = TRUE))
+  list(ok = TRUE, pred = mu_hat, pred_sigma = sigma_hat,
+       coef_sigma = gamma, loglik = loglik)
 }
 
 
@@ -1222,7 +1449,7 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
     }
   }
 
-  attr(res, "kernel_bw") <- kernel_bw
+  setattr(res, "kernel_bw", kernel_bw)
 
   res
 }
@@ -1309,7 +1536,7 @@ density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_spa
     }
   }
 
-  attr(res, "kernel_bw") <- kernel_bw
+  setattr(res, "kernel_bw", kernel_bw)
 
   res
 }
@@ -1514,7 +1741,7 @@ smoothed_circ_sd <- function(dt, circ_space = 180, weights_sd = 10, xvar = "abs_
 #     res <- res[!is.na(delta), .(delta = sum(delta) / sum(total)), by = c(xvar, yvar, by)]
 #   }
 #
-#   attr(res, "kernel_bw") <- kernel_bw
+#   setattr(res, "kernel_bw", kernel_bw)
 #
 #   res
 # }

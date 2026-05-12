@@ -73,8 +73,15 @@ Remove cardinal biases
 If the \code{bias_type} is set to \code{fit}, the function computes the cardinal biases in the following way:
 \enumerate{
 \item Create two sets of bins, splitting the stimuli vector into bins centered at cardinal and at oblique directions.
-\item For each set of bins, fit a nth-degree polynomial for the responses in each bin, optionally allowing the distribution of responses to vary in width as a function of distance to the nearest cardinal (regardless of whether the bins are centered at the cardinal or at the oblique, the width of the response distribution usually increases as the distance to cardinals increase).
+\item For each set of bins, fit a penalised spline (P-spline — a regression spline with a roughness
+penalty that controls smoothness) for the mean response in each bin. Optionally (see \code{var_sigma}),
+the response variability (SD) is modelled jointly via a log-linear model, allowing the response distribution to vary in
+width as a function of distance to the nearest cardinal (regardless of whether the bins are centered
+at the cardinal or at the oblique, the width of the response distribution usually increases as the
+distance to cardinals increases).
 \item Choose the best-fitting model between the one using cardinal and the one using oblique bins.
+\item Optionally (see \code{reassign_at_boundaries}), reassign observations near bin boundaries to the
+bin whose fitted model best describes them, iterating until convergence.
 \item Compute the residuals of the best-fitting model - that's your bias-corrected error - and the biases (see below).
 }
 The bias is computed by flipping the sign of errors when the average predicted error is negative, so, that, for example, if on average the responses are shifted clockwise relative to the true values, the trial-by-trial error would count as bias when it is also shifted clockwise.

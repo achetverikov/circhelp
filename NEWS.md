@@ -1,3 +1,10 @@
+# circhelp 1.3
+
+* `remove_cardinal_biases()`: replaced `gamlss` dependency with a native
+  P-spline + REML/EM implementation. Results are numerically equivalent;
+  runtime is approximately 2× faster.
+* Removed `gamlss` from package imports.
+
 # circhelp 1.2
 
 * Added `density_asymmetry_discrete()`.
