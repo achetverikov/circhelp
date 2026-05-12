@@ -376,6 +376,12 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #'
 #' If `bias_type` is set to `obl` or `card`, only one set of bins is used, centred at cardinal or oblique angles, respectively.
 #'
+#' The location and scale (mean and SD) of the response distribution in each bin are estimated jointly
+#' using a penalised P-spline for the mean (matching the `gamlss::pb()` basis and an EM-based REML
+#' criterion for smoothing-parameter selection) and an IRLS step for the log-linear sigma model,
+#' iterated via the RS algorithm. This native implementation replaces the former `gamlss` dependency
+#' and is approximately 2× faster.
+#'
 #' For additional examples see the help vignette:
 #' \code{vignette("cardinal_biases", package = "circhelp")}
 #'

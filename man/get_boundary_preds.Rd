@@ -13,7 +13,9 @@ get_boundary_preds(
   reassign_range,
   poly_deg,
   angle_diff_fun,
-  weights = NULL
+  weights = NULL,
+  extract_only = FALSE,
+  boundary_data = NULL
 )
 }
 \arguments{
