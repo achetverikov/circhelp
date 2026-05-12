@@ -44,3 +44,7 @@ Meta
 /docs/
 /profiling/
 /.devcontainer/
+/tmp/
+/.claude/
+/.codex
+*.so
