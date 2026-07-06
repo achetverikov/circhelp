@@ -4,6 +4,7 @@
 \alias{circ_sd_rad}
 \alias{circ_sd_360}
 \alias{circ_sd_180}
+\alias{circ_sd}
 \title{Circular standard deviation}
 \usage{
 circ_sd_rad(x, na.rm = FALSE)
@@ -11,11 +12,15 @@ circ_sd_rad(x, na.rm = FALSE)
 circ_sd_360(x, na.rm = FALSE)
 
 circ_sd_180(x, na.rm = FALSE)
+
+circ_sd(x, period = 360, na.rm = FALSE)
 }
 \arguments{
 \item{x}{vector of angles}
 
 \item{na.rm}{a logical value indicating whether NA values should be removed before the computation proceeds}
+
+\item{period}{the period of the circular space (e.g., 180 for line orientations, 360 for compass directions)}
 }
 \value{
 standard deviation of values in the vector
@@ -30,6 +35,8 @@ Circular standard deviation
 \item \code{circ_sd_360()}: SD of angles in 360 degree space
 
 \item \code{circ_sd_180()}: SD of angles in 180 degree space
+
+\item \code{circ_sd()}: SD of angles in a space with an arbitrary period (e.g., 180 or 360)
 
 }}
 \examples{

@@ -7,7 +7,7 @@
 \alias{weighted_circ_rho}
 \title{Weighted circular parameters}
 \usage{
-weighted_circ_mean(x, w, na.rm = FALSE)
+weighted_circ_mean(x, w, period = NULL, na.rm = FALSE)
 
 weighted_circ_mean2(x, w, na.rm = FALSE)
 
@@ -16,9 +16,11 @@ weighted_circ_sd(x, w, na.rm = FALSE)
 weighted_circ_rho(x, w, na.rm = FALSE)
 }
 \arguments{
-\item{x}{vector of values (in radians)}
+\item{x}{vector of values (in radians, unless \code{period} is set)}
 
 \item{w}{vector of weights}
+
+\item{period}{if not \code{NULL}, the period of the circular space (e.g., 180 or 360); \code{x} is then converted to radians as \code{x / period * 2 * pi} and the result is converted back to the same period}
 
 \item{na.rm}{a logical value indicating whether NA values should be removed before the computation proceeds}
 }

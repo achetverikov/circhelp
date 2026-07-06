@@ -31,6 +31,13 @@ circ_mean_360 <- function(x, na.rm = FALSE) {
   circ_mean_rad(x / 180 * pi, na.rm = na.rm) / pi * 180
 }
 
+#' @describeIn circ_mean_rad circular mean in a space with an arbitrary period (e.g., 180 or 360)
+#' @param period the period of the circular space (e.g., 180 for line orientations, 360 for compass directions)
+#' @export
+circ_mean <- function(x, period = 360, na.rm = FALSE) {
+  circ_mean_rad(x / period * 2 * pi, na.rm = na.rm) / (2 * pi) * period
+}
+
 #' Differences between angles in different circular spaces
 #'
 #' @param a first angle
@@ -91,6 +98,13 @@ angle_diff_180_45 <- function(a, b) {
 angle_diff_360_90 <- function(a, b) {
   c <- a - b
   (c + 90) %% 360 - 90
+}
+
+#' @describeIn angle_diff_rad angle difference in a space with an arbitrary period (e.g., 180 or 360)
+#' @param period the period of the circular space (e.g., 180 for line orientations, 360 for compass directions)
+#' @export
+angle_diff <- function(a, b, period = 360) {
+  angle_diff_rad(a / period * 2 * pi, b / period * 2 * pi) / (2 * pi) * period
 }
 
 #' Circular correlation coefficient
@@ -172,8 +186,9 @@ circ_lin_corr <- function(circ_x, lin_x, na.rm = FALSE) {
 }
 #' Weighted circular parameters
 #'
-#' @param x vector of values (in radians)
+#' @param x vector of values (in radians, unless `period` is set)
 #' @param w vector of weights
+#' @param period if not `NULL`, the period of the circular space (e.g., 180 or 360); `x` is then converted to radians as `x / period * 2 * pi` and the result is converted back to the same period
 #' @param na.rm a logical value indicating whether NA values should be removed before the computation proceeds
 #'
 #' @return weighted mean of values in the vector
@@ -187,13 +202,21 @@ circ_lin_corr <- function(circ_x, lin_x, na.rm = FALSE) {
 #'
 #' @describeIn weighted_circ_mean weighted circular mean
 
-weighted_circ_mean <- function(x, w, na.rm = FALSE) {
+weighted_circ_mean <- function(x, w, period = NULL, na.rm = FALSE) {
   if (length(w) != length(x)) {
     stop("Weights (w) should have the same length as values (x)")
   }
+  if (!is.null(period)) {
+    x <- x / period * 2 * pi
+  }
 
   sum_w <- sum(w, na.rm = na.rm)
-  atan2(sum(w * sin(x), na.rm = na.rm) / sum_w, sum(w * cos(x), na.rm = na.rm) / sum_w)
+  result <- atan2(sum(w * sin(x), na.rm = na.rm) / sum_w, sum(w * cos(x), na.rm = na.rm) / sum_w)
+
+  if (!is.null(period)) {
+    result <- result / (2 * pi) * period
+  }
+  result
 }
 
 #' @describeIn weighted_circ_mean an alternative way to compute weighted circular mean (the results are the same)
@@ -276,6 +299,13 @@ circ_sd_360 <- function(x, na.rm = FALSE) {
 #' @export
 circ_sd_180 <- function(x, na.rm = FALSE) {
   circ_sd_rad(x / 90 * pi, na.rm = na.rm) / pi * 90
+}
+
+#' @describeIn circ_sd_rad SD of angles in a space with an arbitrary period (e.g., 180 or 360)
+#' @param period the period of the circular space (e.g., 180 for line orientations, 360 for compass directions)
+#' @export
+circ_sd <- function(x, period = 360, na.rm = FALSE) {
+  circ_sd_rad(x / period * 2 * pi, na.rm = na.rm) / (2 * pi) * period
 }
 
 circ_dist <- function(x, y) {

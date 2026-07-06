@@ -4,6 +4,7 @@
 \alias{circ_mean_rad}
 \alias{circ_mean_180}
 \alias{circ_mean_360}
+\alias{circ_mean}
 \title{Circular mean}
 \usage{
 circ_mean_rad(x, na.rm = FALSE)
@@ -11,11 +12,15 @@ circ_mean_rad(x, na.rm = FALSE)
 circ_mean_180(x, na.rm = FALSE)
 
 circ_mean_360(x, na.rm = FALSE)
+
+circ_mean(x, period = 360, na.rm = FALSE)
 }
 \arguments{
 \item{x}{vector of values}
 
 \item{na.rm}{a logical value indicating whether NA values should be removed before the computation proceeds}
+
+\item{period}{the period of the circular space (e.g., 180 for line orientations, 360 for compass directions)}
 }
 \value{
 mean of values in the vector
@@ -30,6 +35,8 @@ Circular mean
 \item \code{circ_mean_180()}: circular mean in 180° space (e.g., line orientation)
 
 \item \code{circ_mean_360()}: circular mean in 360° space
+
+\item \code{circ_mean()}: circular mean in a space with an arbitrary period (e.g., 180 or 360)
 
 }}
 \examples{

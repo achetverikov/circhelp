@@ -7,6 +7,7 @@
 \alias{angle_diff_90}
 \alias{angle_diff_180_45}
 \alias{angle_diff_360_90}
+\alias{angle_diff}
 \title{Differences between angles in different circular spaces}
 \usage{
 angle_diff_rad(a, b)
@@ -20,11 +21,15 @@ angle_diff_90(a, b)
 angle_diff_180_45(a, b)
 
 angle_diff_360_90(a, b)
+
+angle_diff(a, b, period = 360)
 }
 \arguments{
 \item{a}{first angle}
 
 \item{b}{second angle}
+
+\item{period}{the period of the circular space (e.g., 180 for line orientations, 360 for compass directions)}
 }
 \value{
 difference between a and b
@@ -48,6 +53,8 @@ By default, all functions return values in ± half-range space (e.g., -pi to pi 
 \item \code{angle_diff_180_45()}: angle difference in 180 degree space from -45 to 135
 
 \item \code{angle_diff_360_90()}: angle difference in 360 degree space from -90 to 270
+
+\item \code{angle_diff()}: angle difference in a space with an arbitrary period (e.g., 180 or 360)
 
 }}
 \examples{

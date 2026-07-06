@@ -1,3 +1,12 @@
+# circhelp 1.3.1
+
+* Added `circ_mean()`, `circ_sd()`, and `angle_diff()`, generalized versions
+  of the `_rad`/`_180`/`_360` family that accept an arbitrary `period`
+  argument (e.g., 180, 360, or anything else).
+* Added a `period` argument to `weighted_circ_mean()` to compute the weighted
+  circular mean directly on data in an arbitrary circular space, without
+  manually converting to radians first.
+
 # circhelp 1.3
 
 * `remove_cardinal_biases()`: replaced `gamlss` dependency with a native
