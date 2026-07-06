@@ -5,26 +5,31 @@
 \title{Get polynomial predictions for values at the boundaries}
 \usage{
 get_boundary_preds(
-  group,
+  group_i,
+  group_label,
   data,
+  dist_to_centers_mat,
   space,
   reassign_range,
-  gam_ctrl,
   poly_deg,
   angle_diff_fun,
-  weights = NULL
+  weights = NULL,
+  extract_only = FALSE,
+  boundary_data = NULL
 )
 }
 \arguments{
-\item{group}{group (bin) id}
+\item{group_i}{integer group (bin) id}
+
+\item{group_label}{group (bin) label}
 
 \item{data}{dataset}
+
+\item{dist_to_centers_mat}{precomputed distances to bin centers}
 
 \item{space}{see \code{\link[=remove_cardinal_biases]{remove_cardinal_biases()}}}
 
 \item{reassign_range}{see \code{\link[=remove_cardinal_biases]{remove_cardinal_biases()}}}
-
-\item{gam_ctrl}{control object for gam models}
 
 \item{poly_deg}{see \code{\link[=remove_cardinal_biases]{remove_cardinal_biases()}}}
 

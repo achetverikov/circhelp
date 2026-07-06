@@ -23,7 +23,7 @@ density_asymmetry_discrete(
 
 \item{circ_space}{Circular space, which can be 180 or 360 (default: 180).}
 
-\item{kernel_bw}{Bandwidth for the kernel density estimator across \code{yvar}. If NULL, it is computed using \code{\link[stats:bandwidth]{stats::bw.SJ()}}. If "average", it is computed using \code{\link[stats:bandwidth]{stats::bw.SJ()}} for each group indicated by \code{by} and then averaged. Otherwise it is passed to \code{\link[stats:density]{stats::density()}} (default: NULL).}
+\item{kernel_bw}{Bandwidth for the kernel density estimator across \code{yvar}. If NULL, it is computed using \code{\link[stats:bw.SJ]{stats::bw.SJ()}}. If "average", it is computed using \code{\link[stats:bw.SJ]{stats::bw.SJ()}} for each group indicated by \code{by} and then averaged. Otherwise it is passed to \code{\link[stats:density]{stats::density()}} (default: NULL).}
 
 \item{by}{A vector of grouping variable names (default: an empty vector).}
 

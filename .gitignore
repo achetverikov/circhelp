@@ -41,7 +41,6 @@ vignettes/*.pdf
 inst/doc
 Meta
 /Meta/
-docs
 
 # Infrastructure and OS noise
 profiling/

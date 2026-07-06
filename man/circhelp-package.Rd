@@ -20,6 +20,11 @@ Useful links:
 \author{
 \strong{Maintainer}: Andrey Chetverikov \email{andrey.chetverikov@uib.no} (\href{https://orcid.org/0000-0003-2767-6310}{ORCID})
 
+Authors:
+\itemize{
+  \item Andrey Chetverikov \email{andrey.chetverikov@uib.no} (\href{https://orcid.org/0000-0003-2767-6310}{ORCID})
+}
+
 Other contributors:
 \itemize{
   \item Eline Van Geert \email{eline.vangeert@kuleuven.be} (\href{https://orcid.org/0000-0002-7848-5998}{ORCID}) [contributor]
