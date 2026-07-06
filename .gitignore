@@ -43,6 +43,11 @@ Meta
 /Meta/
 
 # Infrastructure and OS noise
-profiling/
-.devcontainer/
-.codex
+
+/docs/
+/profiling/
+/.devcontainer/
+/tmp/
+/.claude/
+/.codex
+*.so
