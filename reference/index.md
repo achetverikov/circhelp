@@ -5,10 +5,12 @@
 - [`circ_mean_rad()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_mean_rad.md)
   [`circ_mean_180()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_mean_rad.md)
   [`circ_mean_360()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_mean_rad.md)
+  [`circ_mean()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_mean_rad.md)
   : Circular mean
 - [`circ_sd_rad()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_sd_rad.md)
   [`circ_sd_360()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_sd_rad.md)
   [`circ_sd_180()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_sd_rad.md)
+  [`circ_sd()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_sd_rad.md)
   : Circular standard deviation
 - [`smoothed_circ_sd()`](https://achetverikov.github.io/circhelp/index.html/reference/smoothed_circ_sd.md)
   : Compute smoothed estimate of circular standard deviation
@@ -46,6 +48,7 @@
   [`angle_diff_90()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md)
   [`angle_diff_180_45()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md)
   [`angle_diff_360_90()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md)
+  [`angle_diff()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md)
   : Differences between angles in different circular spaces
 - [`vm_kappa_to_circ_sd()`](https://achetverikov.github.io/circhelp/index.html/reference/vm_kappa_to_circ_sd.md)
   [`vm_kappa_to_circ_sd_deg()`](https://achetverikov.github.io/circhelp/index.html/reference/vm_kappa_to_circ_sd.md)

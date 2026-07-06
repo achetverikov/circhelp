@@ -16,6 +16,8 @@ angle_diff_90(a, b)
 angle_diff_180_45(a, b)
 
 angle_diff_360_90(a, b)
+
+angle_diff(a, b, period = 360)
 ```
 
 ## Arguments
@@ -27,6 +29,11 @@ angle_diff_360_90(a, b)
 - b:
 
   second angle
+
+- period:
+
+  the period of the circular space (e.g., 180 for line orientations, 360
+  for compass directions)
 
 ## Value
 
@@ -55,6 +62,9 @@ range, 3/4 range\] space
 
 - `angle_diff_360_90()`: angle difference in 360 degree space from -90
   to 270
+
+- `angle_diff()`: angle difference in a space with an arbitrary period
+  (e.g., 180 or 360)
 
 ## Examples
 

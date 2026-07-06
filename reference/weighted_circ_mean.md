@@ -5,7 +5,7 @@ Weighted circular parameters
 ## Usage
 
 ``` r
-weighted_circ_mean(x, w, na.rm = FALSE)
+weighted_circ_mean(x, w, period = NULL, na.rm = FALSE)
 
 weighted_circ_mean2(x, w, na.rm = FALSE)
 
@@ -18,11 +18,17 @@ weighted_circ_rho(x, w, na.rm = FALSE)
 
 - x:
 
-  vector of values (in radians)
+  vector of values (in radians, unless `period` is set)
 
 - w:
 
   vector of weights
+
+- period:
+
+  if not `NULL`, the period of the circular space (e.g., 180 or 360);
+  `x` is then converted to radians as `x / period * 2 * pi` and the
+  result is converted back to the same period
 
 - na.rm:
 

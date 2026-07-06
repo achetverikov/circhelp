@@ -11,16 +11,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/achetverikov/circhelp/blob/v1.3/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/achetverikov/circhelp/blob/main/DESCRIPTION)
 
 Chetverikov A (2026). *circhelp: Circular Analyses Helper Functions*. R
-package version 1.3,
+package version 1.3.1,
 <https://achetverikov.github.io/circhelp/index.html>.
 
     @Manual{,
       title = {circhelp: Circular Analyses Helper Functions},
       author = {Andrey Chetverikov},
       year = {2026},
-      note = {R package version 1.3},
+      note = {R package version 1.3.1},
       url = {https://achetverikov.github.io/circhelp/index.html},
     }

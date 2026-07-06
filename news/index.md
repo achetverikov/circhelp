@@ -1,5 +1,19 @@
 # Changelog
 
+## circhelp 1.3.1
+
+- Added
+  [`circ_mean()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_mean_rad.md),
+  [`circ_sd()`](https://achetverikov.github.io/circhelp/index.html/reference/circ_sd_rad.md),
+  and
+  [`angle_diff()`](https://achetverikov.github.io/circhelp/index.html/reference/angle_diff_rad.md),
+  generalized versions of the `_rad`/`_180`/`_360` family that accept an
+  arbitrary `period` argument (e.g., 180, 360, or anything else).
+- Added a `period` argument to
+  [`weighted_circ_mean()`](https://achetverikov.github.io/circhelp/index.html/reference/weighted_circ_mean.md)
+  to compute the weighted circular mean directly on data in an arbitrary
+  circular space, without manually converting to radians first.
+
 ## circhelp 1.3
 
 - [`remove_cardinal_biases()`](https://achetverikov.github.io/circhelp/index.html/reference/remove_cardinal_biases.md):
