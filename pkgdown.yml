@@ -1,10 +1,10 @@
 pandoc: 3.8.3
-pkgdown: 2.2.0
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   cardinal_biases: cardinal_biases.html
   serial_dependence_with_density_asymmetry: serial_dependence_with_density_asymmetry.html
-last_built: 2026-07-06T11:49Z
+last_built: 2026-08-08T10:00Z
 urls:
   reference: https://achetverikov.github.io/circhelp/index.html/reference
   article: https://achetverikov.github.io/circhelp/index.html/articles

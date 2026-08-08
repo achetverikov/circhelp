@@ -18,7 +18,12 @@ density_asymmetry_discrete(
   n = 181,
   average = T,
   return_full_density = F,
-  normalize = T
+  normalize = T,
+  wrap = TRUE,
+  exclude_antipode = TRUE,
+  n_wraps = 1,
+  rescale_narrow = TRUE,
+  scale_safety = 0.5
 )
 ```
 
@@ -70,6 +75,36 @@ density_asymmetry_discrete(
   sum of probability density (with zero point excluded). Delta then
   corresponds to the probability of observing a given sign. In use only
   when average is TRUE.
+
+- wrap:
+
+  If TRUE (default), the kernel density estimate is wrapped around the
+  circle, so that a kernel centred near one end of the `yvar` axis
+  reappears at the other end instead of being truncated. See
+  [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md).
+
+- exclude_antipode:
+
+  If TRUE (default), the +/- `circ_space`/2 point is dropped from the
+  positive and negative sums, exactly like zero. See
+  [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md).
+
+- n_wraps:
+
+  Number of periodic images summed on each side when `wrap` is TRUE
+  (default: 1).
+
+- rescale_narrow:
+
+  If TRUE (default), a bandwidth narrower than the density grid spacing
+  triggers a rescaling of `yvar` and the bandwidth by a common factor.
+  See
+  [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md).
+
+- scale_safety:
+
+  Fraction of `circ_space`/2 that the rescaled `yvar` values are allowed
+  to reach (default: 0.5).
 
 ## Value
 

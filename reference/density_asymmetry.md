@@ -20,7 +20,12 @@ density_asymmetry(
   n = 181,
   average = T,
   return_full_density = F,
-  normalize = T
+  normalize = T,
+  wrap = TRUE,
+  exclude_antipode = TRUE,
+  n_wraps = 1,
+  rescale_narrow = TRUE,
+  scale_safety = 0.5
 )
 ```
 
@@ -83,6 +88,53 @@ density_asymmetry(
   sum of probability density (with zero point excluded). Delta then
   corresponds to the probability of observing a given sign. In use only
   when average is TRUE.
+
+- wrap:
+
+  If TRUE (default), the kernel density estimate is wrapped around the
+  circle, so that a kernel centred near one end of the `yvar` axis
+  reappears at the other end instead of being truncated. Set to FALSE
+  for the pre-1.4.0 (truncated) behaviour. On orientation or colour
+  data, where errors sit near zero and the bandwidth is a few degrees,
+  this changes nothing to ~1e-13; it matters when `yvar` carries mass
+  near +/- `circ_space`/2, such as the 180-degrees-off reversals in
+  motion-direction data.
+
+- exclude_antipode:
+
+  If TRUE (default), the +/- `circ_space`/2 point is dropped from the
+  positive and negative sums, exactly like zero. It is the same angle
+  approached from two sides and so has no sign, and with `n` odd it is
+  otherwise counted twice (once as `-max_diss` and once as `+max_diss`).
+  Set to FALSE for the pre-1.4.0 behaviour.
+
+- n_wraps:
+
+  Number of periodic images summed on each side when `wrap` is TRUE
+  (default: 1). One is already far past double precision for any
+  bandwidth much smaller than `circ_space`.
+
+- rescale_narrow:
+
+  If TRUE (default), a bandwidth narrower than the spacing of the
+  `x_grid` triggers a rescaling of `yvar` and the bandwidth by a common
+  factor, so that the kernel is at least one grid cell wide. The
+  asymmetry is a signed mass difference and a positive scaling preserves
+  each value's sign, so the estimand is unchanged; this is equivalent to
+  evaluating on a finer grid, but cheaper. Without it, a kernel narrower
+  than a cell falls between grid points and the rectangle sum stops
+  representing the density (at `kernel_bw` = dx/20 a point centred on a
+  cell contributes 7.98x its mass and one half a cell away contributes
+  0). [`stats::bw.SJ()`](https://rdrr.io/r/stats/bandwidth.html) does
+  reach that regime on real data. Set to FALSE for the pre-1.4.0
+  behaviour.
+
+- scale_safety:
+
+  Fraction of `circ_space`/2 that the rescaled `yvar` values are allowed
+  to reach (default: 0.5). Rescaling treats the circular axis as linear,
+  which is only valid while no mass is near the wrap, so the factor is
+  capped rather than assumed safe.
 
 ## Value
 

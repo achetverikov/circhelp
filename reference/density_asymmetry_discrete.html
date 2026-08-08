@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">circhelp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +59,12 @@
 <span>  n <span class="op">=</span> <span class="fl">181</span>,</span>
 <span>  average <span class="op">=</span> <span class="cn">T</span>,</span>
 <span>  return_full_density <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>  normalize <span class="op">=</span> <span class="cn">T</span></span>
+<span>  normalize <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>  wrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  exclude_antipode <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  n_wraps <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  rescale_narrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  scale_safety <span class="op">=</span> <span class="fl">0.5</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -101,6 +106,26 @@
 
 <dt id="arg-normalize">normalize<a class="anchor" aria-label="anchor" href="#arg-normalize"></a></dt>
 <dd><p>if TRUE, normalizes the difference in probability density by the total sum of probability density (with zero point excluded). Delta then corresponds to the probability of observing a given sign. In use only when average is TRUE.</p></dd>
+
+
+<dt id="arg-wrap">wrap<a class="anchor" aria-label="anchor" href="#arg-wrap"></a></dt>
+<dd><p>If TRUE (default), the kernel density estimate is wrapped around the circle, so that a kernel centred near one end of the <code>yvar</code> axis reappears at the other end instead of being truncated. See <code><a href="density_asymmetry.html">density_asymmetry()</a></code>.</p></dd>
+
+
+<dt id="arg-exclude-antipode">exclude_antipode<a class="anchor" aria-label="anchor" href="#arg-exclude-antipode"></a></dt>
+<dd><p>If TRUE (default), the +/- <code>circ_space</code>/2 point is dropped from the positive and negative sums, exactly like zero. See <code><a href="density_asymmetry.html">density_asymmetry()</a></code>.</p></dd>
+
+
+<dt id="arg-n-wraps">n_wraps<a class="anchor" aria-label="anchor" href="#arg-n-wraps"></a></dt>
+<dd><p>Number of periodic images summed on each side when <code>wrap</code> is TRUE (default: 1).</p></dd>
+
+
+<dt id="arg-rescale-narrow">rescale_narrow<a class="anchor" aria-label="anchor" href="#arg-rescale-narrow"></a></dt>
+<dd><p>If TRUE (default), a bandwidth narrower than the density grid spacing triggers a rescaling of <code>yvar</code> and the bandwidth by a common factor. See <code><a href="density_asymmetry.html">density_asymmetry()</a></code>.</p></dd>
+
+
+<dt id="arg-scale-safety">scale_safety<a class="anchor" aria-label="anchor" href="#arg-scale-safety"></a></dt>
+<dd><p>Fraction of <code>circ_space</code>/2 that the rescaled <code>yvar</code> values are allowed to reach (default: 0.5).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -259,7 +284,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

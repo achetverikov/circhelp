@@ -1,5 +1,42 @@
 # Changelog
 
+## circhelp 1.4.0
+
+- [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md):
+  the kernel density estimate is now wrapped around the circle
+  (`wrap = TRUE`), so mass near +/- `circ_space`/2 is no longer
+  truncated. This is a no-op to ~1e-13 for orientation or colour errors,
+  but it matters for data with a 180-degrees-off reversal mode, such as
+  motion direction.
+- [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md):
+  the +/- `circ_space`/2 point is now excluded from the positive and
+  negative sums (`exclude_antipode = TRUE`), like zero. It is the same
+  angle reached from two sides, and with an odd `n` it was counted
+  twice.
+- [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md):
+  a bandwidth narrower than the grid spacing now rescales `yvar` and the
+  bandwidth together (`rescale_narrow = TRUE`) so the kernel spans at
+  least one cell. Without it, the rectangle sum aliases: on a narrow
+  error distribution with
+  [`bw.SJ()`](https://rdrr.io/r/stats/bandwidth.html)-selected bandwidth
+  the returned asymmetry was off by 7.5% of its value at the default
+  `n = 181`, now 0.4%.
+- [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md):
+  the two signs are now paired on a rounded `abs(x)`, since
+  [`seq()`](https://rdrr.io/r/base/seq.html) is not bitwise symmetric
+  for every `n` (on `n = 1801`, 604 of 900 pairs failed to match and
+  dropped out of the sums entirely).
+- [`density_asymmetry_discrete()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry_discrete.md):
+  the same four fixes, with the same argument names and defaults.
+  Wrapping there is done by evaluating
+  [`stats::density()`](https://rdrr.io/r/stats/density.html) over the
+  neighbouring periods and folding the images back, since augmenting the
+  sample with shifted copies would run into
+  [`density()`](https://rdrr.io/r/stats/density.html)’s binning range.
+- The fixes above default to the corrected behaviour; pass
+  `wrap = FALSE`, `exclude_antipode = FALSE`, `rescale_narrow = FALSE`
+  for pre-1.4.0 results.
+
 ## circhelp 1.3.1
 
 - Added

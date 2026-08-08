@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">circhelp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,6 +43,20 @@
       <small>Source: <a href="https://github.com/achetverikov/circhelp/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.4.0" id="circhelp-140">circhelp 1.4.0<a class="anchor" aria-label="anchor" href="#circhelp-140"></a></h2>
+<ul><li>
+<code><a href="../reference/density_asymmetry.html">density_asymmetry()</a></code>: the kernel density estimate is now wrapped around the circle (<code>wrap = TRUE</code>), so mass near +/- <code>circ_space</code>/2 is no longer truncated. This is a no-op to ~1e-13 for orientation or colour errors, but it matters for data with a 180-degrees-off reversal mode, such as motion direction.</li>
+<li>
+<code><a href="../reference/density_asymmetry.html">density_asymmetry()</a></code>: the +/- <code>circ_space</code>/2 point is now excluded from the positive and negative sums (<code>exclude_antipode = TRUE</code>), like zero. It is the same angle reached from two sides, and with an odd <code>n</code> it was counted twice.</li>
+<li>
+<code><a href="../reference/density_asymmetry.html">density_asymmetry()</a></code>: a bandwidth narrower than the grid spacing now rescales <code>yvar</code> and the bandwidth together (<code>rescale_narrow = TRUE</code>) so the kernel spans at least one cell. Without it, the rectangle sum aliases: on a narrow error distribution with <code><a href="https://rdrr.io/r/stats/bandwidth.html" class="external-link">bw.SJ()</a></code>-selected bandwidth the returned asymmetry was off by 7.5% of its value at the default <code>n = 181</code>, now 0.4%.</li>
+<li>
+<code><a href="../reference/density_asymmetry.html">density_asymmetry()</a></code>: the two signs are now paired on a rounded <code>abs(x)</code>, since <code><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq()</a></code> is not bitwise symmetric for every <code>n</code> (on <code>n = 1801</code>, 604 of 900 pairs failed to match and dropped out of the sums entirely).</li>
+<li>
+<code><a href="../reference/density_asymmetry_discrete.html">density_asymmetry_discrete()</a></code>: the same four fixes, with the same argument names and defaults. Wrapping there is done by evaluating <code><a href="https://rdrr.io/r/stats/density.html" class="external-link">stats::density()</a></code> over the neighbouring periods and folding the images back, since augmenting the sample with shifted copies would run into <code><a href="https://rdrr.io/r/stats/density.html" class="external-link">density()</a></code>’s binning range.</li>
+<li>The fixes above default to the corrected behaviour; pass <code>wrap = FALSE</code>, <code>exclude_antipode = FALSE</code>, <code>rescale_narrow = FALSE</code> for pre-1.4.0 results.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.3.1" id="circhelp-131">circhelp 1.3.1<a class="anchor" aria-label="anchor" href="#circhelp-131"></a></h2>
 <ul><li>Added <code><a href="../reference/circ_mean_rad.html">circ_mean()</a></code>, <code><a href="../reference/circ_sd_rad.html">circ_sd()</a></code>, and <code><a href="../reference/angle_diff_rad.html">angle_diff()</a></code>, generalized versions of the <code>_rad</code>/<code>_180</code>/<code>_360</code> family that accept an arbitrary <code>period</code> argument (e.g., 180, 360, or anything else).</li>
@@ -90,7 +104,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

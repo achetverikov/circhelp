@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">circhelp</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,7 +61,12 @@
 <span>  n <span class="op">=</span> <span class="fl">181</span>,</span>
 <span>  average <span class="op">=</span> <span class="cn">T</span>,</span>
 <span>  return_full_density <span class="op">=</span> <span class="cn">F</span>,</span>
-<span>  normalize <span class="op">=</span> <span class="cn">T</span></span>
+<span>  normalize <span class="op">=</span> <span class="cn">T</span>,</span>
+<span>  wrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  exclude_antipode <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  n_wraps <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  rescale_narrow <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  scale_safety <span class="op">=</span> <span class="fl">0.5</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -111,6 +116,26 @@
 
 <dt id="arg-normalize">normalize<a class="anchor" aria-label="anchor" href="#arg-normalize"></a></dt>
 <dd><p>if TRUE, normalizes the difference in probability density by the total sum of probability density (with zero point excluded). Delta then corresponds to the probability of observing a given sign. In use only when average is TRUE.</p></dd>
+
+
+<dt id="arg-wrap">wrap<a class="anchor" aria-label="anchor" href="#arg-wrap"></a></dt>
+<dd><p>If TRUE (default), the kernel density estimate is wrapped around the circle, so that a kernel centred near one end of the <code>yvar</code> axis reappears at the other end instead of being truncated. Set to FALSE for the pre-1.4.0 (truncated) behaviour. On orientation or colour data, where errors sit near zero and the bandwidth is a few degrees, this changes nothing to ~1e-13; it matters when <code>yvar</code> carries mass near +/- <code>circ_space</code>/2, such as the 180-degrees-off reversals in motion-direction data.</p></dd>
+
+
+<dt id="arg-exclude-antipode">exclude_antipode<a class="anchor" aria-label="anchor" href="#arg-exclude-antipode"></a></dt>
+<dd><p>If TRUE (default), the +/- <code>circ_space</code>/2 point is dropped from the positive and negative sums, exactly like zero. It is the same angle approached from two sides and so has no sign, and with <code>n</code> odd it is otherwise counted twice (once as <code>-max_diss</code> and once as <code>+max_diss</code>). Set to FALSE for the pre-1.4.0 behaviour.</p></dd>
+
+
+<dt id="arg-n-wraps">n_wraps<a class="anchor" aria-label="anchor" href="#arg-n-wraps"></a></dt>
+<dd><p>Number of periodic images summed on each side when <code>wrap</code> is TRUE (default: 1). One is already far past double precision for any bandwidth much smaller than <code>circ_space</code>.</p></dd>
+
+
+<dt id="arg-rescale-narrow">rescale_narrow<a class="anchor" aria-label="anchor" href="#arg-rescale-narrow"></a></dt>
+<dd><p>If TRUE (default), a bandwidth narrower than the spacing of the <code>x_grid</code> triggers a rescaling of <code>yvar</code> and the bandwidth by a common factor, so that the kernel is at least one grid cell wide. The asymmetry is a signed mass difference and a positive scaling preserves each value's sign, so the estimand is unchanged; this is equivalent to evaluating on a finer grid, but cheaper. Without it, a kernel narrower than a cell falls between grid points and the rectangle sum stops representing the density (at <code>kernel_bw</code> = dx/20 a point centred on a cell contributes 7.98x its mass and one half a cell away contributes 0). <code><a href="https://rdrr.io/r/stats/bandwidth.html" class="external-link">stats::bw.SJ()</a></code> does reach that regime on real data. Set to FALSE for the pre-1.4.0 behaviour.</p></dd>
+
+
+<dt id="arg-scale-safety">scale_safety<a class="anchor" aria-label="anchor" href="#arg-scale-safety"></a></dt>
+<dd><p>Fraction of <code>circ_space</code>/2 that the rescaled <code>yvar</code> values are allowed to reach (default: 0.5). Rescaling treats the circular axis as linear, which is only valid while no mass is near the wrap, so the factor is capped rather than assumed safe.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -244,7 +269,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>
