@@ -1384,6 +1384,11 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #' @param average If TRUE, the asymmetry is averaged for each x-value (default: TRUE).
 #' @param return_full_density If TRUE, returns the full data.table with density computed at each point (default: FALSE).
 #' @param normalize if TRUE, normalizes the difference in probability density by the total sum of probability density (with zero point excluded). Delta then corresponds to the probability of observing a given sign. In use only when average is TRUE.
+#' @param wrap If TRUE (default), the kernel density estimate is wrapped around the circle, so that a kernel centred near one end of the `yvar` axis reappears at the other end instead of being truncated. Set to FALSE for the pre-1.4.0 (truncated) behaviour. On orientation or colour data, where errors sit near zero and the bandwidth is a few degrees, this changes nothing to ~1e-13; it matters when `yvar` carries mass near +/- `circ_space`/2, such as the 180-degrees-off reversals in motion-direction data.
+#' @param exclude_antipode If TRUE (default), the +/- `circ_space`/2 point is dropped from the positive and negative sums, exactly like zero. It is the same angle approached from two sides and so has no sign, and with `n` odd it is otherwise counted twice (once as `-max_diss` and once as `+max_diss`). Set to FALSE for the pre-1.4.0 behaviour.
+#' @param n_wraps Number of periodic images summed on each side when `wrap` is TRUE (default: 1). One is already far past double precision for any bandwidth much smaller than `circ_space`.
+#' @param rescale_narrow If TRUE (default), a bandwidth narrower than the spacing of the `x_grid` triggers a rescaling of `yvar` and the bandwidth by a common factor, so that the kernel is at least one grid cell wide. The asymmetry is a signed mass difference and a positive scaling preserves each value's sign, so the estimand is unchanged; this is equivalent to evaluating on a finer grid, but cheaper. Without it, a kernel narrower than a cell falls between grid points and the rectangle sum stops representing the density (at `kernel_bw` = dx/20 a point centred on a cell contributes 7.98x its mass and one half a cell away contributes 0). [stats::bw.SJ()] does reach that regime on real data. Set to FALSE for the pre-1.4.0 behaviour.
+#' @param scale_safety Fraction of `circ_space`/2 that the rescaled `yvar` values are allowed to reach (default: 0.5). Rescaling treats the circular axis as linear, which is only valid while no mass is near the wrap, so the factor is capped rather than assumed safe.
 #' @return A data.table with the grouping variables, `dist` - the values of X-axis variable at which the density is computed, and `delta` - the difference (asymmetry) in probability density for positive and negative values of `yvar`; or the full density data if `return_full_density` is TRUE.
 #' @export
 #' @importFrom stats as.formula bw.SJ density weights
@@ -1410,7 +1415,7 @@ circ_loess <- function(formula = NULL, data = NULL, angle = NULL, y = NULL, xseq
 #'   geom_line(stat = "summary", fun = mean) +
 #'   labs(y = "Asymmetry in error probability density, %", x = "Absolute orientation difference, °")
 #'
-density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = "abs_td_dist", yvar = "bias_to_distr_corr", by = c(), n = 181, average = T, return_full_density = F, normalize = T) {
+density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw = NULL, xvar = "abs_td_dist", yvar = "bias_to_distr_corr", by = c(), n = 181, average = T, return_full_density = F, normalize = T, wrap = TRUE, exclude_antipode = TRUE, n_wraps = 1, rescale_narrow = TRUE, scale_safety = 0.5) {
   x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- bw_est <- . <- NULL # due to NSE notes in R CMD check
 
   if (!(circ_space %in% c(180, 360))) {
@@ -1432,11 +1437,38 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
 
   # Compute density for all i values at once, grouped by 'by' variables
   x_grid <- seq(-max_diss, max_diss, length.out = n)
+  dx <- 2 * max_diss / (n - 1)
+
+  # Periodic images of the kernel, so that mass near one end of the y axis is not
+  # truncated but reappears at the other end. `wrap = FALSE` restores the old
+  # single-image kernel.
+  kernel_offsets <- if (wrap) circ_space * (-n_wraps:n_wraps) else 0
+
+  # Rescaling is a change of the y variable itself, so it would misrepresent the
+  # density that `return_full_density` exists to expose; it only applies to the
+  # summed asymmetry.
+  rescale_here <- rescale_narrow && !return_full_density
+  bias_scales <- c()
 
   res <- dt[, {
     y_data <- get(yvar)
+    bw_group <- kernel_bw
+    if (rescale_here) {
+      # Widen the distribution (and the bandwidth with it) until the kernel spans at
+      # least one grid cell, instead of flooring the bandwidth and over-smoothing the
+      # very groups that triggered it. A positive scaling preserves each value's sign,
+      # so the signed mass difference this function returns is unchanged. Capped so
+      # the scaled values stay clear of the wrap, where the linear scaling would stop
+      # being legitimate.
+      wanted <- dx / max(bw_group, 1e-12)
+      allowed <- scale_safety * max_diss / max(max(abs(y_data)), 1e-12)
+      bias_scale <- max(min(wanted, allowed), 1)
+      y_data <- y_data * bias_scale
+      bw_group <- max(bw_group * bias_scale, dx / 2)
+      bias_scales <<- c(bias_scales, bias_scale)
+    }
     dist_matrix <- outer(x_grid, y_data, FUN = "-")
-    kernel_base <- exp(-0.5 * (dist_matrix / kernel_bw)^2) / (sqrt(2 * pi) * kernel_bw)
+    kernel_base <- Reduce(`+`, lapply(kernel_offsets, function(o) exp(-0.5 * ((dist_matrix + o) / bw_group)^2))) / (sqrt(2 * pi) * bw_group)
 
     # Get weights for this group
     group_weights <- weight_matrix[.I, , drop = FALSE]
@@ -1452,11 +1484,24 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
     )
   }, by = by]
 
-  res[, x_val := abs(x)]
+  # Rounded, because `x_val` is the key the two signs are paired on below and
+  # `seq()` does not produce bitwise-symmetric endpoints for every `n`: on the
+  # n = 1801 grid 604 of the 900 pairs fail to match on `abs(x)` alone, and each
+  # unmatched point silently drops out of the sums as an NA `delta`.
+  res[, x_val := round(abs(x), 10)]
   res[, x_sign := sign(x)]
 
   if (return_full_density) {
     return(res)
+  }
+
+  # The antipode is the same angle reached from either side, so it is as
+  # sign-ambiguous as zero (which drops out below as an NA `delta`), and with an odd
+  # `n` the inclusive grid gives it two cells. Once it is excluded, an inclusive grid
+  # of n = 2k + 1 points and a half-open one of 2k points cover an identical set of
+  # angles and give identical results.
+  if (exclude_antipode) {
+    res <- res[x_val < max_diss]
   }
 
   res <- dcast(res,
@@ -1480,6 +1525,9 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
   }
 
   setattr(res, "kernel_bw", kernel_bw)
+  if (length(bias_scales) > 0) {
+    setattr(res, "bias_scale", bias_scales)
+  }
 
   res
 }
@@ -1499,6 +1547,11 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
 #' @param average If TRUE, the asymmetry is averaged (default: TRUE).
 #' @param return_full_density If TRUE, returns the full data.table with density computed at each point (default: FALSE).
 #' @param normalize if TRUE, normalizes the difference in probability density by the total sum of probability density (with zero point excluded). Delta then corresponds to the probability of observing a given sign. In use only when average is TRUE.
+#' @param wrap If TRUE (default), the kernel density estimate is wrapped around the circle, so that a kernel centred near one end of the `yvar` axis reappears at the other end instead of being truncated. See [density_asymmetry()].
+#' @param exclude_antipode If TRUE (default), the +/- `circ_space`/2 point is dropped from the positive and negative sums, exactly like zero. See [density_asymmetry()].
+#' @param n_wraps Number of periodic images summed on each side when `wrap` is TRUE (default: 1).
+#' @param rescale_narrow If TRUE (default), a bandwidth narrower than the density grid spacing triggers a rescaling of `yvar` and the bandwidth by a common factor. See [density_asymmetry()].
+#' @param scale_safety Fraction of `circ_space`/2 that the rescaled `yvar` values are allowed to reach (default: 0.5).
 #' @return A data.table with the grouping variables and `delta` - the difference (asymmetry) in probability density for positive and negative values of `yvar`; or the full density data if `return_full_density` is TRUE.
 #' @export
 #' @importFrom stats as.formula bw.SJ density weights
@@ -1526,7 +1579,7 @@ density_asymmetry <- function(dt, circ_space = 180, weights_sd = 10, kernel_bw =
 #'   labs(y = "Asymmetry in error probability density, %", x = "Previous target")
 #'
 
-density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_space = 180, kernel_bw = NULL, by = c(), n = 181, average = T, return_full_density = F, normalize = T) {
+density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_space = 180, kernel_bw = NULL, by = c(), n = 181, average = T, return_full_density = F, normalize = T, wrap = TRUE, exclude_antipode = TRUE, n_wraps = 1, rescale_narrow = TRUE, scale_safety = 0.5) {
   x_val <- x <- x_sign <- delta <- `1` <- `-1` <- total <- ratio <- . <- bw_est <- NULL # due to NSE notes in R CMD check
 
   if (!(circ_space %in% c(180, 360))) {
@@ -1540,14 +1593,53 @@ density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_spa
     kernel_bw <- dt[, .(bw_est = bw.SJ(get(yvar))), by = by][, mean(bw_est)]
   }
 
-  res <- dt[, density(get(yvar),
-                      from = -max_diss, to = max_diss, n = n, bw = kernel_bw,
-  )[c("x", "y")], by = by]
-  res[, x_val := abs(x)]
+  dx <- 2 * max_diss / (n - 1)
+  rescale_here <- rescale_narrow && !return_full_density
+  bias_scales <- c()
+
+  # Wrapping via [stats::density()] is done by evaluating over `n_wraps` extra
+  # periods on each side at the same grid spacing and folding the images back onto
+  # the central period. Augmenting the sample with shifted copies would be shorter
+  # but unsound: `density()` bins the data and silently drops whatever falls outside
+  # `from - 4 * bw` .. `to + 4 * bw`, which is exactly where the shifted copies sit.
+  circ_density <- function(y_data, bw) {
+    if (!wrap) {
+      d <- density(y_data, from = -max_diss, to = max_diss, n = n, bw = bw)
+      return(list(x = d$x, y = d$y))
+    }
+    k <- n_wraps
+    d <- density(y_data,
+      from = -(2 * k + 1) * max_diss, to = (2 * k + 1) * max_diss,
+      n = (2 * k + 1) * (n - 1) + 1, bw = bw
+    )
+    centre <- k * (n - 1) + seq_len(n)
+    folded <- Reduce(`+`, lapply(-k:k, function(m) d$y[centre + m * (n - 1)]))
+    list(x = d$x[centre], y = folded)
+  }
+
+  res <- dt[, {
+    y_data <- get(yvar)
+    bw_group <- kernel_bw
+    if (rescale_here) {
+      wanted <- dx / max(bw_group, 1e-12)
+      allowed <- scale_safety * max_diss / max(max(abs(y_data)), 1e-12)
+      bias_scale <- max(min(wanted, allowed), 1)
+      y_data <- y_data * bias_scale
+      bw_group <- max(bw_group * bias_scale, dx / 2)
+      bias_scales <<- c(bias_scales, bias_scale)
+    }
+    circ_density(y_data, bw_group)
+  }, by = by]
+  # Rounded: see the same step in `density_asymmetry()`.
+  res[, x_val := round(abs(x), 10)]
   res[, x_sign := sign(x)]
 
   if (return_full_density) {
     return(res)
+  }
+
+  if (exclude_antipode) {
+    res <- res[x_val < max_diss]
   }
 
   res <- dcast(res,
@@ -1567,6 +1659,9 @@ density_asymmetry_discrete <- function(dt, yvar = "bias_to_distr_corr", circ_spa
   }
 
   setattr(res, "kernel_bw", kernel_bw)
+  if (length(bias_scales) > 0) {
+    setattr(res, "bias_scale", bias_scales)
+  }
 
   res
 }

@@ -15,7 +15,12 @@ density_asymmetry(
   n = 181,
   average = T,
   return_full_density = F,
-  normalize = T
+  normalize = T,
+  wrap = TRUE,
+  exclude_antipode = TRUE,
+  n_wraps = 1,
+  rescale_narrow = TRUE,
+  scale_safety = 0.5
 )
 }
 \arguments{
@@ -40,6 +45,16 @@ density_asymmetry(
 \item{return_full_density}{If TRUE, returns the full data.table with density computed at each point (default: FALSE).}
 
 \item{normalize}{if TRUE, normalizes the difference in probability density by the total sum of probability density (with zero point excluded). Delta then corresponds to the probability of observing a given sign. In use only when average is TRUE.}
+
+\item{wrap}{If TRUE (default), the kernel density estimate is wrapped around the circle, so that a kernel centred near one end of the \code{yvar} axis reappears at the other end instead of being truncated. Set to FALSE for the pre-1.4.0 (truncated) behaviour. On orientation or colour data, where errors sit near zero and the bandwidth is a few degrees, this changes nothing to ~1e-13; it matters when \code{yvar} carries mass near +/- \code{circ_space}/2, such as the 180-degrees-off reversals in motion-direction data.}
+
+\item{exclude_antipode}{If TRUE (default), the +/- \code{circ_space}/2 point is dropped from the positive and negative sums, exactly like zero. It is the same angle approached from two sides and so has no sign, and with \code{n} odd it is otherwise counted twice (once as \code{-max_diss} and once as \code{+max_diss}). Set to FALSE for the pre-1.4.0 behaviour.}
+
+\item{n_wraps}{Number of periodic images summed on each side when \code{wrap} is TRUE (default: 1). One is already far past double precision for any bandwidth much smaller than \code{circ_space}.}
+
+\item{rescale_narrow}{If TRUE (default), a bandwidth narrower than the spacing of the \code{x_grid} triggers a rescaling of \code{yvar} and the bandwidth by a common factor, so that the kernel is at least one grid cell wide. The asymmetry is a signed mass difference and a positive scaling preserves each value's sign, so the estimand is unchanged; this is equivalent to evaluating on a finer grid, but cheaper. Without it, a kernel narrower than a cell falls between grid points and the rectangle sum stops representing the density (at \code{kernel_bw} = dx/20 a point centred on a cell contributes 7.98x its mass and one half a cell away contributes 0). \code{\link[stats:bw.SJ]{stats::bw.SJ()}} does reach that regime on real data. Set to FALSE for the pre-1.4.0 behaviour.}
+
+\item{scale_safety}{Fraction of \code{circ_space}/2 that the rescaled \code{yvar} values are allowed to reach (default: 0.5). Rescaling treats the circular axis as linear, which is only valid while no mass is near the wrap, so the factor is capped rather than assumed safe.}
 }
 \value{
 A data.table with the grouping variables, \code{dist} - the values of X-axis variable at which the density is computed, and \code{delta} - the difference (asymmetry) in probability density for positive and negative values of \code{yvar}; or the full density data if \code{return_full_density} is TRUE.

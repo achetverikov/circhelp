@@ -13,7 +13,12 @@ density_asymmetry_discrete(
   n = 181,
   average = T,
   return_full_density = F,
-  normalize = T
+  normalize = T,
+  wrap = TRUE,
+  exclude_antipode = TRUE,
+  n_wraps = 1,
+  rescale_narrow = TRUE,
+  scale_safety = 0.5
 )
 }
 \arguments{
@@ -34,6 +39,16 @@ density_asymmetry_discrete(
 \item{return_full_density}{If TRUE, returns the full data.table with density computed at each point (default: FALSE).}
 
 \item{normalize}{if TRUE, normalizes the difference in probability density by the total sum of probability density (with zero point excluded). Delta then corresponds to the probability of observing a given sign. In use only when average is TRUE.}
+
+\item{wrap}{If TRUE (default), the kernel density estimate is wrapped around the circle, so that a kernel centred near one end of the \code{yvar} axis reappears at the other end instead of being truncated. See \code{\link[=density_asymmetry]{density_asymmetry()}}.}
+
+\item{exclude_antipode}{If TRUE (default), the +/- \code{circ_space}/2 point is dropped from the positive and negative sums, exactly like zero. See \code{\link[=density_asymmetry]{density_asymmetry()}}.}
+
+\item{n_wraps}{Number of periodic images summed on each side when \code{wrap} is TRUE (default: 1).}
+
+\item{rescale_narrow}{If TRUE (default), a bandwidth narrower than the density grid spacing triggers a rescaling of \code{yvar} and the bandwidth by a common factor. See \code{\link[=density_asymmetry]{density_asymmetry()}}.}
+
+\item{scale_safety}{Fraction of \code{circ_space}/2 that the rescaled \code{yvar} values are allowed to reach (default: 0.5).}
 }
 \value{
 A data.table with the grouping variables and \code{delta} - the difference (asymmetry) in probability density for positive and negative values of \code{yvar}; or the full density data if \code{return_full_density} is TRUE.
