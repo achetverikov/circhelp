@@ -16,10 +16,6 @@ library(circhelp)
 library(data.table)
 library(ggplot2)
 
-if (requireNamespace("ragg", quietly = TRUE)) {
-  knitr::opts_chunk$set(dev = "ragg_png")
-}
-
 fig_width <- 3.6
 knitr::opts_chunk$set(
   collapse = TRUE,
