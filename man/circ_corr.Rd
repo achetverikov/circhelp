@@ -24,9 +24,10 @@ correlation coefficient
 Computes a circular correlation coefficient as defined in Jammalamadaka & SenGupta (2001).
 }
 \examples{
-requireNamespace("mgcv")
-data <- mgcv::rmvn(10000, c(0, 0), V = matrix(c(1, 0.5, 0.5, 1), ncol = 2))
-circ_corr(data[, 1], data[, 2])
+set.seed(1)
+x <- rnorm(1000)
+y <- 0.5 * x + sqrt(0.75) * rnorm(1000)
+circ_corr(x, y)
 }
 \references{
 {

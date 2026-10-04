@@ -44,8 +44,9 @@ vm_sd <- vm_kappa_to_circ_sd(vm_kappa)
 
 vm_circ_sd_to_kappa(vm_sd)
 
-x <- circular::rvonmises(10000, mu = circular::circular(0), kappa = vm_kappa)
-
-sprintf("Expected SD: \%.2f, actual SD: \%.2f", vm_sd, circ_sd_rad(x))
+if (requireNamespace("circular", quietly = TRUE)) {
+  x <- circular::rvonmises(2000, mu = circular::circular(0), kappa = vm_kappa)
+  sprintf("Expected SD: \%.2f, actual SD: \%.2f", vm_sd, circ_sd_rad(x))
+}
 
 }

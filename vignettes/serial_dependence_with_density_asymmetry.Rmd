@@ -67,7 +67,7 @@ options(ggplot2.discrete.colour = default_colors)
 options(ggplot2.discrete.fill = default_colors)
 ```
 
-In this vignette, I show how to estimate the serial dependence bias using the asymmetry in error probability density (note that this feature is currently only available from the developmental version on Github). This can be done using the `density_asymmetry()` function.
+In this vignette, I show how to estimate the serial dependence bias using the asymmetry in error probability density with the `density_asymmetry()` function.
 
 I will use the data from Experiment 2 in Pascucci et al. (2019, PLOS Biology, https://dx.doi.org/10.1371/journal.pbio.3000144) available from https://doi.org/10.5281/zenodo.2544946. First, I load the data, the required packages, and compute important variables.
 
@@ -79,7 +79,7 @@ data[, diff_in_ori := angle_diff_180(prev_ori, orientation)] # shift in orientat
 data[, abs_diff_in_ori := abs(diff_in_ori)] # absolute shift, that is, dissimilarity between the current and the previous target
 ```
 
-The data is preprocessed to remove cardinal biases (see `vignette('cardinal_biases')`:
+The data is preprocessed to remove cardinal biases (see `vignette("cardinal_biases")`):
 
 ```{r remove_cardinal_biases}
 data[, c("err_corrected", "is_outlier") := remove_cardinal_biases(err, orientation)[, c("be_c", "is_outlier")], by = observer]
@@ -87,7 +87,7 @@ data[, c("err_corrected", "is_outlier") := remove_cardinal_biases(err, orientati
 data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err_corrected, err_corrected)] # bias towards the previous target
 
 # subset the data to remove outliers and trials with no responses / no previous responses
-data <- data[!is.na(err_rel_to_prev_targ) & is_outlier == F ]
+data <- data[!is.na(err_rel_to_prev_targ) & is_outlier == FALSE ]
 ```
 
 Now, the main part. `density_asymmetry()` computes a smoothed estimate of the asymmetry in error probability across the dissimilarity range. Here is an example with the results plotted at different dissimilarity steps from 0 to 90 degrees for one observer:
@@ -96,7 +96,7 @@ Now, the main part. `density_asymmetry()` computes a smoothed estimate of the as
 
 err_dens <- density_asymmetry(data[observer == 1],
   circ_space = 180, weights_sd = 10,
-  xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", return_full_density = T
+  xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", return_full_density = TRUE
 )
 
 ggplot(err_dens[dist %in% c(1, seq(0, 90, 10))], 
@@ -113,7 +113,7 @@ The x-axis shows the bias, which means that the errors are arranged in a way tha
 
 Note that the density is rarely a symmetric bell-shaped Gaussian, which makes using the mean as an overall estimator of bias problematic. This is based on observations from a single observer - other observers might have different patterns. This is one of the reasons why we started using asymmetry in the density, i.e. the difference between the left and right parts of the curve relative to zero.
 
-We can then compute the asymmetry in the density (the main purpose of the function) by dropping the parameter `return_full_density = T`. We will also do it for all observers by specifying the parameter `by`:
+We can then compute the asymmetry in the density (the main purpose of the function) by dropping the parameter `return_full_density = TRUE`. We will also do it for all observers by specifying the parameter `by`:
 
 ```{r}
 err_dens <- density_asymmetry(data,
@@ -147,7 +147,17 @@ This is a simple pooled mean + CI summary for illustration. For proper within-su
 Putting them side by side:
 
 ```{r density, fig.width=fig_width*2, out.width='66%'}
-p1 <- ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
+asym_summary <- err_dens[, .(
+  y = mean(delta * 100),
+  se = sd(delta * 100) / sqrt(.N),
+  df = pmax(.N - 1, 1)
+), by = .(dist)]
+asym_summary[, `:=`(
+  ymin = y - qt(0.975, df) * se,
+  ymax = y + qt(0.975, df) * se
+)]
+
+p1 <- ggplot(asym_summary, aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
   geom_line() +
   geom_ribbon(alpha = 0.1) +
   labs(y = "Asymmetry in error probability, %")

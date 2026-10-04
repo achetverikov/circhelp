@@ -123,9 +123,10 @@ angle_diff <- function(a, b, period = 360) {
 #' @export
 #'
 #' @examples
-#' requireNamespace("mgcv")
-#' data <- mgcv::rmvn(10000, c(0, 0), V = matrix(c(1, 0.5, 0.5, 1), ncol = 2))
-#' circ_corr(data[, 1], data[, 2])
+#' set.seed(1)
+#' x <- rnorm(1000)
+#' y <- 0.5 * x + sqrt(0.75) * rnorm(1000)
+#' circ_corr(x, y)
 circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL, na.rm = FALSE) {
   if (na.rm) {
     a <- a[!is.na(a)]
@@ -166,8 +167,9 @@ circ_corr <- function(a, b, ill_defined = FALSE, mu = NULL, na.rm = FALSE) {
 #' }
 #' @examples
 #'
+#' set.seed(1)
 #' x <- rnorm(50)
-#' a <- as.vector(circular::rvonmises(50, 0, 5))
+#' a <- rnorm(50, sd = 0.4)
 #' circ_lin_corr(x + a, x)
 circ_lin_corr <- function(circ_x, lin_x, na.rm = FALSE) {
   if (na.rm) {
@@ -1164,9 +1166,10 @@ inverse <- function(f, lower = 1e-16, upper = 1000) {
 #'
 #' vm_circ_sd_to_kappa(vm_sd)
 #'
-#' x <- circular::rvonmises(10000, mu = circular::circular(0), kappa = vm_kappa)
-#'
-#' sprintf("Expected SD: %.2f, actual SD: %.2f", vm_sd, circ_sd_rad(x))
+#' if (requireNamespace("circular", quietly = TRUE)) {
+#'   x <- circular::rvonmises(2000, mu = circular::circular(0), kappa = vm_kappa)
+#'   sprintf("Expected SD: %.2f, actual SD: %.2f", vm_sd, circ_sd_rad(x))
+#' }
 #'
 vm_kappa_to_circ_sd <- function(kappa) {
   sqrt(-2 * log(a_fun(kappa)))

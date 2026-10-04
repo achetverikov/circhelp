@@ -20,11 +20,7 @@ Suggests:
     rmarkdown,
     BAMBI,
     ragg,
-    Hmisc,
-    superb,
-    ggridges,
-    reshape2,
-    mgcv
+    ggridges
 Imports:
     mathjaxr,
     data.table,
@@ -37,7 +33,7 @@ Depends:
     R (>= 4.1.0)
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
-VignetteBuilder: knitr, patchwork, ggplot2, MASS, ragg, Hmisc, ggridges, superb, reshape2
+VignetteBuilder: knitr, rmarkdown
 RdMacros: mathjaxr
 BuildManual: TRUE 
 Config/roxygen2/version: 8.0.0
