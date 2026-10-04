@@ -123,13 +123,15 @@ test_that("the wrapped discrete density conserves mass wherever the data sit", {
   rotated <- dt[, .(
     bias_to_distr_corr = (bias_to_distr_corr + 70 + 90) %% 180 - 90
   )]
-  expect_lt(
-    sum(density(
-      rotated$bias_to_distr_corr,
-      from = -90, to = 90, n = 181, bw = 5
-    )$y),
-    0.97
+  wrapped <- density_asymmetry_discrete(
+    rotated, kernel_bw = 5, return_full_density = TRUE
   )
+  wrapped_mass <- sum(wrapped[abs(x) < 90]$y) + wrapped[x == -90]$y
+  truncated_mass <- sum(density(
+    rotated$bias_to_distr_corr,
+    from = -90, to = 90, n = 181, bw = 5
+  )$y)
+  expect_lt(truncated_mass, wrapped_mass - 0.01)
 })
 
 test_that("the discrete asymmetry is stable for narrow kernels", {
