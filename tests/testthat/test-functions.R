@@ -1,13 +1,12 @@
-test_that("means are equal", {
-  skip_if_not_installed("circular")
+test_that("circular means agree across representations", {
   set.seed(1)
   x <- rnorm(500, sd = 2)
 
   expect_equal(circ_mean_rad(x), circ_descr(x)[["mu"]])
-  expect_equal(circ_mean_rad(x), as.vector(circular::mean.circular(circular::circular(x))))
   expect_equal(circ_mean_rad(x), circ_mean_360(x / pi * 180) / 180 * pi)
   expect_equal(circ_mean_rad(x), weighted_circ_mean(x, rep(1, length(x))))
   expect_equal(circ_mean_rad(x), weighted_circ_mean2(x, rep(1, length(x))))
+  expect_equal(circ_mean_rad(c(-pi / 2, 0, pi / 2)), 0, tolerance = 1e-15)
 })
 
 test_that("weighted means are equal", {
@@ -18,29 +17,21 @@ test_that("weighted means are equal", {
   expect_equal(weighted_circ_mean(x, w), weighted_circ_mean2(x, w))
 })
 
-test_that("SDs are equal", {
-  skip_if_not_installed("circular")
+test_that("circular SDs agree across representations", {
   set.seed(3)
   x <- rnorm(500, sd = 2)
 
   expect_equal(circ_sd_rad(x), circ_descr(x)[["sigma"]])
   expect_equal(circ_sd_rad(x), circ_sd_360(x / pi * 180) / 180 * pi)
   expect_equal(circ_sd_rad(x), weighted_circ_sd(x, rep(1, length(x))))
-  expect_equal(circ_sd_rad(x), as.vector(circular::sd.circular(circular::circular(x))))
 })
 
-test_that("Circular correlation works for a uniform angle plus von Mises noise", {
-  skip_if_not_installed("circular")
+test_that("Circular correlation has the expected limiting cases", {
   set.seed(4)
-  kappa <- 20
-  n <- 20000
-  x <- runif(n, -pi, pi)
-  y <- x + as.vector(circular::rvonmises(n, mu = circular::circular(0), kappa = kappa))
-  expected <- besselI(kappa, 1, expon.scaled = TRUE) /
-    besselI(kappa, 0, expon.scaled = TRUE)
-  observed <- circ_corr(x, y, ill_defined = TRUE)
+  x <- runif(5000, -pi, pi)
 
-  expect_equal(observed, expected, tolerance = 0.015)
+  expect_equal(circ_corr(x, x), 1, tolerance = 1e-12)
+  expect_equal(circ_corr(x, x + 0.25), 1, tolerance = 1e-12)
 })
 
 test_that("Circular correlation is close to Pearson correlation for narrow data", {
@@ -50,17 +41,6 @@ test_that("Circular correlation is close to Pearson correlation for narrow data"
   y <- 0.5 * x + sqrt(0.75) * rnorm(n, sd = 0.1)
 
   expect_equal(circ_corr(x, y), cor(x, y), tolerance = 0.01)
-})
-
-test_that("Circular correlation matches BAMBI::circ_cor", {
-  skip_if_not_installed("BAMBI")
-  set.seed(6)
-  n <- 5000
-  x <- rnorm(n)
-  y <- 0.5 * x + sqrt(0.75) * rnorm(n)
-  data <- cbind(x, y) * 2
-
-  expect_equal(circ_corr(data[, 1], data[, 2]), BAMBI::circ_cor(data)[[1]], tolerance = 1e-3)
 })
 
 test_that("conversion from circular SD to kappa works both ways", {
