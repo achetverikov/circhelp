@@ -1,9 +1,7 @@
 # Estimating serial dependence with density_asymmetry()
 
 In this vignette, I show how to estimate the serial dependence bias
-using the asymmetry in error probability density (note that this feature
-is currently only available from the developmental version on Github).
-This can be done using the
+using the asymmetry in error probability density with the
 [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md)
 function.
 
@@ -22,7 +20,7 @@ data[, abs_diff_in_ori := abs(diff_in_ori)] # absolute shift, that is, dissimila
 ```
 
 The data is preprocessed to remove cardinal biases (see
-[`vignette('cardinal_biases')`](https://achetverikov.github.io/circhelp/index.html/articles/cardinal_biases.md):
+[`vignette("cardinal_biases")`](https://achetverikov.github.io/circhelp/index.html/articles/cardinal_biases.md)):
 
 ``` r
 
@@ -31,7 +29,7 @@ data[, c("err_corrected", "is_outlier") := remove_cardinal_biases(err, orientati
 data[, err_rel_to_prev_targ := ifelse(diff_in_ori < 0, -err_corrected, err_corrected)] # bias towards the previous target
 
 # subset the data to remove outliers and trials with no responses / no previous responses
-data <- data[!is.na(err_rel_to_prev_targ) & is_outlier == F ]
+data <- data[!is.na(err_rel_to_prev_targ) & is_outlier == FALSE ]
 ```
 
 Now, the main part.
@@ -46,7 +44,7 @@ observer:
 
 err_dens <- density_asymmetry(data[observer == 1],
   circ_space = 180, weights_sd = 10,
-  xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", return_full_density = T
+  xvar = "abs_diff_in_ori", yvar = "err_rel_to_prev_targ", return_full_density = TRUE
 )
 
 ggplot(err_dens[dist %in% c(1, seq(0, 90, 10))], 
@@ -79,7 +77,7 @@ asymmetry in the density, i.e. the difference between the left and right
 parts of the curve relative to zero.
 
 We can then compute the asymmetry in the density (the main purpose of
-the function) by dropping the parameter `return_full_density = T`. We
+the function) by dropping the parameter `return_full_density = TRUE`. We
 will also do it for all observers by specifying the parameter `by`:
 
 ``` r
@@ -128,7 +126,17 @@ Putting them side by side:
 
 ``` r
 
-p1 <- ggplot(err_dens[, mean_cl_normal(delta * 100), by = .(dist)], aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
+asym_summary <- err_dens[, .(
+  y = mean(delta * 100),
+  se = sd(delta * 100) / sqrt(.N),
+  df = pmax(.N - 1, 1)
+), by = .(dist)]
+asym_summary[, `:=`(
+  ymin = y - qt(0.975, df) * se,
+  ymax = y + qt(0.975, df) * se
+)]
+
+p1 <- ggplot(asym_summary, aes(x = dist, y = y, ymin = ymin, ymax = ymax)) +
   geom_line() +
   geom_ribbon(alpha = 0.1) +
   labs(y = "Asymmetry in error probability, %")

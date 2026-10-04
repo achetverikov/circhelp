@@ -51,7 +51,7 @@ mean of values in the vector
 ``` r
 x <- runif(1000, -pi, pi)
 mean(x)
-#> [1] -0.04127712
+#> [1] -0.04920416
 circ_mean_rad(x)
-#> [1] -0.9695238
+#> [1] -1.873122
 ```

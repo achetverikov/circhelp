@@ -49,7 +49,7 @@ standard deviation of values in the vector
 
 ``` r
 circ_sd_rad(rnorm(50))
-#> [1] 1.004706
+#> [1] 1.064075
 circ_sd_180(rnorm(50))
-#> [1] 0.8488329
+#> [1] 1.077343
 ```

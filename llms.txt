@@ -34,9 +34,6 @@ Most functions are self-explanatory.
 ``` r
 
 library(circhelp)
-library(mgcv)
-#> Loading required package: nlme
-#> This is mgcv 1.9-3. For overview type 'help("mgcv-package")'.
 # compute a set of descriptive statistics
 x <- rnorm(500)
 circ_descr(x)
@@ -69,9 +66,10 @@ angle_diff_360(a, b)
 #> [1] -165
 
 # compute correlation between angles
-data <- rmvn(10000, c(0, 0), V = matrix(c(1, 0.5, 0.5, 1), ncol = 2))
-circ_corr(data[, 1], data[, 2])
-#> [1] 0.452809
+set.seed(1)
+x <- rnorm(10000)
+y <- 0.5 * x + sqrt(0.75) * rnorm(10000)
+circ_corr(x, y)
 ```
 
 The only (somewhat) complicated function is `remove_cardinal_biases`,

@@ -47,16 +47,9 @@ Statistics. WORLD SCIENTIFIC.
 
 ``` r
 
+set.seed(1)
 x <- rnorm(50)
-a <- as.vector(circular::rvonmises(50, 0, 5))
-#> Warning: an object is coerced to the class 'circular' using default value for the following components:
-#>   type: 'angles'
-#>   units: 'radians'
-#>   template: 'none'
-#>   modulo: 'asis'
-#>   zero: 0
-#>   rotation: 'counter'
-#> conversion.circularmuradians0counter
+a <- rnorm(50, sd = 0.4)
 circ_lin_corr(x + a, x)
-#> [1] 0.733253
+#> [1] 0.864586
 ```
