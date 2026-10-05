@@ -35,6 +35,8 @@ reference:
   - Bae_Luck_2018_data
   - Pascucci_et_al_2019_data
 authors:
+  Andrey Chetverikov:
+    href: https://andreychetverikov.org/
   sidebar:
     roles: [aut, ctb]
 figures:
