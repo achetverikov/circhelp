@@ -12,3 +12,10 @@
 ^CRAN-SUBMISSION$
 ^\.github$
 ^\.vscode$
+^profiling$
+^.*\.Rcheck$
+^.*\.tar\.gz$
+^\.codex$
+^\.Rhistory$
+^\.devcontainer$
+^\.claude$

@@ -456,6 +456,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #'   space = "360", plots = "show"
 #' )
 #'
+#' \donttest{
 #' # Using a stricter initial outlier boundary
 #'
 #' remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
@@ -472,6 +473,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #'   reassign_at_boundaries = FALSE, poly_deg = 8,
 #'   init_outliers = abs(ex_data_bae$err) > 60
 #' )
+#' }
 #'
 remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plots = "hide", poly_deg = 4, var_sigma = TRUE, var_sigma_poly_deg = 4, reassign_at_boundaries = TRUE, reassign_range = 2, break_points = NULL, init_outliers = NULL, debug = FALSE, do_plots = NULL) {
   outlier <- dist_to_card <- dist_to_obl <- logLik <- x_var <- min_bp_i <- center_x <- dc_var <- gr_var <- gr_i <- min_boundary_i <- min_boundary_dist <- bin_range <- bin_boundary_left <- bin_boundary_right <- at_the_boundary <- row_i <- likelihood <- dnorm <- pred <- pred_sigma <- new_weight <- i.gr_var <- dist_to_bin_centre <- coef <- predict <- bias <- pred_lin <- be_c <- which_bin <- outlier_f <- coef_sigma_int <- . <- coef_sigma_slope <- NULL # due to NSE notes in R CMD check

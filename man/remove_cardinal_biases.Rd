@@ -106,6 +106,7 @@ remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
   space = "360", plots = "show"
 )
 
+\donttest{
 # Using a stricter initial outlier boundary
 
 remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
@@ -122,6 +123,7 @@ remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
   reassign_at_boundaries = FALSE, poly_deg = 8,
   init_outliers = abs(ex_data_bae$err) > 60
 )
+}
 
 }
 \references{
