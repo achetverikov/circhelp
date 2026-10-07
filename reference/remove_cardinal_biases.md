@@ -257,6 +257,7 @@ remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
 #> 1279:     -4999.398
 #> 1280:     -4999.398
 
+# \donttest{
 # Using a stricter initial outlier boundary
 
 remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
@@ -327,4 +328,5 @@ remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
 #> 1278:   7.002740       2.315133     -0.004313822      85.5     -4127.197
 #> 1279:   8.773052       2.156542      0.001164823    -167.0     -4127.197
 #> 1280:   7.048200       2.315133     -0.004313822     -84.0     -4127.197
+# }
 ```
