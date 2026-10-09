@@ -12,6 +12,7 @@ URL: https://achetverikov.github.io/circhelp/index.html, https://github.com/ache
 BugReports: https://github.com/achetverikov/circhelp/issues
 License: CC0
 Encoding: UTF-8
+Language: en-GB
 LazyData: true
 Suggests:
     testthat (>= 3.0.0),
@@ -22,7 +23,7 @@ Imports:
     mathjaxr,
     data.table,
     stats,
-    ggplot2,
+    ggplot2 (>= 3.4.0),
     MASS,
     patchwork,
     rlang,

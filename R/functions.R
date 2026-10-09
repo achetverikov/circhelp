@@ -839,7 +839,7 @@ make_plots_of_biases <- function(data, poly_deg, sd_val) {
 
   p1 <- ggplot(data = data[outlier == FALSE], aes(x = .data$x_var, color = .data$gr_var)) +
     geom_point(data = data, aes(y = .data$err, shape = .data$outlier_f), alpha = alpha) +
-    geom_line(aes(y = .data$pred), size = 1) +
+    geom_line(aes(y = .data$pred), linewidth = 1) +
     geom_line(aes(y = .data$pred + 3 * .data$pred_sigma)) +
     geom_line(aes(y = .data$pred - 3 * .data$pred_sigma)) +
     geom_hline(yintercept = c(-1, 1) * data[, 3 * sd_val], linetype = 2) +
