@@ -26,7 +26,7 @@ Imports:
     ggplot2 (>= 3.4.0),
     MASS,
     patchwork,
-    rlang,
+    rlang
 Depends:
     R (>= 4.1.0)
 Config/testthat/edition: 3
