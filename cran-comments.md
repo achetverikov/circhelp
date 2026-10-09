@@ -17,5 +17,11 @@ This is a new release, version 1.4.0 (previous CRAN version: 1.1).
 
 ## R CMD check results
 
-Final CRAN-style check results are recorded by the R-CMD-check GitHub Actions
-workflow for this release.
+Checked with `R CMD check --as-cran` on the built tarball:
+
+* Local Windows 11, R 4.6.1: 0 errors | 0 warnings | 1 note (a `lastMiKTeXException`
+  file left in the temp directory by the local MiKTeX installation, not by the package)
+* win-builder, R 4.6.1: Status OK
+
+The R-CMD-check GitHub Actions workflow additionally covers the other platforms.
+This package has no reverse dependencies.
