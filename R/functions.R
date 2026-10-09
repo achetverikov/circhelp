@@ -449,6 +449,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #' ex_data <- Pascucci_et_al_2019_data[observer == 4, ]
 #' remove_cardinal_biases(ex_data$err, ex_data$orientation, plots = "show")
 #'
+#' \donttest{
 #' # Data in motion domain from Bae & Luck (2018, Neuroimage),
 #' # https://osf.io/2h6w9/
 #' ex_data_bae <- Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5], ]
@@ -456,7 +457,6 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #'   space = "360", plots = "show"
 #' )
 #'
-#' \donttest{
 #' # Using a stricter initial outlier boundary
 #'
 #' remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
