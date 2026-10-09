@@ -178,10 +178,6 @@ For additional examples see the help vignette:
 
 ex_data <- Pascucci_et_al_2019_data[observer == 4, ]
 remove_cardinal_biases(ex_data$err, ex_data$orientation, plots = "show")
-#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-#> ℹ Please use `linewidth` instead.
-#> ℹ The deprecated feature was likely used in the circhelp package.
-#>   Please report the issue at <https://github.com/achetverikov/circhelp/issues>.
 
 #>      is_outlier       pred        be_c which_bin  bias bias_type    pred_lin
 #>           <num>      <num>       <num>     <num> <num>    <char>       <num>
