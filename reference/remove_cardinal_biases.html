@@ -201,6 +201,7 @@ bin whose fitted model best describes them, iterating until convergence.</p></li
 <span class="r-out co"><span class="r-pr">#&gt;</span> 439:   7.329150       2.008408    -0.0041370562        41     -1439.084</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 440:   7.298892       2.008408    -0.0041370562        50     -1439.084</span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="co"># Data in motion domain from Bae &amp; Luck (2018, Neuroimage),</span></span></span>
 <span class="r-in"><span><span class="co"># https://osf.io/2h6w9/</span></span></span>
 <span class="r-in"><span><span class="va">ex_data_bae</span> <span class="op">&lt;-</span> <span class="va">Bae_Luck_2018_data</span><span class="op">[</span><span class="va">subject_Num</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">subject_Num</span><span class="op">)</span><span class="op">[</span><span class="fl">5</span><span class="op">]</span>, <span class="op">]</span></span></span>
@@ -248,7 +249,6 @@ bin whose fitted model best describes them, iterating until convergence.</p></li
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1279:     -4999.398</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1280:     -4999.398</span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="co"># Using a stricter initial outlier boundary</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="fu">remove_cardinal_biases</span><span class="op">(</span><span class="va">ex_data_bae</span><span class="op">$</span><span class="va">err</span>, <span class="va">ex_data_bae</span><span class="op">$</span><span class="va">TargetDirection</span>,</span></span>

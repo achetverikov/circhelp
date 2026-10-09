@@ -206,6 +206,7 @@ remove_cardinal_biases(ex_data$err, ex_data$orientation, plots = "show")
 #> 439:   7.329150       2.008408    -0.0041370562        41     -1439.084
 #> 440:   7.298892       2.008408    -0.0041370562        50     -1439.084
 
+# \donttest{
 # Data in motion domain from Bae & Luck (2018, Neuroimage),
 # https://osf.io/2h6w9/
 ex_data_bae <- Bae_Luck_2018_data[subject_Num == unique(subject_Num)[5], ]
@@ -253,7 +254,6 @@ remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
 #> 1279:     -4999.398
 #> 1280:     -4999.398
 
-# \donttest{
 # Using a stricter initial outlier boundary
 
 remove_cardinal_biases(ex_data_bae$err, ex_data_bae$TargetDirection,
