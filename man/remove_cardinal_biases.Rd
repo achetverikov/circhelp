@@ -89,6 +89,12 @@ The bias is computed by flipping the sign of errors when the average predicted e
 
 If \code{bias_type} is set to \code{obl} or \code{card}, only one set of bins is used, centred at cardinal or oblique angles, respectively.
 
+With varying sigma, each final P-spline design must have full rank and at least
+two more non-outlier observations than spline coefficients in each bin. A
+deficient design raises a \code{circhelp_insufficient_data} error reporting the
+affected bin, retained count, coefficient count and rank. These checks are
+minimum identifiability requirements, not a guarantee of a stable correction.
+
 For additional examples see the help vignette:
 \code{vignette("cardinal_biases", package = "circhelp")}
 }

@@ -2,10 +2,11 @@
 
 * `remove_cardinal_biases(var_sigma = FALSE)` now returns `NA` for its
   unavailable `total_log_lik` instead of failing on an undefined variable.
-* Penalized location-scale fitting now handles spline designs made rank
-  deficient by initial outlier exclusions. A penalty-aware decomposition keeps
-  the existing smoothing criterion and varying-variance model; full-rank fits
-  retain their existing solver.
+* Data-deficient P-spline fits now raise a clear `circhelp_insufficient_data`
+  error with the affected bin, non-outlier count, coefficient count and design
+  rank. Initial exclusions are checked before a small-sample constant fit can
+  be substituted, and the diagnostic is preserved by the location-scale fitter.
+  Full-rank fits retain their existing solver.
 
 # circhelp 1.4.0
 
