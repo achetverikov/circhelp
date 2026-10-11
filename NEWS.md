@@ -1,3 +1,13 @@
+# circhelp (development version)
+
+* `remove_cardinal_biases(var_sigma = FALSE)` now returns `NA` for its
+  unavailable `total_log_lik` instead of failing on an undefined variable.
+* Data-deficient P-spline fits now raise a clear `circhelp_insufficient_data`
+  error with the affected bin, non-outlier count, coefficient count and design
+  rank. Initial exclusions are checked before a small-sample constant fit can
+  be substituted, and the diagnostic is preserved by the location-scale fitter.
+  Full-rank fits retain their existing solver.
+
 # circhelp 1.4.0
 
 * `density_asymmetry()`: the kernel density estimate is now wrapped around the

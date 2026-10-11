@@ -63,6 +63,7 @@ If \code{plots=='return'}, returns the three plots showing the biases
 \item pred_lin predicted error for a simple linear model for comparison
 \item pred_sigma predicted SD of the error distribution
 \item coef_sigma_int, coef_sigma_slope intercept and slope for the sigma prediction
+\item total_log_lik summed log likelihood for the varying-sigma model; \code{NA} when \code{var_sigma = FALSE}
 
 }
 }
@@ -87,6 +88,12 @@ bin whose fitted model best describes them, iterating until convergence.
 The bias is computed by flipping the sign of errors when the average predicted error is negative, so, that, for example, if on average the responses are shifted clockwise relative to the true values, the trial-by-trial error would count as bias when it is also shifted clockwise.
 
 If \code{bias_type} is set to \code{obl} or \code{card}, only one set of bins is used, centred at cardinal or oblique angles, respectively.
+
+With varying sigma, each final P-spline design must have full rank and at least
+two more non-outlier observations than spline coefficients in each bin. A
+deficient design raises a \code{circhelp_insufficient_data} error reporting the
+affected bin, retained count, coefficient count and rank. These checks are
+minimum identifiability requirements, not a guarantee of a stable correction.
 
 For additional examples see the help vignette:
 \code{vignette("cardinal_biases", package = "circhelp")}

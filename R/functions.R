@@ -415,6 +415,12 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #'
 #' If `bias_type` is set to `obl` or `card`, only one set of bins is used, centred at cardinal or oblique angles, respectively.
 #'
+#' With varying sigma, each final P-spline design must have full rank and at least
+#' two more non-outlier observations than spline coefficients in each bin. A
+#' deficient design raises a `circhelp_insufficient_data` error reporting the
+#' affected bin, retained count, coefficient count and rank. These checks are
+#' minimum identifiability requirements, not a guarantee of a stable correction.
+#'
 #' For additional examples see the help vignette:
 #' \code{vignette("cardinal_biases", package = "circhelp")}
 #'
@@ -430,6 +436,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #' \item pred_lin predicted error for a simple linear model for comparison
 #' \item pred_sigma predicted SD of the error distribution
 #' \item coef_sigma_int, coef_sigma_slope intercept and slope for the sigma prediction
+#' \item total_log_lik summed log likelihood for the varying-sigma model; `NA` when `var_sigma = FALSE`
 #'
 #' }
 #' @references {
@@ -579,6 +586,9 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   for_fit$pred_sigma <- NA_real_
   for_fit$coef_sigma_int <- NA_real_
   for_fit$coef_sigma_slope <- NA_real_
+  # Only location-scale fits compute a likelihood; the robust constant-variance
+  # branch still returns the same columns, with unavailable metadata marked NA.
+  likelihoods <- NA_real_
 
   break_points <- sort(break_points)
   bin_boundaries <- c(break_points[length(break_points)], break_points)
@@ -710,12 +720,19 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
       cur_df <- for_fit[gr_var == cg, .(err, x_var, dist_to_bin_centre, dc_var, outlier, dist_to_card)]
       w_fit  <- 1 - as.numeric(cur_df$outlier)
       basis  <- .pb_basis(cur_df$dist_to_bin_centre)
-      fit <- fit_weighted_locscale_normal(
-        y         = cur_df$err,
-        x         = cur_df$dist_to_bin_centre,
-        w         = w_fit,
-        x_basis   = basis$X,
-        S_penalty = crossprod(basis$D)
+      fit <- tryCatch(
+        fit_weighted_locscale_normal(
+          y         = cur_df$err,
+          x         = cur_df$dist_to_bin_centre,
+          w         = w_fit,
+          x_basis   = basis$X,
+          S_penalty = crossprod(basis$D)
+        ),
+        circhelp_insufficient_data = function(e) {
+          e$message <- paste0("Final cardinal-bias fit in bin ", cg, ": ", e$message)
+          e$bin <- cg
+          stop(e)
+        }
       )
       if (!fit$ok) stop("Final loc-scale fit failed.")
 
@@ -992,6 +1009,9 @@ get_boundary_preds <- function(group_i, group_label, data, dist_to_centers_mat, 
   p    <- ncol(B)
   n_eff <- nrow(B)
   qr_B <- qr(B, tol = .Machine$double.eps^0.8)
+  if (qr_B$rank < p || n_eff < p + 2L) {
+    .stop_spline_data_error(n_eff, p, qr_B$rank)
+  }
   Q    <- qr.Q(qr_B)
   R    <- qr.R(qr_B)
   Rinv <- backsolve(R, diag(p))
@@ -1022,6 +1042,23 @@ get_boundary_preds <- function(group_i, group_label, data, dist_to_centers_mat, 
   list(lambda = lambda, edf = edf, beta = beta)
 }
 
+# Use a distinct condition so callers do not hide deficient data support behind
+# a generic numerical-fit failure. Counts refer to positive-weight observations.
+.stop_spline_data_error <- function(n, p, rank) {
+  message <- sprintf(
+    paste0("Insufficient data for P-spline fit: %d non-outlier observations, ",
+           "%d coefficients, design rank %d; requires rank %d and at least ",
+           "%d non-outlier observations. Fit with more trials spanning the ",
+           "angular range and inspect the initial outlier exclusions."),
+    n, p, rank, p, p + 2L
+  )
+  stop(structure(
+    list(message = message, call = NULL, n_non_outlier = n,
+         n_coefficients = p, design_rank = rank, min_observations = p + 2L),
+    class = c("circhelp_insufficient_data", "error", "condition")
+  ))
+}
+
 fit_weighted_locscale_normal <- function(y, x, w, poly_deg = 1L, x_basis = NULL, x_sigma = NULL, S_penalty = NULL, lambda_fixed = NULL) {
   w <- as.numeric(w)
   if (!all(is.finite(y)) || !all(is.finite(x)) || !all(is.finite(w))) {
@@ -1037,6 +1074,11 @@ fit_weighted_locscale_normal <- function(y, x, w, poly_deg = 1L, x_basis = NULL,
     X <- x_basis
   }
   p <- ncol(X)
+
+  if (!is.null(S_penalty) && sum(pos) < p + 2L) {
+    rank <- if (any(pos)) qr(X[pos, , drop = FALSE], tol = .Machine$double.eps^0.8)$rank else 0L
+    .stop_spline_data_error(sum(pos), p, rank)
+  }
 
   if (length(y) < (p + 2L) || length(unique(x)) < 2L) {
     mu_const    <- stats::weighted.mean(y, w)
@@ -1080,7 +1122,13 @@ fit_weighted_locscale_normal <- function(y, x, w, poly_deg = 1L, x_basis = NULL,
       # Use only positive-weight rows so n_eff reflects actual sample size.
       B_em  <- X[pos, , drop = FALSE] * sqrt(w_mu[pos])
       y_em  <- y[pos] * sqrt(w_mu[pos])
-      em_res <- tryCatch(.lambda_em_pspline(y_em, B_em, S_full), error = function(e) NULL)
+      em_res <- tryCatch(
+        .lambda_em_pspline(y_em, B_em, S_full),
+        error = function(e) {
+          if (inherits(e, "circhelp_insufficient_data")) stop(e)
+          NULL
+        }
+      )
       if (is.null(em_res) || !all(is.finite(em_res$beta))) break
       beta  <- em_res$beta
       mu    <- as.numeric(X %*% beta)
