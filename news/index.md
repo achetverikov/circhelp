@@ -2,6 +2,8 @@
 
 ## circhelp 1.4.0
 
+CRAN release: 2026-10-09
+
 - [`density_asymmetry()`](https://achetverikov.github.io/circhelp/index.html/reference/density_asymmetry.md):
   the kernel density estimate is now wrapped around the circle
   (`wrap = TRUE`), so mass near +/- `circ_space`/2 is no longer
