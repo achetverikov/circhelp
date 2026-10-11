@@ -63,6 +63,7 @@ If \code{plots=='return'}, returns the three plots showing the biases
 \item pred_lin predicted error for a simple linear model for comparison
 \item pred_sigma predicted SD of the error distribution
 \item coef_sigma_int, coef_sigma_slope intercept and slope for the sigma prediction
+\item total_log_lik summed log likelihood for the varying-sigma model; \code{NA} when \code{var_sigma = FALSE}
 
 }
 }

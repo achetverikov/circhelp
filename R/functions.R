@@ -430,6 +430,7 @@ circ_descr <- function(x, w = NULL, d = NULL, na.rm = FALSE) {
 #' \item pred_lin predicted error for a simple linear model for comparison
 #' \item pred_sigma predicted SD of the error distribution
 #' \item coef_sigma_int, coef_sigma_slope intercept and slope for the sigma prediction
+#' \item total_log_lik summed log likelihood for the varying-sigma model; `NA` when `var_sigma = FALSE`
 #'
 #' }
 #' @references {
@@ -579,6 +580,9 @@ remove_cardinal_biases <- function(err, x, space = "180", bias_type = "fit", plo
   for_fit$pred_sigma <- NA_real_
   for_fit$coef_sigma_int <- NA_real_
   for_fit$coef_sigma_slope <- NA_real_
+  # Only location-scale fits compute a likelihood; the robust constant-variance
+  # branch still returns the same columns, with unavailable metadata marked NA.
+  likelihoods <- NA_real_
 
   break_points <- sort(break_points)
   bin_boundaries <- c(break_points[length(break_points)], break_points)
@@ -992,6 +996,11 @@ get_boundary_preds <- function(group_i, group_label, data, dist_to_centers_mat, 
   p    <- ncol(B)
   n_eff <- nrow(B)
   qr_B <- qr(B, tol = .Machine$double.eps^0.8)
+  if (qr_B$rank < p) {
+    return(.lambda_em_pspline_rank_deficient(
+      y_w, B, S_full, lambda, max_iter, tol, penalty_order
+    ))
+  }
   Q    <- qr.Q(qr_B)
   R    <- qr.R(qr_B)
   Rinv <- backsolve(R, diag(p))
@@ -1019,6 +1028,41 @@ get_boundary_preds <- function(group_i, group_label, data, dist_to_centers_mat, 
   d    <- 1 + lambda * lk
   edf  <- sum(1 / d)
   beta <- backsolve(R, as.numeric(U %*% (qq / d)))
+  list(lambda = lambda, edf = edf, beta = beta)
+}
+
+# A deficient data design can still identify a penalized spline: the penalty
+# supplies information in its unsupported directions. Whiten B'B + S, rather
+# than B'B alone, and retain the same EM criterion and lambda bounds.
+.lambda_em_pspline_rank_deficient <- function(y_w, B, S_full,
+                                             lambda, max_iter, tol,
+                                             penalty_order) {
+  p <- ncol(B)
+  R <- chol(crossprod(B) + S_full)
+  Rinv <- backsolve(R, diag(p))
+  H <- B %*% Rinv
+  eig <- eigen(crossprod(H), symmetric = TRUE)
+  a <- pmin(pmax(eig$values, 0), 1)
+  s <- 1 - a
+  U <- eig$vectors
+  q <- as.numeric(crossprod(H %*% U, y_w))
+  y_y <- sum(y_w^2)
+
+  for (iter in seq_len(max_iter)) {
+    d <- a + lambda * s
+    edf <- sum(a / d)
+    wrss <- max(y_y - sum(q^2 * (2 / d - a / d^2)), 0)
+    sig2 <- wrss / (nrow(B) - edf)
+    tau2 <- sum(s * q^2 / d^2) / max(edf - penalty_order, 1e-6)
+    if (tau2 < 1e-7) tau2 <- 1e-7
+    lambda_old <- lambda
+    lambda <- max(1e-7, min(sig2 / tau2, 1e7))
+    if (abs(lambda - lambda_old) < tol) break
+  }
+
+  d <- a + lambda * s
+  edf <- sum(a / d)
+  beta <- as.numeric(Rinv %*% (U %*% (q / d)))
   list(lambda = lambda, edf = edf, beta = beta)
 }
 

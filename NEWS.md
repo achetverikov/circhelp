@@ -1,3 +1,12 @@
+# circhelp (development version)
+
+* `remove_cardinal_biases(var_sigma = FALSE)` now returns `NA` for its
+  unavailable `total_log_lik` instead of failing on an undefined variable.
+* Penalized location-scale fitting now handles spline designs made rank
+  deficient by initial outlier exclusions. A penalty-aware decomposition keeps
+  the existing smoothing criterion and varying-variance model; full-rank fits
+  retain their existing solver.
+
 # circhelp 1.4.0
 
 * `density_asymmetry()`: the kernel density estimate is now wrapped around the
